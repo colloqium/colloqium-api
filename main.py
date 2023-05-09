@@ -4,6 +4,7 @@ from twilio.twiml.voice_response import VoiceResponse
 import os
 # Import the Twilio and Eleven Labs libraries
 from twilio.rest import Client
+import openai
 
 # Create a Flask app object
 app = Flask(__name__)
@@ -17,7 +18,7 @@ twilio_number = os.environ['twilio_number']
 user_number = "+17066641258"
 
 # The webhook URL for handling the call events
-webhook_url = "http://172.31.128.60:5000/"
+webhook_url = "https://ai-phone-bank-poc.a1j9o94.repl.co/twilio"
 
 # Create a Twilio client object
 client = Client(account_sid, auth_token)
@@ -27,7 +28,20 @@ client = Client(account_sid, auth_token)
 @app.route("/twilio", methods=['POST'])
 def twilio():
 	response = VoiceResponse()
-	response.say("Hello, I am trying to say anything")
+	completion = openai.ChatCompletion.create(
+	 model="gpt-3.5-turbo",
+	 messages=[
+	  {
+	   "role":
+	   "system",
+	   "content":
+	   "You are a campaign worker trying to convince someone to go vote, and vote for your preferred candidate."
+	  },
+	 ],
+	 temperature=0.7)
+	text = completion.choices[0].message.content
+	response.say(text)
+	response.say(completion.choices[0].message.content)
 	# Return the response as XML
 	print(response.to_xml())
 	return Response(response.to_xml(), content_type="text/xml")
