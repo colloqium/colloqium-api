@@ -1,5 +1,5 @@
 # import Flask and other libraries
-from flask import Flask, Response
+from flask import Flask, Response, render_template
 from twilio.twiml.voice_response import VoiceResponse
 import os
 # Import the Twilio and Eleven Labs libraries
@@ -18,7 +18,7 @@ twilio_number = os.environ['twilio_number']
 user_number = "+17066641258"
 
 # The webhook URL for handling the call events
-webhook_url = "https://ai-phone-bank-poc.a1j9o94.repl.co/twilio"
+webhook_url = "http://ai-phone-bank-poc.a1j9o94.repl.co/twilio"
 
 # Create a Twilio client object
 client = Client(account_sid, auth_token)
@@ -45,6 +45,23 @@ def twilio():
 	# Return the response as XML
 	print(response.to_xml())
 	return Response(response.to_xml(), content_type="text/xml")
+
+
+@app.route("/", methods=['GET', 'POST'])
+def home():
+	return render_template('home.html')
+
+
+@app.route("/call", methods=['POST'])
+def call():
+	# Start a new call
+	call = client.calls.create(url=webhook_url,
+	                           to=user_number,
+	                           from_=twilio_number)
+	print(call)
+
+	# Return a TwiML response
+	return render_template('home.html')
 
 
 #Run the app on port 5000
