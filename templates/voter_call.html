@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Voter Call Form</title>
+</head>
+<body>
+    <h1>Voter Call Form</h1>
+    <form method="POST">
+        {{ form.hidden_tag() }}
+		{{ form.csrf_token }}
+        <p>
+            {{ form.voter_name.label }}<br>
+            {{ form.voter_name(size=32) }}
+        </p>
+        <p>
+            {{ form.voter_information.label }}<br>
+            {{ form.voter_information(cols=32, rows=4) }}
+        </p>
+        <p>
+            {{ form.voter_phone_number.label }}<br>
+            {{ form.voter_phone_number(size=32) }}
+        </p>
+        <p>
+            {{ form.race_name.label }}<br>
+            {{ form.race_name(size=32) }}
+        </p>
+        <p>
+            {{ form.race_information.label }}<br>
+            {{ form.race_information(cols=32, rows=4) }}
+        </p>
+        <p>
+            {{ form.candidate_name.label }}<br>
+            {{ form.candidate_name(size=32) }}
+        </p>
+        <p>
+            {{ form.candidate_information.label }}<br>
+            {{ form.candidate_information(cols=32, rows=4) }}
+        </p>
+        <p>
+            {{ form.race_date.label }}<br>
+            {{ form.race_date() }}
+        </p>
+        <p>{{ form.submit() }}</p>
+    </form>
+</body>
+</html>
