@@ -16,7 +16,7 @@ logger = logging.getLogger()
 logger.setLevel(logging.INFO)  # Set the logging level
 
 # Create a file handler
-file_handler = logging.FileHandler('twilio.log')
+file_handler = logging.FileHandler('logs/twilio.log')
 file_handler.setLevel(logging.INFO)  # Set the logging level for the file
 
 # Create a console handler
@@ -58,8 +58,6 @@ db = {}
 @csrf_protect.exempt
 def twilio():
     try:
-        # Set up logging
-        logging.basicConfig(filename='twilio.log', level=logging.INFO)
 
         # Retrieve the conversation from our 'database' using the CallSid
         conversation = db.get(request.values.get('CallSid', ''))
