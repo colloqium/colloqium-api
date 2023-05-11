@@ -49,6 +49,9 @@ webhook_url = "http://ai-phone-bank-poc.a1j9o94.repl.co/twilio"
 # Create a Twilio client object
 client = Client(account_sid, auth_token)
 
+# set OpenAi Key for GPT4
+openai.api_key = os.environ['OPEN_AI_KEY_GPT4']
+
 # A simple dictionary to represent our database - replace with your real database
 db = {}
 
@@ -75,21 +78,31 @@ def twilio():
         # Add the user's message to the conversation
         if speech_result:
             conversation.append({"role": "user", "content": speech_result})
+            # Log the user's message to the console
+            logger.info(f"User message: {speech_result}")
 
         # Get the AI response and add it to the conversation
         completion = openai.ChatCompletion.create(model="gpt-3.5-turbo",
                                                   messages=conversation,
-                                                  temperature=0.7)
+                                                  temperature=0.3)
 
         text = completion.choices[0].message.content
         conversation.append({"role": "assistant", "content": text})
+        logger.info(f"AI message: {text}")
 
         # Update the conversation in our 'database'
         db[request.values.get('CallSid', '')] = conversation
 
         # Return the response as XML
         response.say(text)
-        response.gather(input="speech", action=webhook_url, method="POST")
+
+        #check if text contains "goodbye", if so, hang up the call, other wise continue gathering input
+        if "goodbye" in text.lower():
+            response.hangup()
+            logging.info("Goodbye message received, hanging up call")
+        else:
+            response.gather(input="speech", action=webhook_url, method="POST")
+            logging.info("Gathering input from user")
 
         response_xml = response.to_xml()
 
@@ -108,7 +121,8 @@ def twilio():
 
 @app.route("/", methods=['GET', 'POST'])
 def home():
-    return redirect(url_for('voter_call'))
+    return redirect(
+        url_for('voter_call', last_action="Loading Server for the First Time"))
 
 
 @app.route('/voter_call', methods=['GET', 'POST'])
@@ -180,7 +194,9 @@ def call():
         db[call.sid] = conversation
 
         # Return a TwiML response
-        return redirect(url_for('voter_call'))
+        return render_template('voter_call.html',
+                               last_action="Placed Call",
+                               form=VoterCallForm())
 
     except Exception as e:
         app.logger.error(f"Exception occurred: {e}", exc_info=True)
