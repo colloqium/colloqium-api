@@ -94,14 +94,17 @@ def twilio():
         db[request.values.get('CallSid', '')] = conversation
 
         # Return the response as XML
-        response.say(text)
+        response.say(text, voice='Polly.Joanna-Neural')
 
         #check if text contains "goodbye", if so, hang up the call, other wise continue gathering input
         if "goodbye" in text.lower():
             response.hangup()
             logging.info("Goodbye message received, hanging up call")
         else:
-            response.gather(input="speech", action=webhook_url, method="POST")
+            response.gather(input="speech",
+                            action=webhook_url,
+                            method="POST",
+                            speech_model='experimental_conversations')
             logging.info("Gathering input from user")
 
         response_xml = response.to_xml()
@@ -134,6 +137,10 @@ def voter_call():
         # Create instance of VoterCallForm class
         form = VoterCallForm()
 
+        #get last_action from url
+        last_action = request.args.get('last_action')
+        
+
         # When the form is submitted
         if form.validate_on_submit():
             # Add information from VoterCallForm to the system prompt
@@ -159,7 +166,9 @@ def voter_call():
 
     except Exception as e:
         app.logger.error(f"Exception occurred: {e}", exc_info=True)
-        return render_template('voter_call.html', form=form)
+        return render_template('voter_call.html',
+                               form=form,
+                               last_action="Error")
 
 
 @app.route("/call", methods=['POST', 'GET'])
@@ -194,9 +203,7 @@ def call():
         db[call.sid] = conversation
 
         # Return a TwiML response
-        return render_template('voter_call.html',
-                               last_action="Placed Call",
-                               form=VoterCallForm())
+        return redirect(url_for('voter_call', last_action="Calling" ))
 
     except Exception as e:
         app.logger.error(f"Exception occurred: {e}", exc_info=True)

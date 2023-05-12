@@ -1,17 +1,7 @@
 from flask_wtf import FlaskForm
-from wtforms import StringField, PasswordField, SubmitField, DateField
-from wtforms.validators import DataRequired, Email, EqualTo, Regexp
+from wtforms import StringField, SubmitField, DateField
+from wtforms.validators import DataRequired, Regexp
 from wtforms import TextAreaField
-
-
-class ExampleForm(FlaskForm):
-	name = StringField('Name', validators=[DataRequired()])
-	email = StringField('Email', validators=[DataRequired(), Email()])
-	password = PasswordField('Password', validators=[DataRequired()])
-	confirm_password = PasswordField(
-	 'Confirm Password', validators=[DataRequired(),
-	                                 EqualTo('password')])
-	submit = SubmitField('Submit')
 
 
 # Define a custom validator for phone numbers that match "+17066641258"

@@ -2,46 +2,94 @@
 <html>
 <head>
     <title>Voter Call Form</title>
+    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" rel="stylesheet">
 </head>
-<body>
-    <h1>Voter Call Form</h1>
-    <form method="POST">
-        {{ form.hidden_tag() }}
-		{{ form.csrf_token }}
-        <p>
-            {{ form.voter_name.label }}<br>
-            {{ form.voter_name(size=32) }}
-        </p>
-        <p>
-            {{ form.voter_information.label }}<br>
-            {{ form.voter_information(cols=32, rows=4) }}
-        </p>
-        <p>
-            {{ form.voter_phone_number.label }}<br>
-            {{ form.voter_phone_number(size=32) }}
-        </p>
-        <p>
-            {{ form.race_name.label }}<br>
-            {{ form.race_name(size=32) }}
-        </p>
-        <p>
-            {{ form.race_information.label }}<br>
-            {{ form.race_information(cols=32, rows=4) }}
-        </p>
-        <p>
-            {{ form.candidate_name.label }}<br>
-            {{ form.candidate_name(size=32) }}
-        </p>
-        <p>
-            {{ form.candidate_information.label }}<br>
-            {{ form.candidate_information(cols=32, rows=4) }}
-        </p>
-        <p>
-            {{ form.race_date.label }}<br>
-            {{ form.race_date() }}
-        </p>
-        <p>{{ form.submit() }}</p>
-    </form>
-    <h2>{{last_action}}</h2>
+<body class="bg-primary">
+    <div class="container py-5">
+        <div class="row">
+            <div class="col-lg-8 mx-auto">
+                <div class="card">
+                    <div class="card-header bg-info text-white">
+                        <h2 class="card-title text-center">Voter Call Form</h2>
+                    </div>
+                    <div class="card-body">
+                        <form method="POST">
+                            {{ form.hidden_tag() }}
+                            {{ form.csrf_token }}
+                            <div class="form-group">
+                                {{ form.voter_name.label(class="form-control-label") }}
+                                {{ form.voter_name(class="form-control") }}
+                                {% for error in form.voter_name.errors %}
+                                    <span class="text-danger">{{ error }}</span>
+                                {% endfor %}
+                            </div>
+                            <!-- Repeat the pattern for other fields -->
+                            <div class="form-group">
+                                {{ form.voter_information.label(class="form-control-label") }}
+                                {{ form.voter_information(class="form-control") }}
+                                {% for error in form.voter_information.errors %}
+                                    <span class="text-danger">{{ error }}</span>
+                                {% endfor %}
+                            </div>
+                            <div class="form-group">
+                                {{ form.voter_phone_number.label(class="form-control-label") }}
+                                {{ form.voter_phone_number(class="form-control") }}
+                                {% for error in form.voter_phone_number.errors %}
+                                    <span class="text-danger">{{ error }}</span>
+                                {% endfor %}
+                            </div>
+                            <div class="form-group">
+                                {{ form.race_name.label(class="form-control-label") }}
+                                {{ form.race_name(class="form-control") }}
+                                {% for error in form.race_name.errors %}
+                                    <span class="text-danger">{{ error }}</span>
+                                {% endfor %}
+                            </div>
+                            <div class="form-group">
+                                {{ form.race_information.label(class="form-control-label") }}
+                                {{ form.race_information(class="form-control") }}
+                                {% for error in form.race_information.errors %}
+                                    <span class="text-danger">{{ error }}</span>
+                                {% endfor %}
+                            </div>
+                            <div class="form-group">
+                                {{ form.candidate_name.label(class="form-control-label") }}
+                                {{ form.candidate_name(class="form-control") }}
+                                {% for error in form.candidate_name.errors %}
+                                    <span class="text-danger">{{ error }}</span>
+                                {% endfor %}
+                            </div>
+                            <div class="form-group">
+                                {{ form.candidate_information.label(class="form-control-label") }}
+                                {{ form.candidate_information(class="form-control") }}
+                                {% for error in form.candidate_information.errors %}
+                                    <span class="text-danger">{{ error }}</span>
+                                {% endfor %}
+                            </div>
+                            <div class="form-group">
+                                {{ form.race_date.label(class="form-control-label") }}
+                                {{ form.race_date(class="form-control") }}
+                                {% for error in form.race_date.errors %}
+                                    <span class="text-danger">{{ error }}</span>
+                                {% endfor %}
+                            </div>
+                            <div class="form-group">
+                                {{ form.submit(class="btn btn-info") }}
+                            </div>
+                        </form>
+                    </div>
+                </div>
+                <div class="text-center text-white mt-3">
+                    <h2>{{last_action}}                </h2>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Optional JavaScript -->
+    <!-- jQuery first, then Popper.js, then Bootstrap JS -->
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
 </body>
 </html>
+
