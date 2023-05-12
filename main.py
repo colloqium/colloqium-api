@@ -124,22 +124,17 @@ def twilio():
 
 @app.route("/", methods=['GET', 'POST'])
 def home():
-    return redirect(
-        url_for('voter_call', last_action="Loading Server for the First Time"))
+    return redirect(url_for('voter_call', last_action="LoadingServerForTheFirstTime"))
 
 
-@app.route('/voter_call', methods=['GET', 'POST'])
+@app.route('/voter_call/<last_action>', methods=['GET', 'POST'])
 @csrf_protect.exempt
-def voter_call():
+def voter_call(last_action):
     try:
         app.logger.info("Processing voter call...")
 
         # Create instance of VoterCallForm class
         form = VoterCallForm()
-
-        #get last_action from url
-        last_action = request.args.get('last_action')
-        
 
         # When the form is submitted
         if form.validate_on_submit():
@@ -162,7 +157,9 @@ def voter_call():
             app.logger.info("Redirecting to call route...")
             return redirect(url_for('call'))
 
-        return render_template('voter_call.html', form=form)
+        return render_template('voter_call.html',
+                               form=form,
+                               last_action=last_action)
 
     except Exception as e:
         app.logger.error(f"Exception occurred: {e}", exc_info=True)
@@ -203,7 +200,7 @@ def call():
         db[call.sid] = conversation
 
         # Return a TwiML response
-        return redirect(url_for('voter_call', last_action="Calling" ))
+        return redirect(url_for('voter_call', last_action="Calling"))
 
     except Exception as e:
         app.logger.error(f"Exception occurred: {e}", exc_info=True)
