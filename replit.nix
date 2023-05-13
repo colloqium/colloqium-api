@@ -1,5 +1,9 @@
 { pkgs }: {
   deps = [
+		pkgs.nodePackages.prettier
+    pkgs.sqlite.bin
+    pkgs.sqlite-interactive.bin
+    pkgs.sudo
     pkgs.heroku
     pkgs.python310Full
     pkgs.replitPackages.prybar-python310

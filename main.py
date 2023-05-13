@@ -7,6 +7,7 @@ import os
 from twilio.rest import Client
 import openai
 from forms.voter_call_form import VoterCallForm
+from models import Voter, Candidate, Race, VoterCall, db
 from prompts.campaign_assistant_agent import get_campaign_assistant_system_prompt
 import secrets
 import logging
@@ -37,6 +38,9 @@ logger.addHandler(console_handler)
 app = Flask(__name__)
 app.config['SECRET_KEY'] = secrets.token_hex(nbytes=8)
 csrf_protect = CSRFProtect(app)
+# Set the SQLALCHEMY_DATABASE_URI configuration variable
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///site.db'
+db.init_app(app)
 
 # Your Twilio account credentials
 account_sid = os.environ['twilio_account_sid']
@@ -50,10 +54,7 @@ webhook_url = "http://ai-phone-bank-poc.a1j9o94.repl.co/twilio"
 client = Client(account_sid, auth_token)
 
 # set OpenAi Key for GPT4
-openai.api_key = os.environ['OPEN_AI_KEY_GPT4']
-
-# A simple dictionary to represent our database - replace with your real database
-db = {}
+openai.api_key = os.environ['OPENAI_API_KEY_GPT4']
 
 
 # Define a route for handling Twilio webhook requests
@@ -61,9 +62,12 @@ db = {}
 @csrf_protect.exempt
 def twilio():
     try:
+        call_id = request.form['CallSid']
+        logging.info("Twilio incoming call received for Call id: " + call_id)
+        voter_call = VoterCall.query.filter_by(twilio_call_sid=call_id).first()
 
         # Retrieve the conversation from our 'database' using the CallSid
-        conversation = db.get(request.values.get('CallSid', ''))
+        conversation = voter_call.conversation
 
         # If conversation does not exist, log an error and return
         if not conversation:
@@ -82,16 +86,16 @@ def twilio():
             logger.info(f"User message: {speech_result}")
 
         # Get the AI response and add it to the conversation
-        completion = openai.ChatCompletion.create(model="gpt-3.5-turbo",
-                                                  messages=conversation,
-                                                  temperature=0.3)
+        try:
+            completion = openai.ChatCompletion.create(model="gpt-3.5-turbo",
+                                                      messages=conversation,
+                                                      temperature=0.3)
 
-        text = completion.choices[0].message.content
+            text = completion.choices[0].message.content
+        except:
+            text = "Sorry, I am having trouble hearing you. I will try to call again later, Goodbye"
         conversation.append({"role": "assistant", "content": text})
         logger.info(f"AI message: {text}")
-
-        # Update the conversation in our 'database'
-        db[request.values.get('CallSid', '')] = conversation
 
         # Return the response as XML
         response.say(text, voice='Polly.Joanna-Neural')
@@ -110,6 +114,7 @@ def twilio():
         response_xml = response.to_xml()
 
         logging.info('Response successfully created and returned.')
+        db.session.commit()
         return Response(response_xml, content_type="text/xml")
 
     except Exception as e:
@@ -124,7 +129,8 @@ def twilio():
 
 @app.route("/", methods=['GET', 'POST'])
 def home():
-    return redirect(url_for('voter_call', last_action="LoadingServerForTheFirstTime"))
+    return redirect(
+        url_for('voter_call', last_action="LoadingServerForTheFirstTime"))
 
 
 @app.route('/voter_call/<last_action>', methods=['GET', 'POST'])
@@ -138,21 +144,66 @@ def voter_call(last_action):
 
         # When the form is submitted
         if form.validate_on_submit():
+            # Check if a voter with the given name and phone number already exists
+            voter = Voter.query.filter_by(
+                voter_name=form.voter_name.data,
+                voter_phone_number=form.voter_phone_number.data).first()
+
+            # If the voter does not exist, create a new one
+            if not voter:
+                voter = Voter(voter_name=form.voter_name.data,
+                              voter_phone_number=form.voter_phone_number.data,
+                              voter_information=form.voter_information.data)
+                db.session.add(voter)
+                db.session.commit()
+
+            # Check if candidate with this name is in database
+            candidate = Candidate.query.filter_by(
+                candidate_name=form.candidate_name.data).first()
+
+            if not candidate:
+                candidate = Candidate(
+                    candidate_name=form.candidate_name.data,
+                    candidate_information=form.candidate_information.data)
+                db.session.add(candidate)
+                db.session.commit()
+
+            # Check if race wiht this name is in database
+            race = Race.query.filter_by(race_name=form.race_name.data).first()
+
+            if not race:
+                race = Race(race_name=form.race_name.data,
+                            race_information=form.race_information.data)
+                db.session.add(race)
+                db.session.commit()
+
             # Add information from VoterCallForm to the system prompt
-            # Update system prompt with form data
             system_prompt = get_campaign_assistant_system_prompt(
                 form.voter_name.data, form.race_name.data, form.race_date.data,
                 form.candidate_name.data, form.race_information.data,
                 form.candidate_information.data, form.voter_information.data)
             user_number = form.voter_phone_number.data
 
+            # Create the VoterCall
+            voter_call = VoterCall(
+                twilio_call_sid='',  # You will need to update this later
+                conversation=[{
+                    "role": "system",
+                    "content": system_prompt
+                }],
+                voter_id=voter.id,  # The ID of the voter
+                candidate_id=candidate.id,
+                race_id=race.id)
+            db.session.add(voter_call)
+            db.session.commit()
+            logging.info("Voter call created successfully")
+
             # Log the system prompt and user number
             app.logger.info(f"System prompt: {system_prompt}")
             app.logger.info(f"User number: {user_number}")
 
             # Store data in session
-            session['system_prompt'] = system_prompt
-            session['user_number'] = user_number
+            session['voter_call_id'] = voter_call.id  # Store the VoterCall ID
 
             app.logger.info("Redirecting to call route...")
             return redirect(url_for('call'))
@@ -172,38 +223,39 @@ def voter_call(last_action):
 @csrf_protect.exempt
 def call():
     try:
-        # Retrieve data from session
-        system_prompt = session.get('system_prompt', '')
-        user_number = session.get('user_number', '')
+        voter_call = VoterCall.query.get(session['voter_call_id'])
+        voter = Voter.query.get(voter_call.voter_id)
+        candidate = Candidate.query.get(voter_call.candidate_id)
 
         # Clear the session data now that we're done with it
-        if 'system_prompt' in session:
-            del session['system_prompt']
-        if 'user_number' in session:
-            del session['user_number']
+        if 'voter_call_id' in session:
+            del session['voter_call_id']
 
         app.logger.info(
-            f"Starting call with system prompt '{system_prompt}' and user number '{user_number}'"
+            f"Starting call with system prompt '{voter_call.conversation[0].get('content')}' and user number '{voter.voter_phone_number}'"
         )
 
         # Start a new call
         call = client.calls.create(url=webhook_url,
-                                   to=user_number,
+                                   to=voter.voter_phone_number,
                                    from_=twilio_number)
 
         app.logger.info(f"Started call with SID '{call.sid}'")
 
-        # Create the initial conversation with the system message
-        conversation = [{"role": "system", "content": system_prompt}]
+        #add call.sid to voter_call
+        voter_call.twilio_call_sid = call.sid
+        db.session.commit()
 
-        # Store the conversation in our 'database' keyed by the call SID
-        db[call.sid] = conversation
-
-        # Return a TwiML response
-        return redirect(url_for('voter_call', last_action="Calling"))
+        return redirect(
+            url_for('voter_call',
+                    last_action="Calling" + voter.voter_name + "for" +
+                    candidate.candidate_name))
 
     except Exception as e:
         app.logger.error(f"Exception occurred: {e}", exc_info=True)
+        return render_template('voter_call.html',
+                               form=VoterCallForm(),
+                               last_action="Error")
 
 
 #Run the app on port 5000
