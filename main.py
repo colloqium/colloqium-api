@@ -2,6 +2,7 @@
 from flask import Flask, Response, render_template, request, redirect, url_for, session
 from flask_wtf.csrf import CSRFProtect
 from twilio.twiml.voice_response import VoiceResponse
+from twilio.twiml.messaging_response import MessagingResponse
 from twilio.rest import Client
 import os
 import openai
@@ -133,6 +134,54 @@ def twilio_call():
         # Return a server error response
         return Response('An error occurred while processing the request.',
                         status=500)
+
+
+@app.route("/twilio_message", methods=['GET', 'POST'])
+@csrf_protect.exempt
+def twilio_message():
+    logging.info(request.get_data())
+
+    # Get the 'From' number from the incoming request
+    from_number = request.values.get('From', None)
+
+    # Use the 'From' number to look up the voter in your database
+    voter = Voter.query.filter_by(voter_phone_number=from_number).first()
+
+    # If the voter doesn't exist, return an error
+    if not voter:
+        logging.error(f'Could not find voter with phone number {from_number}.')
+        return Response('Could not find voter.', status=404)
+
+    # Find the VoterCommunication for this voter with type 'text'
+    voter_communication = VoterCommunication.query.filter_by(
+        voter_id=voter.id, communication_type='text').first()
+
+    # If the VoterCommunication doesn't exist, return an error
+    if not voter_communication:
+        logging.error(
+            f'Could not find VoterCommunication for voter with ID {voter.id}.')
+        return Response('Could not find VoterCommunication.', status=404)
+
+    # Now you can add the new message to the conversation
+    message_body = request.values.get('Body', None)
+    conversation = voter_communication.conversation
+    conversation.append({"role": "user", "content": message_body})
+    # generate a new response from openAI to continue the conversation
+    logging.info("Starting OpenAI Completion")
+    completion = openai.ChatCompletion.create(model="gpt-4",
+                                              messages=conversation,
+                                              temperature=0.9,
+                                              max_tokens=150)
+
+    message_body = completion.choices[0].message.content
+    conversation.append({"role": "assistant", "content": message_body})
+
+    voter_communication.conversation = conversation
+    db.session.commit()
+
+    response = MessagingResponse()
+    response.message(message_body)
+    return Response(response.to_xml(), content_type="text/xml")
 
 
 @app.route("/", methods=['GET', 'POST'])
@@ -307,12 +356,24 @@ def text_message():
             f"Starting text message with system prompt '{voter_text_thread.conversation[0].get('content')}' and user number '{voter.voter_phone_number}'"
         )
 
-        # Start a new text message thread
-        text_thread = {'sid': 1}
-        logging.info("*******Spoofing Sending A Text Message*******")
+        # Start twilio Conversation
+        conversation = client.conversations.v1.conversations.create(
+            friendly_name=f"{voter.voter_name}'s conversation")
 
-        #add call.sid to voter_call
-        voter_text_thread.twilio_conversation_sid = text_thread['sid']
+        # Add voter as a participant to the call
+        conversation.participants.create(
+            messaging_binding_address=voter.voter_phone_number,
+            messaging_binding_proxy_address=twilio_number)
+
+        # Start a new text message thread
+        text_message = conversation.messages.create(
+            body=voter_text_thread.conversation[-1].get('content'))
+
+        logging.info(
+            f"Started text Conversation with SID '{text_message.sid}'")
+
+        #add conversation.sid to voter_conversation
+        voter_text_thread.twilio_conversation_sid = conversation.sid
         db.session.commit()
 
         return redirect(
