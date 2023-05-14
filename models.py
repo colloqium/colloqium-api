@@ -34,10 +34,11 @@ class Race(db.Model):
     race_date = db.Column(db.Date)
 
 
-class VoterCall(db.Model):
+class VoterCommunication(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    twilio_call_sid = db.Column(db.String(50))
+    twilio_conversation_sid = db.Column(db.String(50))
     conversation = db.Column(db.JSON())
+    communication_type = db.Column(db.String(50))
     voter_id = db.Column(db.Integer, db.ForeignKey('voter.id'))
     candidate_id = db.Column(db.Integer, db.ForeignKey('candidate.id'))
     race_id = db.Column(db.Integer, db.ForeignKey('race.id'))
