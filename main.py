@@ -147,32 +147,35 @@ def twilio_message():
     # Use the 'From' number to look up the voter in your database
     voter = Voter.query.filter_by(voter_phone_number=from_number).first()
 
-    # If the voter doesn't exist, return an error
+    # If the voter doesn't exist, create a new one and a new VoterCommunication
     if not voter:
-        logging.error(f'Could not find voter with phone number {from_number}.')
-        return Response('Could not find voter.', status=404)
+        voter = Voter(voter_name='', voter_phone_number=from_number)
+        db.session.add(voter)
 
-    # Find the VoterCommunication for this voter with type 'text'
-    voter_communication = VoterCommunication.query.filter_by(
-        voter_id=voter.id, communication_type='text').first()
+        system_prompt = get_campaign_text_message_system_prompt(
+                    voter, Candidate(), Race(race_date=date.tomorrow(), race_name="Next Congressional Race Example", race_information="Important upcoming race tomorrow"))
 
-    # If the VoterCommunication doesn't exist, return an error
-    if not voter_communication:
-        logging.error(
-            f'Could not find VoterCommunication for voter with ID {voter.id}.')
-        return Response('Could not find VoterCommunication.', status=404)
+        # Create a new conversation with a system message
+        conversation = [{"role": "system", "content": system_prompt}]
 
+        voter_communication = VoterCommunication(twilio_conversation_sid='', conversation=conversation, communication_type='text', voter_id=voter.id)
+        db.session.add(voter_communication)
+    else:
+        # If the voter exists, find the VoterCommunication for this voter with type 'text'
+        voter_communication = VoterCommunication.query.filter_by(voter_id=voter.id, communication_type='text').first()
+
+    
     # Now you can add the new message to the conversation
     message_body = request.values.get('Body', None)
     conversation = voter_communication.conversation
     conversation.append({"role": "user", "content": message_body})
     # generate a new response from openAI to continue the conversation
-    logging.info("Starting OpenAI Completion")
+    logging.info("Starting OpenAI Completion for message")
     completion = openai.ChatCompletion.create(model="gpt-4",
                                               messages=conversation,
                                               temperature=0.9,
                                               max_tokens=150)
-
+    logging.info("Finshed OpenAI Complestion for message")
     message_body = completion.choices[0].message.content
     conversation.append({"role": "assistant", "content": message_body})
 
@@ -250,7 +253,7 @@ def voter_communication(last_action):
 
             completion = openai.ChatCompletion.create(model="gpt-4",
                                                       messages=conversation,
-                                                      temperature=0.3)
+                                                      temperature=0.9)
 
             initial_statement = completion.choices[0].message.content
             conversation.append({
@@ -345,35 +348,42 @@ def text_message():
     try:
         voter_text_thread = VoterCommunication.query.get(
             session['voter_communication_id'])
-        voter = Voter.query.get(voter_text_thread.voter_id)
-        candidate = Candidate.query.get(voter_text_thread.candidate_id)
+        
+        if voter_text_thread:
+            voter = Voter.query.get(voter_text_thread.voter_id)
+            candidate = Candidate.query.get(voter_text_thread.candidate_id)
+            conversation = voter_text_thread.conversation
+    
+            # Clear the session data now that we're done with it
+            if 'voter_communication_id' in session:
+                del session['voter_communication_id']
 
-        # Clear the session data now that we're done with it
-        if 'voter_communication_id' in session:
-            del session['voter_communication_id']
+            app.logger.info(
+                f"Starting text message with system prompt '{conversation[0].get('content')}' and user number '{voter.voter_phone_number}'"
+            )
 
-        app.logger.info(
-            f"Starting text message with system prompt '{voter_text_thread.conversation[0].get('content')}' and user number '{voter.voter_phone_number}'"
-        )
 
-        # Start twilio Conversation
-        conversation = client.conversations.v1.conversations.create(
-            friendly_name=f"{voter.voter_name}'s conversation")
+            logging.info("Making OpenAI API call for message")
+            completion = openai.ChatCompletion.create(model="gpt-4",
+                                                      messages=conversation,
+                                                      temperature=0.9)
+            logging.info(f"OpenAI API call successful: {completion}")
+            initial_statement = completion.choices[0].message.content
+            conversation.append({
+                "role": "assistant",
+                "content": initial_statement
+            })
+            
+            # Start a new text message thread
+            text_message = client.messages.create(
+                body=initial_statement,
+                from_=twilio_number,
+                to=voter.voter_phone_number
+            )
 
-        # Add voter as a participant to the call
-        conversation.participants.create(
-            messaging_binding_address=voter.voter_phone_number,
-            messaging_binding_proxy_address=twilio_number)
+            logging.info(
+                f"Started text Conversation with voter '{voter.voter_name}'")
 
-        # Start a new text message thread
-        text_message = conversation.messages.create(
-            body=voter_text_thread.conversation[-1].get('content'))
-
-        logging.info(
-            f"Started text Conversation with SID '{text_message.sid}'")
-
-        #add conversation.sid to voter_conversation
-        voter_text_thread.twilio_conversation_sid = conversation.sid
         db.session.commit()
 
         return redirect(
