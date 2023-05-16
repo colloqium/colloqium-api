@@ -153,18 +153,24 @@ def twilio_message():
         db.session.add(voter)
 
         system_prompt = get_campaign_text_message_system_prompt(
-                    voter, Candidate(), Race(race_date=date.tomorrow(), race_name="Next Congressional Race Example", race_information="Important upcoming race tomorrow"))
+            voter, Candidate(),
+            Race(race_date=date.tomorrow(),
+                 race_name="Next Congressional Race Example",
+                 race_information="Important upcoming race tomorrow"))
 
         # Create a new conversation with a system message
         conversation = [{"role": "system", "content": system_prompt}]
 
-        voter_communication = VoterCommunication(twilio_conversation_sid='', conversation=conversation, communication_type='text', voter_id=voter.id)
+        voter_communication = VoterCommunication(twilio_conversation_sid='',
+                                                 conversation=conversation,
+                                                 communication_type='text',
+                                                 voter_id=voter.id)
         db.session.add(voter_communication)
     else:
         # If the voter exists, find the VoterCommunication for this voter with type 'text'
-        voter_communication = VoterCommunication.query.filter_by(voter_id=voter.id, communication_type='text').first()
+        voter_communication = VoterCommunication.query.filter_by(
+            voter_id=voter.id, communication_type='text').first()
 
-    
     # Now you can add the new message to the conversation
     message_body = request.values.get('Body', None)
     conversation = voter_communication.conversation
@@ -348,12 +354,12 @@ def text_message():
     try:
         voter_text_thread = VoterCommunication.query.get(
             session['voter_communication_id'])
-        
+
         if voter_text_thread:
             voter = Voter.query.get(voter_text_thread.voter_id)
             candidate = Candidate.query.get(voter_text_thread.candidate_id)
             conversation = voter_text_thread.conversation
-    
+
             # Clear the session data now that we're done with it
             if 'voter_communication_id' in session:
                 del session['voter_communication_id']
@@ -362,27 +368,15 @@ def text_message():
                 f"Starting text message with system prompt '{conversation[0].get('content')}' and user number '{voter.voter_phone_number}'"
             )
 
-
-            logging.info("Making OpenAI API call for message")
-            completion = openai.ChatCompletion.create(model="gpt-4",
-                                                      messages=conversation,
-                                                      temperature=0.9)
-            logging.info(f"OpenAI API call successful: {completion}")
-            initial_statement = completion.choices[0].message.content
-            conversation.append({
-                "role": "assistant",
-                "content": initial_statement
-            })
-            
             # Start a new text message thread
             text_message = client.messages.create(
-                body=initial_statement,
+                body=conversation[-1].get('content'),
                 from_=twilio_number,
-                to=voter.voter_phone_number
-            )
+                to=voter.voter_phone_number)
 
             logging.info(
-                f"Started text Conversation with voter '{voter.voter_name}'")
+                f"Started text Conversation with voter '{voter.voter_name}' on text SID '{text_message.sid}'"
+            )
 
         db.session.commit()
 
