@@ -32,5 +32,6 @@ class VoterCommunicationForm(FlaskForm):
     race_date = DateField('Race Date', validators=[DataRequired()])
     communication_type = SelectField('Communication Type',
                                      choices=[('call', 'Call'),
-                                              ('text', 'Text')])
+                                              ('text', 'Text'),
+                                              ('plan', 'Plan')])
     submit = SubmitField('Submit')

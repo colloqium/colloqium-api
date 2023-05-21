@@ -1,5 +1,5 @@
 # import Flask and other libraries
-from flask import Flask, Response, render_template, request, redirect, url_for, session
+from flask import Flask, Response, render_template, request, redirect, url_for, session, jsonify
 from flask_wtf.csrf import CSRFProtect
 from twilio.twiml.voice_response import VoiceResponse
 from twilio.twiml.messaging_response import MessagingResponse
@@ -8,31 +8,12 @@ import os
 import openai
 from forms.voter_communication_form import VoterCommunicationForm
 from models import Voter, Candidate, Race, VoterCommunication, db
-from prompts.campaign_assistant_agent import get_campaign_phone_call_system_prompt, get_campaign_text_message_system_prompt
+from prompts.campaign_volunteer_agent import get_campaign_phone_call_system_prompt, get_campaign_text_message_system_prompt
+from prompts.campaign_planner_agent import get_campaign_agent_system_prompt
+from tools.campaign_agent_tools import CampaignTools, extract_action, execute_action, update_conversation
+from logs.logger import logger, logging
 import secrets
-import logging
-
-# Create a logger
-logger = logging.getLogger()
-logger.setLevel(logging.INFO)  # Set the logging level
-
-# Create a file handler
-file_handler = logging.FileHandler('logs/votebuddy.log')
-file_handler.setLevel(logging.INFO)  # Set the logging level for the file
-
-# Create a console handler
-console_handler = logging.StreamHandler()
-console_handler.setLevel(logging.INFO)  # Set the logging level for the console
-
-# Create a formatter and set it for both handlers
-formatter = logging.Formatter(
-    '%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-file_handler.setFormatter(formatter)
-console_handler.setFormatter(formatter)
-
-# Add the handlers to the logger
-logger.addHandler(file_handler)
-logger.addHandler(console_handler)
+from datetime import date
 
 # Create a Flask app object
 app = Flask(__name__)
@@ -48,7 +29,9 @@ auth_token = os.environ['twilio_auth_token']
 twilio_number = os.environ['twilio_number']
 
 # The webhook URL for handling the call events
-call_webhook_url = "https://ai-phone-bank-poc.a1j9o94.repl.co/twilio_call"
+call_webhook_url = os.environ['CALL_WEBHOOK_URL']
+
+#"https://ai-phone-bank-poc.a1j9o94.repl.co/twilio_call"
 
 # Create a Twilio client object
 client = Client(account_sid, auth_token)
@@ -139,7 +122,7 @@ def twilio_call():
 @app.route("/twilio_message", methods=['GET', 'POST'])
 @csrf_protect.exempt
 def twilio_message():
-    logging.info(request.get_data())
+    logging.debug(request.get_data())
 
     # Get the 'From' number from the incoming request
     from_number = request.values.get('From', None)
@@ -173,6 +156,7 @@ def twilio_message():
 
     # Now you can add the new message to the conversation
     message_body = request.values.get('Body', None)
+    logging.info(f"Recieved message body: {message_body}")
     conversation = voter_communication.conversation
     conversation.append({"role": "user", "content": message_body})
     # generate a new response from openAI to continue the conversation
@@ -218,11 +202,8 @@ def voter_communication(last_action):
 
             # If the voter does not exist, create a new one
             if not voter:
-                voter = Voter(voter_name=form.voter_name.data,
-                              voter_phone_number=form.voter_phone_number.data,
-                              voter_information=form.voter_information.data)
+                voter = Voter(voter_name=form.voter_name.data, voter_phone_number=form.voter_phone_number.data,                        voter_information=form.voter_information.data)
                 db.session.add(voter)
-                db.session.commit()
 
             # Check if candidate with this name is in database
             candidate = Candidate.query.filter_by(
@@ -233,7 +214,6 @@ def voter_communication(last_action):
                     candidate_name=form.candidate_name.data,
                     candidate_information=form.candidate_information.data)
                 db.session.add(candidate)
-                db.session.commit()
 
             # Check if race wiht this name is in database
             race = Race.query.filter_by(race_name=form.race_name.data).first()
@@ -242,16 +222,29 @@ def voter_communication(last_action):
                 race = Race(race_name=form.race_name.data,
                             race_information=form.race_information.data)
                 db.session.add(race)
-                db.session.commit()
 
             communication_type = form.communication_type.data
+
+            # Create the VoterCommunication
+            voter_communication = VoterCommunication(
+                twilio_conversation_sid='',  # You will need to update this later
+                conversation=[],
+                voter=voter,  # The ID of the voter
+                candidate=candidate,
+                race=race,
+                communication_type=communication_type)
+
             if communication_type == "call":
                 # Add information from VoterCallForm to the system prompt
                 system_prompt = get_campaign_phone_call_system_prompt(
-                    voter, candidate, race)
+                    voter_communication)
             elif communication_type == "text":
                 system_prompt = get_campaign_text_message_system_prompt(
-                    voter, candidate, race)
+                    voter_communication)
+            elif communication_type == "plan":
+                system_prompt = get_campaign_agent_system_prompt(
+                    voter_communication)
+
             user_number = form.voter_phone_number.data
 
             #Pre create the first response
@@ -267,14 +260,8 @@ def voter_communication(last_action):
                 "content": initial_statement
             })
 
-            # Create the VoterCommunication
-            voter_communication = VoterCommunication(
-                twilio_conversation_sid='',  # You will need to update this later
-                conversation=conversation,
-                voter_id=voter.id,  # The ID of the voter
-                candidate_id=candidate.id,
-                race_id=race.id,
-                communication_type=communication_type)
+            voter_communication.conversation = conversation
+
             db.session.add(voter_communication)
             db.session.commit()
             logging.info("Voter communication created successfully")
@@ -283,6 +270,8 @@ def voter_communication(last_action):
             logging.info("Communication Type: %s", communication_type)
             logging.info(f"System prompt: {system_prompt}")
             logging.info(f"User number: {user_number}")
+            logging.info(f"Initial Statement: {initial_statement}")
+            logging.info(f"Conversation: {conversation}")
 
             # Store data in session
             session[
@@ -296,6 +285,10 @@ def voter_communication(last_action):
                 # Send a text message
                 logging.info("Redirecting to text message route...")
                 return redirect(url_for('text_message'))
+            elif (communication_type == "plan"):
+                # Create an outreach agent and plan the outreach for the voter
+                logging.info("Redirecting to planning route...")
+                return redirect(url_for('plan', voter_id=voter.id))
 
         return render_template('voter_communication.html',
                                form=form,
@@ -360,19 +353,23 @@ def text_message():
             candidate = Candidate.query.get(voter_text_thread.candidate_id)
             conversation = voter_text_thread.conversation
 
+            logging.info(
+                f"Texting route recieved Conversation: {conversation}")
+
+            body = conversation[-1].get('content')
+
             # Clear the session data now that we're done with it
             if 'voter_communication_id' in session:
                 del session['voter_communication_id']
 
             app.logger.info(
-                f"Starting text message with system prompt '{conversation[0].get('content')}' and user number '{voter.voter_phone_number}'"
+                f"Starting text message with body'{body}' and user number '{voter.voter_phone_number}'"
             )
 
             # Start a new text message thread
-            text_message = client.messages.create(
-                body=conversation[-1].get('content'),
-                from_=twilio_number,
-                to=voter.voter_phone_number)
+            text_message = client.messages.create(body=body,
+                                                  from_=twilio_number,
+                                                  to=voter.voter_phone_number)
 
             logging.info(
                 f"Started text Conversation with voter '{voter.voter_name}' on text SID '{text_message.sid}'"
@@ -390,6 +387,57 @@ def text_message():
         return render_template('voter_communication.html',
                                form=VoterCommunicationForm(),
                                last_action="Error")
+
+
+@app.route("/plan/<int:voter_id>", methods=['GET', 'POST'])
+@csrf_protect.exempt
+def plan(voter_id):
+    try:
+        voter_communication = VoterCommunication.query.get(session['voter_communication_id'])
+        voter = voter_communication.voter
+
+        most_recent_message = voter_communication.conversation[-1].get('content')
+        
+        logging.info(f"Creating plan for {voter.voter_name}")
+        logging.info(f"Most Recent Message {most_recent_message}")
+
+        # Instantiate campaign tools
+        campaign_tools = CampaignTools()
+        
+        # Maximum iterations to avoid infinite loop
+        max_iterations = 10
+        iteration = 0
+        
+        # Execute action based on the recent message
+        while ('WAIT' not in most_recent_message.upper()) and (iteration < max_iterations):
+            iteration += 1
+            
+            if 'Action' in most_recent_message:
+                action_name, action_params = extract_action(most_recent_message)
+                action_result = execute_action(campaign_tools, action_name, action_params)
+                most_recent_message = f"Observation: {action_result}"
+                update_conversation(voter_communication, most_recent_message)
+        
+            # Make an API call to OpenAI to get the next chatbot response
+            logging.info("Starting OpenAI Completion")
+            completion = openai.ChatCompletion.create(
+                model="gpt-4",
+                messages=voter_communication.conversation,
+                temperature=0.9,
+                max_tokens=150)
+            logging.info("Finished OpenAI")
+            most_recent_message = completion.choices[0].message.content
+        
+            # Update conversation with the latest response
+            update_conversation(voter_communication, most_recent_message)
+            
+        db.session.commit()
+        return jsonify({'status': 'success', 'last_action': 'Planning for ' + voter.voter_name}), 200
+
+
+    except Exception as e:
+        app.logger.error(f"Exception occurred: {e}", exc_info=True)
+        return jsonify({'status': 'error', 'last_action': 'Error'}), 500
 
 
 #Run the app on port 5000
