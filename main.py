@@ -11,6 +11,7 @@ from models import Voter, Candidate, Race, VoterCommunication, db
 from prompts.campaign_volunteer_agent import get_campaign_phone_call_system_prompt, get_campaign_text_message_system_prompt
 from prompts.campaign_planner_agent import get_campaign_agent_system_prompt
 from tools.campaign_agent_tools import CampaignTools, extract_action, execute_action, update_conversation
+from tools.scheduler import scheduler
 from logs.logger import logger, logging
 import secrets
 from datetime import date
@@ -202,7 +203,9 @@ def voter_communication(last_action):
 
             # If the voter does not exist, create a new one
             if not voter:
-                voter = Voter(voter_name=form.voter_name.data, voter_phone_number=form.voter_phone_number.data,                        voter_information=form.voter_information.data)
+                voter = Voter(voter_name=form.voter_name.data,
+                              voter_phone_number=form.voter_phone_number.data,
+                              voter_information=form.voter_information.data)
                 db.session.add(voter)
 
             # Check if candidate with this name is in database
@@ -393,31 +396,36 @@ def text_message():
 @csrf_protect.exempt
 def plan(voter_id):
     try:
-        voter_communication = VoterCommunication.query.get(session['voter_communication_id'])
+        voter_communication = VoterCommunication.query.get(
+            session['voter_communication_id'])
         voter = voter_communication.voter
 
-        most_recent_message = voter_communication.conversation[-1].get('content')
-        
+        most_recent_message = voter_communication.conversation[-1].get(
+            'content')
+
         logging.info(f"Creating plan for {voter.voter_name}")
         logging.info(f"Most Recent Message {most_recent_message}")
 
         # Instantiate campaign tools
         campaign_tools = CampaignTools()
-        
+
         # Maximum iterations to avoid infinite loop
         max_iterations = 10
         iteration = 0
-        
+
         # Execute action based on the recent message
-        while ('WAIT' not in most_recent_message.upper()) and (iteration < max_iterations):
+        while ('WAIT' not in most_recent_message.upper()) and (iteration <
+                                                               max_iterations):
             iteration += 1
-            
+
             if 'Action' in most_recent_message:
-                action_name, action_params = extract_action(most_recent_message)
-                action_result = execute_action(campaign_tools, action_name, action_params)
+                action_name, action_params = extract_action(
+                    most_recent_message)
+                action_result = execute_action(campaign_tools, action_name,
+                                               action_params)
                 most_recent_message = f"Observation: {action_result}"
                 update_conversation(voter_communication, most_recent_message)
-        
+
             # Make an API call to OpenAI to get the next chatbot response
             logging.info("Starting OpenAI Completion")
             completion = openai.ChatCompletion.create(
@@ -427,13 +435,16 @@ def plan(voter_id):
                 max_tokens=150)
             logging.info("Finished OpenAI")
             most_recent_message = completion.choices[0].message.content
-        
+
             # Update conversation with the latest response
             update_conversation(voter_communication, most_recent_message)
-            
-        db.session.commit()
-        return jsonify({'status': 'success', 'last_action': 'Planning for ' + voter.voter_name}), 200
 
+        db.session.commit()
+        return jsonify({
+            'status': 'success',
+            'last_action': 'Planning for ' + voter.voter_name,
+            'conversation': voter_communication.conversation
+        }), 200
 
     except Exception as e:
         app.logger.error(f"Exception occurred: {e}", exc_info=True)

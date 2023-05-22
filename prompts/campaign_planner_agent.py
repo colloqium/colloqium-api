@@ -47,30 +47,30 @@ The schedule should be a list of objects in the following format:
 
 [
     {{ 
-        outreach_date: 2023-05-25 //date of outreach
-        outreach_type: 'text' // one of call, text, email
-        outreach_goal: 'let the voter know about the upcoming race and introduce the candidate'
+        "outreach_date": "2023-05-25" //date of outreach
+        "outreach_type": "text" // one of call, text, email
+        "outreach_goal": "let the voter know about the upcoming race and introduce the candidate"
     }},
     {{ 
-        outreach_date: 2023-06-06 //date of outreach
-        outreach_type: 'text' // one of call, text, email
-        outreach_goal: 'Get the voter to make a small donation to the campaign'
+        "outreach_date": "2023-06-06" //date of outreach
+        "outreach_type": "text" // one of call, text, email
+        "outreach_goal": "Get the voter to make a small donation to the campaign"
     }},
     {{ 
-        outreach_date: 2023-05-25 //date of outreach
-        outreach_type: 'text' // one of call, text, email
-        outreach_goal: 'Get the voter to do a volunteer phonebanking session'
+        "outreach_date": "2023-05-25" //date of outreach
+        "outreach_type": "text" // one of call, text, email
+        "outreach_goal": "Get the voter to do a volunteer phonebanking session"
     }},
     # fill in your suggested voter outreach plan...,
     {{ 
-        outreach_date: 2023-06-10 //election date
-        outreach_type: 'text' // one of call, text, email
-        outreach_goal: 'Confirm the voting plan we discussed last time, and make sure they have transportation to the polls'
+        "outreach_date": "2023-06-10" //election date
+        "outreach_type": "text" // one of call, text, email
+        "outreach_goal": "Confirm the voting plan we discussed last time, and make sure they have transportation to the polls"
     }},
     {{ 
-        outreach_date: 2023-06-11
-        outreach_type: 'text' // one of call, text, email
-        outreach_goal: 'Follow up to thank them for their support and let them know what is next for the candidate'
+        "outreach_date": "2023-06-11"
+        "outreach_type": "text" // one of call, text, email
+        "outreach_goal": "Follow up to thank them for their support and let them know what is next for the candidate"
     }}
 ]
 
