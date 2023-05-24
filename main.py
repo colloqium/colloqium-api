@@ -1,28 +1,25 @@
 # import Flask and other libraries
-from flask import Flask, Response, render_template, request, redirect, url_for, session, jsonify
-from flask_wtf.csrf import CSRFProtect
+from flask import Response, render_template, request, redirect, url_for, session, jsonify
 from twilio.twiml.voice_response import VoiceResponse
 from twilio.twiml.messaging_response import MessagingResponse
 from twilio.rest import Client
 import os
 import openai
 from forms.voter_communication_form import VoterCommunicationForm
-from models import Voter, Candidate, Race, VoterCommunication, db
+from models import Voter, Candidate, Race, VoterCommunication
 from prompts.campaign_volunteer_agent import get_campaign_phone_call_system_prompt, get_campaign_text_message_system_prompt
 from prompts.campaign_planner_agent import get_campaign_agent_system_prompt
-from tools.campaign_agent_tools import CampaignTools, extract_action, execute_action, update_conversation
+from tools.campaign_agent_tools import CampaignTools, extract_action, execute_action
+from tools.utility import add_message_to_conversation, add_llm_response_to_conversation, initialize_conversation
 from tools.scheduler import scheduler
 from logs.logger import logger, logging
-import secrets
 from datetime import date
+from database import db
+from flask_migrate import Migrate
+from context import app, csrf_protect
 
-# Create a Flask app object
-app = Flask(__name__)
-app.config['SECRET_KEY'] = secrets.token_hex(nbytes=8)
-csrf_protect = CSRFProtect(app)
-# Set the SQLALCHEMY_DATABASE_URI configuration variable
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///site.db'
-db.init_app(app)
+# assuming app and db are defined above
+migrate = Migrate(app, db)
 
 # Your Twilio account credentials
 account_sid = os.environ['twilio_account_sid']
@@ -31,8 +28,6 @@ twilio_number = os.environ['twilio_number']
 
 # The webhook URL for handling the call events
 call_webhook_url = os.environ['CALL_WEBHOOK_URL']
-
-#"https://ai-phone-bank-poc.a1j9o94.repl.co/twilio_call"
 
 # Create a Twilio client object
 client = Client(account_sid, auth_token)
@@ -68,20 +63,13 @@ def twilio_call():
 
         # Add the user's message to the conversation
         if speech_result:
-            conversation.append({"role": "user", "content": speech_result})
+            add_message_to_conversation(voter_communication, speech_result)
             # Log the user's message to the console
             logger.info(f"User message: {speech_result}")
 
             # Get the AI response and add it to the conversation
             try:
-                logging.info("Starting OpenAI Completion")
-                completion = openai.ChatCompletion.create(
-                    model="gpt-4",
-                    messages=conversation,
-                    temperature=0.9,
-                    max_tokens=150)
-                logging.info("Finshed OpenAI")
-                text = completion.choices[0].message.content
+                text = add_llm_response_to_conversation(voter_communication)
             except:
                 text = "Sorry, I am having trouble hearing you. I will try to call again later, Goodbye"
             conversation.append({"role": "assistant", "content": text})
@@ -112,9 +100,7 @@ def twilio_call():
 
     except Exception as e:
         # Log the exception
-        logging.exception('An error occurred while processing the request: %s',
-                          e)
-
+        logging.exception('An error occurred while processing the request: %s', e)
         # Return a server error response
         return Response('An error occurred while processing the request.',
                         status=500)
@@ -143,7 +129,7 @@ def twilio_message():
                  race_information="Important upcoming race tomorrow"))
 
         # Create a new conversation with a system message
-        conversation = [{"role": "system", "content": system_prompt}]
+        conversation = initialize_conversation(system_prompt)
 
         voter_communication = VoterCommunication(twilio_conversation_sid='',
                                                  conversation=conversation,
@@ -158,23 +144,20 @@ def twilio_message():
     # Now you can add the new message to the conversation
     message_body = request.values.get('Body', None)
     logging.info(f"Recieved message body: {message_body}")
-    conversation = voter_communication.conversation
-    conversation.append({"role": "user", "content": message_body})
-    # generate a new response from openAI to continue the conversation
-    logging.info("Starting OpenAI Completion for message")
-    completion = openai.ChatCompletion.create(model="gpt-4",
-                                              messages=conversation,
-                                              temperature=0.9,
-                                              max_tokens=150)
-    logging.info("Finshed OpenAI Complestion for message")
-    message_body = completion.choices[0].message.content
-    conversation.append({"role": "assistant", "content": message_body})
+    voter_communication.conversation = add_message_to_conversation(voter_communication, message_body)
 
-    voter_communication.conversation = conversation
+    logging.info(f"Conversation after including message: {voter_communication.conversation}")
+    # generate a new response from openAI to continue the conversation
+    message_body = add_llm_response_to_conversation(voter_communication)
+    logging.debug(f"AI message: {message_body}")
+    logging.info(f"Conversation after adding LLM response: {voter_communication.conversation}")
+
+    db.session.add(voter_communication)
     db.session.commit()
 
     response = MessagingResponse()
     response.message(message_body)
+    logging.debug(f"Response xml: {response.to_xml()}")
     return Response(response.to_xml(), content_type="text/xml")
 
 
@@ -237,6 +220,15 @@ def voter_communication(last_action):
                 race=race,
                 communication_type=communication_type)
 
+            db.session.add(voter_communication)
+            db.session.commit()
+
+            #get communication with DB fields
+            voter_communication = db.session.query(
+                VoterCommunication).filter_by(
+                    voter_id=voter.id,
+                    communication_type=communication_type).first()
+
             if communication_type == "call":
                 # Add information from VoterCallForm to the system prompt
                 system_prompt = get_campaign_phone_call_system_prompt(
@@ -251,23 +243,11 @@ def voter_communication(last_action):
             user_number = form.voter_phone_number.data
 
             #Pre create the first response
-            conversation = [{"role": "system", "content": system_prompt}]
-
-            completion = openai.ChatCompletion.create(model="gpt-4",
-                                                      messages=conversation,
-                                                      temperature=0.9)
-
-            initial_statement = completion.choices[0].message.content
-            conversation.append({
-                "role": "assistant",
-                "content": initial_statement
-            })
-
+            conversation = initialize_conversation(system_prompt)
             voter_communication.conversation = conversation
-
-            db.session.add(voter_communication)
-            db.session.commit()
+            initial_statement = add_llm_response_to_conversation(voter_communication)
             logging.info("Voter communication created successfully")
+            db.session.commit()
 
             # Log the system prompt and user number
             logging.info("Communication Type: %s", communication_type)
@@ -287,7 +267,7 @@ def voter_communication(last_action):
             elif (communication_type == "text"):
                 # Send a text message
                 logging.info("Redirecting to text message route...")
-                return redirect(url_for('text_message'))
+                return redirect(url_for('text_message', voter_communication_id=voter_communication.id))
             elif (communication_type == "plan"):
                 # Create an outreach agent and plan the outreach for the voter
                 logging.info("Redirecting to planning route...")
@@ -344,16 +324,14 @@ def call():
                                last_action="Error")
 
 
-@app.route("/text_message", methods=['POST', 'GET'])
+@app.route("/text_message/<voter_communication_id>", methods=['POST', 'GET'])
 @csrf_protect.exempt
-def text_message():
+def text_message(voter_communication_id):
     try:
-        voter_text_thread = VoterCommunication.query.get(
-            session['voter_communication_id'])
+        voter_text_thread = db.session.query(VoterCommunication).get(voter_communication_id)
 
         if voter_text_thread:
             voter = Voter.query.get(voter_text_thread.voter_id)
-            candidate = Candidate.query.get(voter_text_thread.candidate_id)
             conversation = voter_text_thread.conversation
 
             logging.info(
@@ -378,12 +356,19 @@ def text_message():
                 f"Started text Conversation with voter '{voter.voter_name}' on text SID '{text_message.sid}'"
             )
 
-        db.session.commit()
+            db.session.commit()
+    
+            return jsonify({
+                'status': 'success',
+                'last_action': f"Sending text to {voter.voter_name} at {voter.voter_phone_number}",
+                'First Message': body,
+                'conversation': voter_text_thread.conversation
+            }), 200
 
-        return redirect(
-            url_for('voter_communication',
-                    last_action="Texting" + voter.voter_name + "for" +
-                    candidate.candidate_name))
+        return jsonify({
+                'status': 'error',
+                'last_action': f"Error Sending text to with communication id {voter_communication_id}"
+            }), 400
 
     except Exception as e:
         app.logger.error(f"Exception occurred: {e}", exc_info=True)
@@ -404,18 +389,19 @@ def plan(voter_id):
             'content')
 
         logging.info(f"Creating plan for {voter.voter_name}")
+        logging.debug(
+            f"Conversation so far: {voter_communication.conversation}")
         logging.info(f"Most Recent Message {most_recent_message}")
 
         # Instantiate campaign tools
-        campaign_tools = CampaignTools()
+        campaign_tools = CampaignTools(voter_communication, db)
 
         # Maximum iterations to avoid infinite loop
         max_iterations = 10
         iteration = 0
 
         # Execute action based on the recent message
-        while ('WAIT' not in most_recent_message.upper()) and (iteration <
-                                                               max_iterations):
+        while True:
             iteration += 1
 
             if 'Action' in most_recent_message:
@@ -424,20 +410,24 @@ def plan(voter_id):
                 action_result = execute_action(campaign_tools, action_name,
                                                action_params)
                 most_recent_message = f"Observation: {action_result}"
-                update_conversation(voter_communication, most_recent_message)
+                add_message_to_conversation(voter_communication, most_recent_message)
 
-            # Make an API call to OpenAI to get the next chatbot response
-            logging.info("Starting OpenAI Completion")
-            completion = openai.ChatCompletion.create(
-                model="gpt-4",
-                messages=voter_communication.conversation,
-                temperature=0.9,
-                max_tokens=150)
-            logging.info("Finished OpenAI")
-            most_recent_message = completion.choices[0].message.content
+            most_recent_message = add_llm_response_to_conversation(voter_communication)
 
             # Update conversation with the latest response
-            update_conversation(voter_communication, most_recent_message)
+            add_message_to_conversation(voter_communication, most_recent_message)
+
+            # flush the logs
+            for handler in logging.getLogger().handlers:
+                handler.flush()
+
+            if ('WAIT' in most_recent_message.upper()) or (iteration >=
+                                                           max_iterations):
+                if iteration >= max_iterations:
+                    most_recent_message = "Observation: The conversation exceeded the maximum number of iterations without reaching a 'WAIT' state. The conversation will be paused here, and will need to be reviewed."
+                    add_message_to_conversation(voter_communication,
+                                        most_recent_message)
+                break
 
         db.session.commit()
         return jsonify({
@@ -454,3 +444,4 @@ def plan(voter_id):
 #Run the app on port 5000
 if __name__ == "__main__":
     app.run(host='0.0.0.0', port=5000)
+    scheduler.start()

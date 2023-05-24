@@ -1,18 +1,29 @@
-from flask import Flask
-from flask_sqlalchemy import SQLAlchemy
+from database import db
 from sqlalchemy.orm import relationship
-from flask_migrate import Migrate
+from typing import List
+from dataclasses import dataclass
 
-app = Flask(__name__)
 
-# Set the SQLALCHEMY_DATABASE_URI configuration variable
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///site.db'
+@dataclass
+class OutreachScheduleEntry:
+    outreach_date: str
+    outreach_type: str
+    outreach_goal: str
 
-# Create a db object using the SQLAlchemy class
-db = SQLAlchemy(app)
 
-# Settings for migrations
-migrate = Migrate(app, db)
+@dataclass
+class VoterProfile:
+    interests: List[str]
+    preferred_contact_method: str
+    engagement_history: List[str]
+
+
+@dataclass
+class CampaignEvent:
+    event_date: str
+    event_type: str
+    event_goal: str
+    target_voters: str
 
 
 class Voter(db.Model):
@@ -20,17 +31,24 @@ class Voter(db.Model):
     voter_name = db.Column(db.String(50))
     voter_information = db.Column(db.Text)
     voter_phone_number = db.Column(db.String(100))
-
+    voter_profile = db.Column(db.JSON())
+    voter_engagement_history = db.Column(db.JSON())
     # Add relationship
-    communications = relationship('VoterCommunication', backref='voter', lazy=True)
+    communications = relationship('VoterCommunication',
+                                  backref='voter',
+                                  lazy=True)
+
 
 class Candidate(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     candidate_name = db.Column(db.String(50))
     candidate_information = db.Column(db.Text)
-
+    candidate_schedule = db.Column(db.JSON())
     # Add relationship
-    communications = relationship('VoterCommunication', backref='candidate', lazy=True)
+    communications = relationship('VoterCommunication',
+                                  backref='candidate',
+                                  lazy=True)
+
 
 class Race(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -39,7 +57,10 @@ class Race(db.Model):
     race_date = db.Column(db.Date)
 
     # Add relationship
-    communications = relationship('VoterCommunication', backref='race', lazy=True)
+    communications = relationship('VoterCommunication',
+                                  backref='race',
+                                  lazy=True)
+
 
 class VoterCommunication(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -50,9 +71,6 @@ class VoterCommunication(db.Model):
     voter_id = db.Column(db.Integer, db.ForeignKey('voter.id'))
     candidate_id = db.Column(db.Integer, db.ForeignKey('candidate.id'))
     race_id = db.Column(db.Integer, db.ForeignKey('race.id'))
+    voter_outreach_schedule = db.Column(db.JSON())
 
     # Relationships are set up in Voter, Candidate, and Race models
-
-
-with app.app_context():
-    db.create_all()
