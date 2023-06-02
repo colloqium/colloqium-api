@@ -17,20 +17,20 @@ class PhoneNumberValidator(Regexp):
         )
 
 
-class VoterCommunicationForm(FlaskForm):
-    voter_name = StringField('Voter Name', validators=[DataRequired()])
-    voter_information = TextAreaField('Voter Information',
+class InteractionForm(FlaskForm):
+    recipient_name = StringField('Recipient Name', validators=[DataRequired()])
+    recipient_information = TextAreaField('Recipient Information',
                                       validators=[DataRequired()])
-    voter_phone_number = StringField('Phone Number',
+    recipient_phone_number = StringField('Phone Number',
                                      validators=[PhoneNumberValidator()])
-    race_name = StringField('Race Name', validators=[DataRequired()])
-    race_information = TextAreaField('Race Information',
+    campaign_name = StringField('Campaign Name', validators=[DataRequired()])
+    campaign_information = TextAreaField('Campaign Information',
                                      validators=[DataRequired()])
-    candidate_name = StringField('Candidate Name', validators=[DataRequired()])
-    candidate_information = TextAreaField('Candidate Information',
+    sender_name = StringField('Sender Name', validators=[DataRequired()])
+    sender_information = TextAreaField('Sender Information',
                                           validators=[DataRequired()])
-    race_date = DateField('Race Date', validators=[DataRequired()])
-    communication_type = SelectField('Communication Type',
+    campaign_end_date = DateField('End Date', validators=[DataRequired()])
+    interaction_type = SelectField('Interaction Type',
                                      choices=[('call', 'Call'),
                                               ('text', 'Text'),
                                               ('plan', 'Plan')])

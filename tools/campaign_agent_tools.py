@@ -1,70 +1,48 @@
 import json
-from dataclasses import dataclass
-from typing import List
-from models import VoterCommunication
+from models import Interaction, OutreachScheduleEntry
+from flask_sqlalchemy import SQLAlchemy
 from logs.logger import logging
 import re
 import datetime
 from tools.scheduler import scheduler
-
-
-class CampaignWorker:
-
-    def __init__(self, name):
-        self.name = name
-
-    def make_phone_call(self, goal):
-        return "Dummy phone call made by {} with goal: {}".format(
-            self.name, goal)
-
-    def start_a_text_thread(self, goal):
-        return "Dummy text thread started by {} with goal: {}".format(
-            self.name, goal)
-
-    def send_email(self, goal):
-        return "Dummy email sent by {} with goal: {}".format(self.name, goal)
-
-
-@dataclass
-class OutreachScheduleEntry:
-    outreach_date: str
-    outreach_type: str
-    outreach_goal: str
-
-
-@dataclass
-class VoterProfile:
-    interests: List[str]
-    preferred_contact_method: str
-    engagement_history: List[str]
-
-
-@dataclass
-class CampaignEvent:
-    event_date: str
-    event_type: str
-    event_goal: str
-    target_voters: str
+from tools.campaign_worker_tools import CampaignWorker, outreach_functions
+from tools.utility import remove_trailing_commas
 
 
 class CampaignTools:
 
-    def __init__(self):
-        self.outreach_schedule = []
-        self.voter_profile = VoterProfile([], "", [])
-        self.voter_engagement_history = []
-        self.campaign_events = []
+    def __init__(self, communication: Interaction, db: SQLAlchemy):
+        self.outreach_schedule = communication.voter_outreach_schedule
+        self.voter_profile = communication.voter.voter_profile
+        self.db = db
+        self.voter_engagement_history = communication.voter.voter_engagement_history
+        self.campaign_events = communication.candidate.candidate_schedule
+        self.communication = communication
 
-    def set_outreach_schedule(self, schedule_json):
+    def set_outreach_schedule(self, schedule_json, communication_id):
+
+        #confirm we are working on the communication you expect.
+        if communication_id != self.communication.id:
+            logging.error(
+                "We are not working on the communication you expect.")
+            return f"You are not working on the communication you expect. Expected: {self.communication.id} Actual: {communication_id}"
+
+        logging.info("Setting outreach schedule for campaign agent.")
+
         self.outreach_schedule = self.parse_outreach_schedule(schedule_json)
 
-        # Get first outreach from schedule
-        first_outreach = filter_outreach(self.outreach_schedule)
+        logging.info(f"Outreach schedule set to: {self.outreach_schedule}")
 
-        outreach_date = datetime.datetime.strptime(
-            first_outreach.outreach_date, '%Y-%m-%d')
-        outreach_type = first_outreach.outreach_type
-        outreach_goal = first_outreach.outreach_goal
+        # Get first outreach from schedule
+        next_outreach = filter_outreach(self.outreach_schedule)
+        logging.info(f"Next outreach is: {next_outreach}")
+
+        # outreach_date = datetime.datetime.strptime(next_outreach.outreach_date, '%Y-%m-%d %H:%M:%S')
+
+        outreach_type = next_outreach.outreach_type
+        outreach_goal = next_outreach.outreach_goal
+        outreach_date = datetime.datetime.now() + datetime.timedelta(
+            seconds=20)  # outreach_date will be 20 seconds from now
 
         # Get the function corresponding to the outreach type
         func = outreach_functions.get(outreach_type)
@@ -74,46 +52,51 @@ class CampaignTools:
             scheduler.add_job(func,
                               'date',
                               run_date=outreach_date,
-                              args=[outreach_goal])
+                              args=[self.communication.id, outreach_goal])
             scheduler.start()
+            logging.info(
+                f"Outreach scheduled for {outreach_type} with goal: {outreach_goal}"
+            )
         else:
+            logging.error(f"Outreach type not supported: {outreach_type}")
             return f"No function defined for outreach type {outreach_type}"
 
-        return "Outreach schedule set"
+        self.db.session.commit()
+        return f"Outreach schedule set for {outreach_date} with outreach goal {outreach_goal}"
 
-    def get_outreach_schedule(self):
+    def get_outreach_schedule(self, communication_id):
         return self.serialize_outreach_schedule()
 
-    def update_voter_profile(self, update_to_make):
+    def update_voter_profile(self, update_to_make, communication_id):
         self.voter_profile.engagement_history.append(update_to_make)
         return "Voter profile updated: {}".format(update_to_make)
 
-    def get_voter_information(self, question_about_voter):
+    def get_voter_information(self, question_about_voter, communication_id):
         return "Dummy response to question about voter: {}".format(
             question_about_voter)
 
-    def get_voter_engagement_history(self):
+    def get_voter_engagement_history(self, communication_id):
         return self.serialize_voter_engagement_history()
 
-    def make_phone_call(self, goal):
+    def make_phone_call(self, goal, communication_id):
         worker = CampaignWorker("Phone Worker")
         return worker.make_phone_call(goal)
 
-    def start_a_text_thread(self, goal):
-        worker = CampaignWorker("Text Worker")
+    def start_a_text_thread(self, goal, communication_id):
+        worker = CampaignWorker(self.communication)
         return worker.start_a_text_thread(goal)
 
-    def send_email(self, goal):
+    def send_email(self, goal, communication_id):
         worker = CampaignWorker("Email Worker")
         return worker.send_email(goal)
 
-    def get_recent_news(self, topic):
+    def get_recent_news(self, topic, communication_id):
         return "Dummy response for recent news on topic: {}".format(topic)
 
-    def google_civic_database(self):
+    def google_civic_database(self, question, communication_id):
         return "Dummy response from Google Civic Database"
 
-    def get_candidate_schedule(self):
+    def get_candidate_schedule(self, communication_id):
         return self.serialize_campaign_events()
 
     def review_conversation(self, conversation_topic):
@@ -122,7 +105,10 @@ class CampaignTools:
 
     @staticmethod
     def parse_outreach_schedule(schedule_json):
-        schedule = json.loads(schedule_json)
+        logging.info(f"Parsing schedule json: {schedule_json}")
+        json_remove_trailing_number = re.split('(?<=\]),', schedule_json)[0]
+        json_remove_trailing_comma = remove_trailing_commas(json_remove_trailing_number)
+        schedule = json.loads(json_remove_trailing_comma)
         return [OutreachScheduleEntry(**entry) for entry in schedule]
 
     def serialize_outreach_schedule(self):
@@ -191,22 +177,14 @@ def execute_action(campaign_tools: CampaignTools, action_name, action_params):
             action_params = json.dumps(action_params)
 
         # Execute the action method with action_params as an argument
-        result = action_method(action_params)
+        result = action_method(action_params, campaign_tools.communication.id)
     else:
-        logging.info(f"No acution named '{action_name}' found in CampaignTools")
+        logging.info(
+            f"No acition named '{action_name}' found in CampaignTools")
         # If there is no method with the provided name, return an error message
         return f"There is no available action with name {action_name}"
-    
-    return result
 
-def update_conversation(voter_communication: VoterCommunication, message):
-    """
-    This function should append the new message to the voter_communication conversation.
-    """
-    logging.info(f"Updating conversation with new message: {message}")
-    conversation = voter_communication.conversation
-    conversation.append({"role": "user", "content": message})
-    return
+    return result
 
 
 def filter_outreach(outreach_list):
@@ -219,33 +197,13 @@ def filter_outreach(outreach_list):
     # Convert string dates to datetime objects and compare with today's date
     filtered_list = [
         outreach for outreach in outreach_list if datetime.datetime.strptime(
-            outreach.outreach_date, '%Y-%m-%d').date() >= today
+            outreach.outreach_date, '%Y-%m-%d %H:%M:%S').date() >= today
     ]
 
     # If the filtered list is not empty, sort it by date and return the first element
     if filtered_list:
         return sorted(filtered_list,
                       key=lambda k: datetime.datetime.strptime(
-                          k.outreach_date, '%Y-%m-%d').date())[0]
+                          k.outreach_date, '%Y-%m-%d %H:%M:%S').date())[0]
 
     return None
-
-
-def text_outreach(goal):
-    print(f"Sending text: {goal}")
-
-
-def call_outreach(goal):
-    print(f"Making call: {goal}")
-
-
-def email_outreach(goal):
-    print(f"Sending email: {goal}")
-
-
-# Mapping from outreach type to function
-outreach_functions = {
-    'text': text_outreach,
-    'call': call_outreach,
-    'email': email_outreach
-}

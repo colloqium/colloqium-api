@@ -1,58 +1,76 @@
-from flask import Flask
-from flask_sqlalchemy import SQLAlchemy
+from database import db
 from sqlalchemy.orm import relationship
-from flask_migrate import Migrate
-
-app = Flask(__name__)
-
-# Set the SQLALCHEMY_DATABASE_URI configuration variable
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///site.db'
-
-# Create a db object using the SQLAlchemy class
-db = SQLAlchemy(app)
-
-# Settings for migrations
-migrate = Migrate(app, db)
+from typing import List
+from dataclasses import dataclass
 
 
-class Voter(db.Model):
+@dataclass
+class OutreachScheduleEntry:
+    outreach_date: str
+    outreach_type: str
+    outreach_goal: str
+
+
+@dataclass
+class RecipientProfile:
+    interests: List[str]
+    preferred_contact_method: str
+    engagement_history: List[str]
+
+
+@dataclass
+class Event:
+    event_date: str
+    event_type: str
+    event_goal: str
+    target_attendee : str
+
+
+class Recipient(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    voter_name = db.Column(db.String(50))
-    voter_information = db.Column(db.Text)
-    voter_phone_number = db.Column(db.String(100))
+    recipient_name = db.Column(db.String(50))
+    recipient_information = db.Column(db.Text)
+    recipient_phone_number = db.Column(db.String(100))
+    recipient_profile = db.Column(db.JSON())
+    recipient_engagement_history = db.Column(db.JSON())
+    # Add relationship
+    interactions = relationship('Interaction',
+                                  backref='recipient',
+                                  lazy=True)
+
+
+class Sender(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    sender_name = db.Column(db.String(50))
+    sender_information = db.Column(db.Text)
+    sender_schedule = db.Column(db.JSON())
+    # Add relationship
+    interactions = relationship('Interaction',
+                                  backref='sender',
+                                  lazy=True)
+
+
+class Campaign(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    campaign_name = db.Column(db.String(50))
+    campaign_information = db.Column(db.Text)
+    campaign_end_date = db.Column(db.Date)
 
     # Add relationship
-    communications = relationship('VoterCommunication', backref='voter', lazy=True)
+    interactions = relationship('Interaction',
+                                  backref='campaign',
+                                  lazy=True)
 
-class Candidate(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    candidate_name = db.Column(db.String(50))
-    candidate_information = db.Column(db.Text)
 
-    # Add relationship
-    communications = relationship('VoterCommunication', backref='candidate', lazy=True)
-
-class Race(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    race_name = db.Column(db.String(50))
-    race_information = db.Column(db.Text)
-    race_date = db.Column(db.Date)
-
-    # Add relationship
-    communications = relationship('VoterCommunication', backref='race', lazy=True)
-
-class VoterCommunication(db.Model):
+class Interaction(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     twilio_conversation_sid = db.Column(db.String(50))
     conversation = db.Column(db.JSON())
-    communication_type = db.Column(db.String(50))
-    communication_goal = db.Column(db.Text)
-    voter_id = db.Column(db.Integer, db.ForeignKey('voter.id'))
-    candidate_id = db.Column(db.Integer, db.ForeignKey('candidate.id'))
-    race_id = db.Column(db.Integer, db.ForeignKey('race.id'))
+    interaction_type = db.Column(db.String(50))
+    interaction_goal = db.Column(db.Text)
+    recipient_id = db.Column(db.Integer, db.ForeignKey('recipient.id'))
+    sender_id = db.Column(db.Integer, db.ForeignKey('sender.id'))
+    campaign_id = db.Column(db.Integer, db.ForeignKey('campaign.id'))
+    recipient_outreach_schedule = db.Column(db.JSON())
 
-    # Relationships are set up in Voter, Candidate, and Race models
-
-
-with app.app_context():
-    db.create_all()
+    # Relationships are set up in Recipient, Sender, and CampaignContext models

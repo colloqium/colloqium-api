@@ -1,28 +1,25 @@
 # import Flask and other libraries
-from flask import Flask, Response, render_template, request, redirect, url_for, session, jsonify
-from flask_wtf.csrf import CSRFProtect
+from flask import Response, render_template, request, redirect, url_for, session, jsonify
 from twilio.twiml.voice_response import VoiceResponse
 from twilio.twiml.messaging_response import MessagingResponse
 from twilio.rest import Client
 import os
 import openai
-from forms.voter_communication_form import VoterCommunicationForm
-from models import Voter, Candidate, Race, VoterCommunication, db
+from forms.interaction_form import InteractionForm
+from models import Recipient, Sender, Campaign, Interaction
 from prompts.campaign_volunteer_agent import get_campaign_phone_call_system_prompt, get_campaign_text_message_system_prompt
 from prompts.campaign_planner_agent import get_campaign_agent_system_prompt
-from tools.campaign_agent_tools import CampaignTools, extract_action, execute_action, update_conversation
+from tools.campaign_agent_tools import CampaignTools, extract_action, execute_action
+from tools.utility import add_message_to_conversation, add_llm_response_to_conversation, initialize_conversation
 from tools.scheduler import scheduler
 from logs.logger import logger, logging
-import secrets
 from datetime import date
+from database import db
+from flask_migrate import Migrate
+from context import app, csrf_protect
 
-# Create a Flask app object
-app = Flask(__name__)
-app.config['SECRET_KEY'] = secrets.token_hex(nbytes=8)
-csrf_protect = CSRFProtect(app)
-# Set the SQLALCHEMY_DATABASE_URI configuration variable
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///site.db'
-db.init_app(app)
+# assuming app and db are defined above
+migrate = Migrate(app, db)
 
 # Your Twilio account credentials
 account_sid = os.environ['twilio_account_sid']
@@ -31,8 +28,6 @@ twilio_number = os.environ['twilio_number']
 
 # The webhook URL for handling the call events
 call_webhook_url = os.environ['CALL_WEBHOOK_URL']
-
-#"https://ai-phone-bank-poc.a1j9o94.repl.co/twilio_call"
 
 # Create a Twilio client object
 client = Client(account_sid, auth_token)
@@ -50,11 +45,11 @@ def twilio_call():
         logging.info(request.get_data())
         call_id = request.form['CallSid']
         logging.info("Call id: " + call_id)
-        voter_communication = VoterCommunication.query.filter_by(
+        interaction = Interaction.query.filter_by(
             twilio_conversation_sid=call_id).first()
 
         # Retrieve the conversation from our 'database' using the CallSid
-        conversation = voter_communication.conversation
+        conversation = interaction.conversation
 
         # If conversation does not exist, log an error and return
         if not conversation:
@@ -68,20 +63,13 @@ def twilio_call():
 
         # Add the user's message to the conversation
         if speech_result:
-            conversation.append({"role": "user", "content": speech_result})
+            add_message_to_conversation(interaction, speech_result)
             # Log the user's message to the console
             logger.info(f"User message: {speech_result}")
 
             # Get the AI response and add it to the conversation
             try:
-                logging.info("Starting OpenAI Completion")
-                completion = openai.ChatCompletion.create(
-                    model="gpt-4",
-                    messages=conversation,
-                    temperature=0.9,
-                    max_tokens=150)
-                logging.info("Finshed OpenAI")
-                text = completion.choices[0].message.content
+                text = add_llm_response_to_conversation(interaction)
             except:
                 text = "Sorry, I am having trouble hearing you. I will try to call again later, Goodbye"
             conversation.append({"role": "assistant", "content": text})
@@ -112,9 +100,7 @@ def twilio_call():
 
     except Exception as e:
         # Log the exception
-        logging.exception('An error occurred while processing the request: %s',
-                          e)
-
+        logging.exception('An error occurred while processing the request: %s', e)
         # Return a server error response
         return Response('An error occurred while processing the request.',
                         status=500)
@@ -128,294 +114,291 @@ def twilio_message():
     # Get the 'From' number from the incoming request
     from_number = request.values.get('From', None)
 
-    # Use the 'From' number to look up the voter in your database
-    voter = Voter.query.filter_by(voter_phone_number=from_number).first()
+    # Use the 'From' number to look up the recipient in your database
+    recipient = Recipient.query.filter_by(recipient_phone_number=from_number).first()
 
-    # If the voter doesn't exist, create a new one and a new VoterCommunication
-    if not voter:
-        voter = Voter(voter_name='', voter_phone_number=from_number)
-        db.session.add(voter)
+    # If the recipient doesn't exist, create a new one and a new Interaction
+    if not recipient:
+        recipient = Recipient(recipient_name='', recipient_phone_number=from_number)
+        db.session.add(recipient)
 
         system_prompt = get_campaign_text_message_system_prompt(
-            voter, Candidate(),
-            Race(race_date=date.tomorrow(),
-                 race_name="Next Congressional Race Example",
-                 race_information="Important upcoming race tomorrow"))
+            recipient, Sender(),
+            Campaign(campaign_date=date.tomorrow(),
+                 campaign_name="Help Find Correct Campaign",
+                 campaign_information="The user reaching out to you is not associated with a campaign. Can you find out who they expect to reach"))
 
         # Create a new conversation with a system message
-        conversation = [{"role": "system", "content": system_prompt}]
+        conversation = initialize_conversation(system_prompt)
 
-        voter_communication = VoterCommunication(twilio_conversation_sid='',
+        interaction = Interaction(twilio_conversation_sid='',
                                                  conversation=conversation,
-                                                 communication_type='text',
-                                                 voter_id=voter.id)
-        db.session.add(voter_communication)
+                                                 interaction_type='text',
+                                                 recipient_id=recipient.id)
+        db.session.add(interaction)
     else:
-        # If the voter exists, find the VoterCommunication for this voter with type 'text'
-        voter_communication = VoterCommunication.query.filter_by(
-            voter_id=voter.id, communication_type='text').first()
+        # If the recipient exists, find the Interaction for this recipient with type 'text'
+        interaction = Interaction.query.filter_by(
+            recipient_id=recipient.id, interaction_type='text').first()
 
     # Now you can add the new message to the conversation
     message_body = request.values.get('Body', None)
     logging.info(f"Recieved message body: {message_body}")
-    conversation = voter_communication.conversation
-    conversation.append({"role": "user", "content": message_body})
-    # generate a new response from openAI to continue the conversation
-    logging.info("Starting OpenAI Completion for message")
-    completion = openai.ChatCompletion.create(model="gpt-4",
-                                              messages=conversation,
-                                              temperature=0.9,
-                                              max_tokens=150)
-    logging.info("Finshed OpenAI Complestion for message")
-    message_body = completion.choices[0].message.content
-    conversation.append({"role": "assistant", "content": message_body})
+    interaction.conversation = add_message_to_conversation(interaction, message_body)
 
-    voter_communication.conversation = conversation
+    logging.debug(f"Conversation after including message: {interaction.conversation}")
+    # generate a new response from openAI to continue the conversation
+    message_body = add_llm_response_to_conversation(interaction)
+    logging.debug(f"AI message: {message_body}")
+    logging.debug(f"Conversation after adding LLM response: {interaction.conversation}")
+
+    db.session.add(interaction)
     db.session.commit()
 
     response = MessagingResponse()
     response.message(message_body)
+    logging.debug(f"Response xml: {response.to_xml()}")
     return Response(response.to_xml(), content_type="text/xml")
 
 
 @app.route("/", methods=['GET', 'POST'])
 def home():
     return redirect(
-        url_for('voter_communication',
+        url_for('interaction',
                 last_action="LoadingServerForTheFirstTime"))
 
 
-@app.route('/voter_communication/<last_action>', methods=['GET', 'POST'])
+@app.route('/interaction/<last_action>', methods=['GET', 'POST'])
 @csrf_protect.exempt
-def voter_communication(last_action):
+def interaction(last_action):
     try:
-        app.logger.info("Processing voter communication form...")
+        app.logger.info("Processing Interaction form...")
 
-        # Create instance of VoterCallForm class
-        form = VoterCommunicationForm()
+        # Create instance of recipientCallForm class
+        form = InteractionForm()
 
         # When the form is submitted
         if form.validate_on_submit():
-            # Check if a voter with the given name and phone number already exists
-            voter = Voter.query.filter_by(
-                voter_name=form.voter_name.data,
-                voter_phone_number=form.voter_phone_number.data).first()
+            # Check if a recipient with the given name and phone number already exists
+            recipient = Recipient.query.filter_by(
+                recipient_name=form.recipient_name.data,
+                recipient_phone_number=form.recipient_phone_number.data).first()
 
-            # If the voter does not exist, create a new one
-            if not voter:
-                voter = Voter(voter_name=form.voter_name.data,
-                              voter_phone_number=form.voter_phone_number.data,
-                              voter_information=form.voter_information.data)
-                db.session.add(voter)
+            # If the recipient does not exist, create a new one
+            if not recipient:
+                recipient = Recipient(recipient_name=form.recipient_name.data,
+                              recipient_phone_number=form.recipient_phone_number.data,
+                              recipient_information=form.recipient_information.data)
+                db.session.add(recipient)
 
-            # Check if candidate with this name is in database
-            candidate = Candidate.query.filter_by(
-                candidate_name=form.candidate_name.data).first()
+            # Check if sender with this name is in database
+            sender = Sender.query.filter_by(
+                sender_name=form.sender_name.data).first()
 
-            if not candidate:
-                candidate = Candidate(
-                    candidate_name=form.candidate_name.data,
-                    candidate_information=form.candidate_information.data)
-                db.session.add(candidate)
+            if not sender:
+                sender = Sender(
+                    sender_name=form.sender_name.data,
+                    sender_information=form.sender_information.data)
+                db.session.add(sender)
 
-            # Check if race wiht this name is in database
-            race = Race.query.filter_by(race_name=form.race_name.data).first()
+            # Check if campaign wiht this name is in database
+            campaign = Campaign.query.filter_by(campaign_name=form.campaign_name.data).first()
 
-            if not race:
-                race = Race(race_name=form.race_name.data,
-                            race_information=form.race_information.data)
-                db.session.add(race)
+            if not campaign:
+                campaign = Campaign(campaign_name=form.campaign_name.data,
+                            campaign_information=form.campaign_information.data)
+                db.session.add(campaign)
 
-            communication_type = form.communication_type.data
+            interaction_type = form.interaction_type.data
 
-            # Create the VoterCommunication
-            voter_communication = VoterCommunication(
+            # Create the Interaction
+            interaction = Interaction(
                 twilio_conversation_sid='',  # You will need to update this later
                 conversation=[],
-                voter=voter,  # The ID of the voter
-                candidate=candidate,
-                race=race,
-                communication_type=communication_type)
+                recipient=recipient,  # The ID of the recipient
+                sender=sender,
+                campaign=campaign,
+                interaction_type=interaction_type)
 
-            if communication_type == "call":
-                # Add information from VoterCallForm to the system prompt
+            db.session.add(interaction)
+            db.session.commit()
+
+            #get interaction with DB fields
+            interaction = db.session.query(
+                Interaction).filter_by(
+                    recipient_id=recipient.id,
+                    interaction_type=interaction_type,
+                    campaign_id=campaign.id).first()
+
+            if interaction_type == "call":
+                # Add information from recipientCallForm to the system prompt
                 system_prompt = get_campaign_phone_call_system_prompt(
-                    voter_communication)
-            elif communication_type == "text":
+                    interaction)
+            elif interaction_type == "text":
                 system_prompt = get_campaign_text_message_system_prompt(
-                    voter_communication)
-            elif communication_type == "plan":
+                    interaction)
+            elif interaction_type == "plan":
                 system_prompt = get_campaign_agent_system_prompt(
-                    voter_communication)
+                    interaction)
 
-            user_number = form.voter_phone_number.data
+            user_number = form.recipient_phone_number.data
 
             #Pre create the first response
-            conversation = [{"role": "system", "content": system_prompt}]
-
-            completion = openai.ChatCompletion.create(model="gpt-4",
-                                                      messages=conversation,
-                                                      temperature=0.9)
-
-            initial_statement = completion.choices[0].message.content
-            conversation.append({
-                "role": "assistant",
-                "content": initial_statement
-            })
-
-            voter_communication.conversation = conversation
-
-            db.session.add(voter_communication)
+            conversation = initialize_conversation(system_prompt)
+            interaction.conversation = conversation
+            initial_statement = add_llm_response_to_conversation(interaction)
+            logging.info("Interaction created successfully")
             db.session.commit()
-            logging.info("Voter communication created successfully")
 
             # Log the system prompt and user number
-            logging.info("Communication Type: %s", communication_type)
+            logging.info("Interaction Type: %s", interaction_type)
             logging.info(f"System prompt: {system_prompt}")
             logging.info(f"User number: {user_number}")
             logging.info(f"Initial Statement: {initial_statement}")
-            logging.info(f"Conversation: {conversation}")
+            logging.debug(f"Conversation: {conversation}")
 
             # Store data in session
             session[
-                'voter_communication_id'] = voter_communication.id  # Store the VoterCommunication ID
+                'interaction_id'] = interaction.id  # Store the interaction ID
 
-            if (communication_type == "call"):
-                # Call the voter
+            if (interaction_type == "call"):
+                # Call the recipient
                 logging.info("Redirecting to call route...")
-                return redirect(url_for('call'))
-            elif (communication_type == "text"):
+                return redirect(url_for('call'), interaction_id=interaction.id)
+            elif (interaction_type == "text"):
                 # Send a text message
                 logging.info("Redirecting to text message route...")
-                return redirect(url_for('text_message'))
-            elif (communication_type == "plan"):
-                # Create an outreach agent and plan the outreach for the voter
+                return redirect(url_for('text_message', interaction_id=interaction.id))
+            elif (interaction_type == "plan"):
+                # Create an outreach agent and plan the outreach for the recipient
                 logging.info("Redirecting to planning route...")
-                return redirect(url_for('plan', voter_id=voter.id))
+                return redirect(url_for('plan', recipient_id=recipient.id))
 
-        return render_template('voter_communication.html',
+        return render_template('interaction.html',
                                form=form,
                                last_action=last_action)
 
     except Exception as e:
         app.logger.error(f"Exception occurred: {e}", exc_info=True)
-        return render_template('voter_communication.html',
+        return render_template('interaction.html',
                                form=form,
                                last_action="Error")
 
 
-@app.route("/call", methods=['POST', 'GET'])
+@app.route("/call/<interaction_id>", methods=['POST', 'GET'])
 @csrf_protect.exempt
-def call():
+def call(interaction_id):
     try:
-        voter_call = VoterCommunication.query.get(
-            session['voter_communication_id'])
-        voter = Voter.query.get(voter_call.voter_id)
-        candidate = Candidate.query.get(voter_call.candidate_id)
+        recipient_call = Interaction.query.get(
+            session['interaction_id'])
+        recipient = Recipient.query.get(recipient_call.recipient_id)
+        sender = Sender.query.get(recipient_call.sender_id)
 
         # Clear the session data now that we're done with it
-        if 'voter_communication_id' in session:
-            del session['voter_communication_id']
+        if 'interaction_id' in session:
+            del session['interaction_id']
 
         app.logger.info(
-            f"Starting call with system prompt '{voter_call.conversation[0].get('content')}' and user number '{voter.voter_phone_number}'"
+            f"Starting call with system prompt '{recipient_call.conversation[0].get('content')}' and user number '{recipient.recipient_phone_number}'"
         )
 
         # Start a new call
         call = client.calls.create(url=call_webhook_url,
-                                   to=voter.voter_phone_number,
+                                   to=recipient.recipient_phone_number,
                                    from_=twilio_number)
 
         app.logger.info(f"Started call with SID '{call.sid}'")
 
-        #add call.sid to voter_call
-        voter_call.twilio_conversation_sid = call.sid
+        #add call.sid to recipient_call
+        recipient_call.twilio_conversation_sid = call.sid
         db.session.commit()
 
         return redirect(
-            url_for('voter_communication',
-                    last_action="Calling" + voter.voter_name + "for" +
-                    candidate.candidate_name))
+            url_for('interaction',
+                    last_action="Calling" + recipient.recipient_name + "for" +
+                    sender.sender_name))
 
     except Exception as e:
         app.logger.error(f"Exception occurred: {e}", exc_info=True)
-        return render_template('voter_communication.html',
-                               form=VoterCommunicationForm(),
+        return render_template('interaction.html',
+                               form=InteractionForm(),
                                last_action="Error")
 
 
-@app.route("/text_message", methods=['POST', 'GET'])
+@app.route("/text_message/<interaction_id>", methods=['POST', 'GET'])
 @csrf_protect.exempt
-def text_message():
+def text_message(interaction_id):
     try:
-        voter_text_thread = VoterCommunication.query.get(
-            session['voter_communication_id'])
+        text_thread = db.session.query(Interaction).get(interaction_id)
 
-        if voter_text_thread:
-            voter = Voter.query.get(voter_text_thread.voter_id)
-            candidate = Candidate.query.get(voter_text_thread.candidate_id)
-            conversation = voter_text_thread.conversation
+        if text_thread:
+            recipient = Recipient.query.get(text_thread.recipient_id)
+            conversation = text_thread.conversation
 
-            logging.info(
+            logging.debug(
                 f"Texting route recieved Conversation: {conversation}")
 
             body = conversation[-1].get('content')
 
-            # Clear the session data now that we're done with it
-            if 'voter_communication_id' in session:
-                del session['voter_communication_id']
-
             app.logger.info(
-                f"Starting text message with body'{body}' and user number '{voter.voter_phone_number}'"
+                f"Starting text message with body'{body}' and user number '{recipient.recipient_phone_number}'"
             )
 
             # Start a new text message thread
             text_message = client.messages.create(body=body,
                                                   from_=twilio_number,
-                                                  to=voter.voter_phone_number)
+                                                  to=recipient.recipient_phone_number)
 
             logging.info(
-                f"Started text Conversation with voter '{voter.voter_name}' on text SID '{text_message.sid}'"
+                f"Started text Conversation with recipient '{recipient.recipient_name}' on text SID '{text_message.sid}'"
             )
 
-        db.session.commit()
+            db.session.commit()
+    
+            return jsonify({
+                'status': 'success',
+                'last_action': f"Sending text to {recipient.recipient_name} at {recipient.recipient_phone_number}",
+                'First Message': body,
+                'conversation': text_thread.conversation
+            }), 200
 
-        return redirect(
-            url_for('voter_communication',
-                    last_action="Texting" + voter.voter_name + "for" +
-                    candidate.candidate_name))
+        return jsonify({
+                'status': 'error',
+                'last_action': f"Error Sending text to with interaction id {interaction_id}"
+            }), 400
 
     except Exception as e:
         app.logger.error(f"Exception occurred: {e}", exc_info=True)
-        return render_template('voter_communication.html',
-                               form=VoterCommunicationForm(),
+        return render_template('interaction.html',
+                               form=InteractionForm(),
                                last_action="Error")
 
 
-@app.route("/plan/<int:voter_id>", methods=['GET', 'POST'])
+@app.route("/plan/<int:recipient_id>", methods=['GET', 'POST'])
 @csrf_protect.exempt
-def plan(voter_id):
+def plan(recipient_id):
     try:
-        voter_communication = VoterCommunication.query.get(
-            session['voter_communication_id'])
-        voter = voter_communication.voter
+        interaction = Interaction.query.get(
+            session['interaction_id'])
+        recipient = interaction.recipient
 
-        most_recent_message = voter_communication.conversation[-1].get(
+        most_recent_message = interaction.conversation[-1].get(
             'content')
 
-        logging.info(f"Creating plan for {voter.voter_name}")
+        logging.info(f"Creating plan for {recipient.recipient_name}")
+        logging.debug(
+            f"Conversation so far: {interaction.conversation}")
         logging.info(f"Most Recent Message {most_recent_message}")
 
         # Instantiate campaign tools
-        campaign_tools = CampaignTools()
+        campaign_tools = CampaignTools(interaction, db)
 
         # Maximum iterations to avoid infinite loop
         max_iterations = 10
         iteration = 0
 
         # Execute action based on the recent message
-        while ('WAIT' not in most_recent_message.upper()) and (iteration <
-                                                               max_iterations):
+        while True:
             iteration += 1
 
             if 'Action' in most_recent_message:
@@ -424,26 +407,30 @@ def plan(voter_id):
                 action_result = execute_action(campaign_tools, action_name,
                                                action_params)
                 most_recent_message = f"Observation: {action_result}"
-                update_conversation(voter_communication, most_recent_message)
+                add_message_to_conversation(interaction, most_recent_message)
 
-            # Make an API call to OpenAI to get the next chatbot response
-            logging.info("Starting OpenAI Completion")
-            completion = openai.ChatCompletion.create(
-                model="gpt-4",
-                messages=voter_communication.conversation,
-                temperature=0.9,
-                max_tokens=150)
-            logging.info("Finished OpenAI")
-            most_recent_message = completion.choices[0].message.content
+            most_recent_message = add_llm_response_to_conversation(interaction)
 
             # Update conversation with the latest response
-            update_conversation(voter_communication, most_recent_message)
+            add_message_to_conversation(interaction, most_recent_message)
+
+            # flush the logs
+            for handler in logging.getLogger().handlers:
+                handler.flush()
+
+            if ('WAIT' in most_recent_message.upper()) or (iteration >=
+                                                           max_iterations):
+                if iteration >= max_iterations:
+                    most_recent_message = "Observation: The conversation exceeded the maximum number of iterations without reaching a 'WAIT' state. The conversation will be paused here, and will need to be reviewed."
+                    add_message_to_conversation(interaction,
+                                        most_recent_message)
+                break
 
         db.session.commit()
         return jsonify({
             'status': 'success',
-            'last_action': 'Planning for ' + voter.voter_name,
-            'conversation': voter_communication.conversation
+            'last_action': 'Planning for ' + recipient.recipient_name,
+            'conversation': interaction.conversation
         }), 200
 
     except Exception as e:
@@ -454,3 +441,4 @@ def plan(voter_id):
 #Run the app on port 5000
 if __name__ == "__main__":
     app.run(host='0.0.0.0', port=5000)
+    scheduler.start()

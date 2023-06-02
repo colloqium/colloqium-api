@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <title>Voter Call Form</title>
+    <title>Interaction Form</title>
     <link
       href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css"
       rel="stylesheet"
@@ -16,73 +16,71 @@
           </div>
           <div class="card">
             <div class="card-header bg-info text-white">
-              <h2 class="card-title text-center">Voter Communication Form</h2>
+              <h2 class="card-title text-center">Interaction Form</h2>
             </div>
             <div class="card-body">
               <form method="POST">
                 {{ form.hidden_tag() }} {{ form.csrf_token }}
                 <div class="form-group">
-                  {{ form.voter_name.label(class="form-control-label") }} {{
-                  form.voter_name(class="form-control") }} {% for error in
-                  form.voter_name.errors %}
-                  <span class="text-danger">{{ error }}</span>
-                  {% endfor %}
-                </div>
-                <!-- Repeat the pattern for other fields -->
-                <div class="form-group">
-                  {{ form.voter_information.label(class="form-control-label") }}
-                  {{ form.voter_information(class="form-control") }} {% for
-                  error in form.voter_information.errors %}
+                  {{ form.recipient_name.label(class="form-control-label") }} {{
+                  form.recipient_name(class="form-control") }} {% for error in
+                  form.recipient_name.errors %}
                   <span class="text-danger">{{ error }}</span>
                   {% endfor %}
                 </div>
                 <div class="form-group">
-                  {{ form.voter_phone_number.label(class="form-control-label")
-                  }} {{ form.voter_phone_number(class="form-control") }} {% for
-                  error in form.voter_phone_number.errors %}
+                  {{ form.recipient_information.label(class="form-control-label") }}
+                  {{ form.recipient_information(class="form-control") }} {% for
+                  error in form.recipient_information.errors %}
                   <span class="text-danger">{{ error }}</span>
                   {% endfor %}
                 </div>
                 <div class="form-group">
-                  {{ form.race_name.label(class="form-control-label") }} {{
-                  form.race_name(class="form-control") }} {% for error in
-                  form.race_name.errors %}
+                  {{ form.recipient_phone_number.label(class="form-control-label")
+                  }} {{ form.recipient_phone_number(class="form-control") }} {% for
+                  error in form.recipient_phone_number.errors %}
                   <span class="text-danger">{{ error }}</span>
                   {% endfor %}
                 </div>
                 <div class="form-group">
-                  {{ form.race_information.label(class="form-control-label") }}
-                  {{ form.race_information(class="form-control") }} {% for error
-                  in form.race_information.errors %}
+                  {{ form.campaign_name.label(class="form-control-label") }} {{
+                  form.campaign_name(class="form-control") }} {% for error in
+                  form.campaign_name.errors %}
                   <span class="text-danger">{{ error }}</span>
                   {% endfor %}
                 </div>
                 <div class="form-group">
-                  {{ form.candidate_name.label(class="form-control-label") }} {{
-                  form.candidate_name(class="form-control") }} {% for error in
-                  form.candidate_name.errors %}
+                  {{ form.campaign_information.label(class="form-control-label") }}
+                  {{ form.campaign_information(class="form-control") }} {% for error
+                  in form.campaign_information.errors %}
+                  <span class="text-danger">{{ error }}</span>
+                  {% endfor %}
+                </div>
+                <div class="form-group">
+                  {{ form.sender_name.label(class="form-control-label") }} {{
+                  form.sender_name(class="form-control") }} {% for error in
+                  form.sender_name.errors %}
                   <span class="text-danger">{{ error }}</span>
                   {% endfor %}
                 </div>
                 <div class="form-group">
                   {{
-                  form.candidate_information.label(class="form-control-label")
-                  }} {{ form.candidate_information(class="form-control") }} {%
-                  for error in form.candidate_information.errors %}
+                  form.sender_information.label(class="form-control-label")
+                  }} {{ form.sender_information(class="form-control") }} {%
+                  for error in form.sender_information.errors %}
                   <span class="text-danger">{{ error }}</span>
                   {% endfor %}
                 </div>
                 <div class="form-group">
-                  {{ form.race_date.label(class="form-control-label") }} {{
-                  form.race_date(class="form-control") }} {% for error in
-                  form.race_date.errors %}
+                  {{ form.campaign_end_date.label(class="form-control-label") }} {{
+                  form.campaign_end_date(class="form-control") }} {% for error in
+                  form.campaign_end_date.errors %}
                   <span class="text-danger">{{ error }}</span>
                   {% endfor %}
                 </div>
-                <div class="form-group">
-                  {{ form.communication_type.label(class="form-control-label")
-                  }} {{ form.communication_type(class="form-control") }} {% for
-                  error in form.communication_type.errors %}
+                               <div class="form-group">
+                  {{ form.interaction_type.label(class="form-control-label") }}
+                  {{ form.interaction_type(class="form-control") }} {% for error in form.interaction_type.errors %}
                   <span class="text-danger">{{ error }}</span>
                   {% endfor %}
                 </div>
@@ -114,3 +112,4 @@
     ></script>
   </body>
 </html>
+
