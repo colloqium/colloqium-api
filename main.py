@@ -13,7 +13,7 @@ from tools.campaign_agent_tools import CampaignTools, extract_action, execute_ac
 from tools.utility import add_message_to_conversation, add_llm_response_to_conversation, initialize_conversation
 from tools.scheduler import scheduler
 from logs.logger import logger, logging
-from datetime import date
+from datetime import date, timedelta
 from database import db
 from flask_migrate import Migrate
 from context import app, csrf_protect
@@ -100,7 +100,8 @@ def twilio_call():
 
     except Exception as e:
         # Log the exception
-        logging.exception('An error occurred while processing the request: %s', e)
+        logging.exception('An error occurred while processing the request: %s',
+                          e)
         # Return a server error response
         return Response('An error occurred while processing the request.',
                         status=500)
@@ -115,26 +116,33 @@ def twilio_message():
     from_number = request.values.get('From', None)
 
     # Use the 'From' number to look up the recipient in your database
-    recipient = Recipient.query.filter_by(recipient_phone_number=from_number).first()
+    recipient = Recipient.query.filter_by(
+        recipient_phone_number=from_number).first()
 
     # If the recipient doesn't exist, create a new one and a new Interaction
     if not recipient:
-        recipient = Recipient(recipient_name='', recipient_phone_number=from_number)
+        recipient = Recipient(recipient_name='',
+                              recipient_phone_number=from_number)
         db.session.add(recipient)
+
+        
 
         system_prompt = get_campaign_text_message_system_prompt(
             recipient, Sender(),
-            Campaign(campaign_date=date.tomorrow(),
-                 campaign_name="Help Find Correct Campaign",
-                 campaign_information="The user reaching out to you is not associated with a campaign. Can you find out who they expect to reach"))
+            Campaign(
+                campaign_end_date=date.today() + timedelta(days=1),
+                campaign_name="Help Find Correct Campaign",
+                campaign_information=
+                "The user reaching out to you is not associated with a campaign. Can you find out who they expect to reach"
+            ))
 
         # Create a new conversation with a system message
         conversation = initialize_conversation(system_prompt)
 
         interaction = Interaction(twilio_conversation_sid='',
-                                                 conversation=conversation,
-                                                 interaction_type='text',
-                                                 recipient_id=recipient.id)
+                                  conversation=conversation,
+                                  interaction_type='text',
+                                  recipient_id=recipient.id)
         db.session.add(interaction)
     else:
         # If the recipient exists, find the Interaction for this recipient with type 'text'
@@ -144,13 +152,16 @@ def twilio_message():
     # Now you can add the new message to the conversation
     message_body = request.values.get('Body', None)
     logging.info(f"Recieved message body: {message_body}")
-    interaction.conversation = add_message_to_conversation(interaction, message_body)
+    interaction.conversation = add_message_to_conversation(
+        interaction, message_body)
 
-    logging.debug(f"Conversation after including message: {interaction.conversation}")
+    logging.debug(
+        f"Conversation after including message: {interaction.conversation}")
     # generate a new response from openAI to continue the conversation
     message_body = add_llm_response_to_conversation(interaction)
     logging.debug(f"AI message: {message_body}")
-    logging.debug(f"Conversation after adding LLM response: {interaction.conversation}")
+    logging.debug(
+        f"Conversation after adding LLM response: {interaction.conversation}")
 
     db.session.add(interaction)
     db.session.commit()
@@ -162,10 +173,10 @@ def twilio_message():
 
 
 @app.route("/", methods=['GET', 'POST'])
+@csrf_protect.exempt
 def home():
     return redirect(
-        url_for('interaction',
-                last_action="LoadingServerForTheFirstTime"))
+        url_for('interaction', last_action="LoadingServerForTheFirstTime"))
 
 
 @app.route('/interaction/<last_action>', methods=['GET', 'POST'])
@@ -182,13 +193,15 @@ def interaction(last_action):
             # Check if a recipient with the given name and phone number already exists
             recipient = Recipient.query.filter_by(
                 recipient_name=form.recipient_name.data,
-                recipient_phone_number=form.recipient_phone_number.data).first()
+                recipient_phone_number=form.recipient_phone_number.data).first(
+                )
 
             # If the recipient does not exist, create a new one
             if not recipient:
-                recipient = Recipient(recipient_name=form.recipient_name.data,
-                              recipient_phone_number=form.recipient_phone_number.data,
-                              recipient_information=form.recipient_information.data)
+                recipient = Recipient(
+                    recipient_name=form.recipient_name.data,
+                    recipient_phone_number=form.recipient_phone_number.data,
+                    recipient_information=form.recipient_information.data)
                 db.session.add(recipient)
 
             # Check if sender with this name is in database
@@ -202,11 +215,13 @@ def interaction(last_action):
                 db.session.add(sender)
 
             # Check if campaign wiht this name is in database
-            campaign = Campaign.query.filter_by(campaign_name=form.campaign_name.data).first()
+            campaign = Campaign.query.filter_by(
+                campaign_name=form.campaign_name.data).first()
 
             if not campaign:
-                campaign = Campaign(campaign_name=form.campaign_name.data,
-                            campaign_information=form.campaign_information.data)
+                campaign = Campaign(
+                    campaign_name=form.campaign_name.data,
+                    campaign_information=form.campaign_information.data)
                 db.session.add(campaign)
 
             interaction_type = form.interaction_type.data
@@ -224,11 +239,10 @@ def interaction(last_action):
             db.session.commit()
 
             #get interaction with DB fields
-            interaction = db.session.query(
-                Interaction).filter_by(
-                    recipient_id=recipient.id,
-                    interaction_type=interaction_type,
-                    campaign_id=campaign.id).first()
+            interaction = db.session.query(Interaction).filter_by(
+                recipient_id=recipient.id,
+                interaction_type=interaction_type,
+                campaign_id=campaign.id).first()
 
             if interaction_type == "call":
                 # Add information from recipientCallForm to the system prompt
@@ -238,8 +252,7 @@ def interaction(last_action):
                 system_prompt = get_campaign_text_message_system_prompt(
                     interaction)
             elif interaction_type == "plan":
-                system_prompt = get_campaign_agent_system_prompt(
-                    interaction)
+                system_prompt = get_campaign_agent_system_prompt(interaction)
 
             user_number = form.recipient_phone_number.data
 
@@ -268,7 +281,8 @@ def interaction(last_action):
             elif (interaction_type == "text"):
                 # Send a text message
                 logging.info("Redirecting to text message route...")
-                return redirect(url_for('text_message', interaction_id=interaction.id))
+                return redirect(
+                    url_for('text_message', interaction_id=interaction.id))
             elif (interaction_type == "plan"):
                 # Create an outreach agent and plan the outreach for the recipient
                 logging.info("Redirecting to planning route...")
@@ -289,8 +303,7 @@ def interaction(last_action):
 @csrf_protect.exempt
 def call(interaction_id):
     try:
-        recipient_call = Interaction.query.get(
-            session['interaction_id'])
+        recipient_call = Interaction.query.get(session['interaction_id'])
         recipient = Recipient.query.get(recipient_call.recipient_id)
         sender = Sender.query.get(recipient_call.sender_id)
 
@@ -345,27 +358,31 @@ def text_message(interaction_id):
             )
 
             # Start a new text message thread
-            text_message = client.messages.create(body=body,
-                                                  from_=twilio_number,
-                                                  to=recipient.recipient_phone_number)
+            text_message = client.messages.create(
+                body=body,
+                from_=twilio_number,
+                to=recipient.recipient_phone_number)
 
             logging.info(
                 f"Started text Conversation with recipient '{recipient.recipient_name}' on text SID '{text_message.sid}'"
             )
 
             db.session.commit()
-    
+
             return jsonify({
                 'status': 'success',
-                'last_action': f"Sending text to {recipient.recipient_name} at {recipient.recipient_phone_number}",
+                'last_action':
+                f"Sending text to {recipient.recipient_name} at {recipient.recipient_phone_number}",
                 'First Message': body,
                 'conversation': text_thread.conversation
             }), 200
 
         return jsonify({
-                'status': 'error',
-                'last_action': f"Error Sending text to with interaction id {interaction_id}"
-            }), 400
+            'status':
+            'error',
+            'last_action':
+            f"Error Sending text to with interaction id {interaction_id}"
+        }), 400
 
     except Exception as e:
         app.logger.error(f"Exception occurred: {e}", exc_info=True)
@@ -378,16 +395,13 @@ def text_message(interaction_id):
 @csrf_protect.exempt
 def plan(recipient_id):
     try:
-        interaction = Interaction.query.get(
-            session['interaction_id'])
+        interaction = Interaction.query.get(session['interaction_id'])
         recipient = interaction.recipient
 
-        most_recent_message = interaction.conversation[-1].get(
-            'content')
+        most_recent_message = interaction.conversation[-1].get('content')
 
         logging.info(f"Creating plan for {recipient.recipient_name}")
-        logging.debug(
-            f"Conversation so far: {interaction.conversation}")
+        logging.debug(f"Conversation so far: {interaction.conversation}")
         logging.info(f"Most Recent Message {most_recent_message}")
 
         # Instantiate campaign tools
@@ -423,7 +437,7 @@ def plan(recipient_id):
                 if iteration >= max_iterations:
                     most_recent_message = "Observation: The conversation exceeded the maximum number of iterations without reaching a 'WAIT' state. The conversation will be paused here, and will need to be reviewed."
                     add_message_to_conversation(interaction,
-                                        most_recent_message)
+                                                most_recent_message)
                 break
 
         db.session.commit()
