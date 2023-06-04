@@ -1,11 +1,11 @@
-from models import VoterCommunication
+from models import Interaction
 from logs.logger import logging
 import openai
 from database import db
 import re
 import time
 
-def add_message_to_conversation(voter_communication: VoterCommunication, message) -> []:
+def add_message_to_conversation(voter_communication: Interaction, message) -> []:
     """
     This function should append the new message to the voter_communication conversation.
     """
@@ -14,7 +14,7 @@ def add_message_to_conversation(voter_communication: VoterCommunication, message
     conversation.append({"role": "user", "content": message})
     return conversation
 
-def add_llm_response_to_conversation(voter_communication: VoterCommunication) -> str:
+def add_llm_response_to_conversation(voter_communication: Interaction) -> str:
     conversation = voter_communication.conversation.copy()
     response_content = ""
     retry_count = 0

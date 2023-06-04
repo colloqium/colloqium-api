@@ -1,10 +1,10 @@
 from langchain.prompts import ChatPromptTemplate, SystemMessagePromptTemplate
-from models import VoterCommunication
+from models import Interaction
 from datetime import date
 from logs.logger import logging
 
 
-def get_campaign_agent_system_prompt(communication: VoterCommunication):
+def get_campaign_agent_system_prompt(communication: Interaction):
 
     logging.info(communication)
     # GPT API System Prompts

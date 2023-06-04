@@ -1,4 +1,4 @@
-from models import VoterCommunication
+from models import Interaction
 from logs.logger import logging
 from database import db
 from context import app
@@ -10,7 +10,7 @@ import os
 
 class CampaignWorker:
 
-    def __init__(self, communication: VoterCommunication):
+    def __init__(self, communication: Interaction):
         self.communication = communication
 
     def make_phone_call(self, goal):
@@ -36,8 +36,8 @@ class CampaignWorker:
 
         logging.info(f"Texting thread id after db commit {new_texting_thread.id}")
 
-        new_texting_thread = db.session.query(VoterCommunication).filter(
-            VoterCommunication.id == new_texting_thread.id).first()     
+        new_texting_thread = db.session.query(Interaction).filter(
+            Interaction.id == new_texting_thread.id).first()     
         # Include voter_communication_id in the URL
 
         logging.info(f"Texting with id: {new_texting_thread.id}")
@@ -58,7 +58,7 @@ def text_outreach(communication_id, goal):
         f"Scheduling a text outreach with communicaiton id: {communication_id} and goal: {goal}"
     )
     with app.app_context():
-        communication = db.session.query(VoterCommunication).get(
+        communication = db.session.query(Interaction).get(
             communication_id)  # get the instance fresh from the DB
         logging.info(f"Got the communication instance: {communication}")
         worker = CampaignWorker(
@@ -71,7 +71,7 @@ def text_outreach(communication_id, goal):
 
 def call_outreach(communication_id, goal):
     with app.app_context():
-        communication = db.session.query(VoterCommunication).get(
+        communication = db.session.query(Interaction).get(
             communication_id)  # get the instance fresh from the DB
 
         worker = CampaignWorker(
@@ -83,7 +83,7 @@ def call_outreach(communication_id, goal):
 
 def email_outreach(communication_id, goal):
     with app.app_context():
-        communication = db.session.query(VoterCommunication).get(
+        communication = db.session.query(Interaction).get(
             communication_id)  # get the instance fresh from the DB
 
         worker = CampaignWorker(
@@ -103,8 +103,8 @@ outreach_functions = {
 
 
 def initialize_voter_outreach_thread(
-        voter_communication: VoterCommunication, goal: str,
-        communication_type: str) -> VoterCommunication:
+        voter_communication: Interaction, goal: str,
+        communication_type: str) -> Interaction:
     if communication_type == "call":
         # Add information from VoterCallForm to the system prompt
         system_prompt = get_campaign_phone_call_system_prompt(
@@ -120,7 +120,7 @@ def initialize_voter_outreach_thread(
     conversation = initialize_conversation(system_prompt)
 
     # Create the VoterCommunication
-    outreach_communication_thread = VoterCommunication(
+    outreach_communication_thread = Interaction(
         twilio_conversation_sid='',  # You will need to update this later
         conversation=conversation,
         voter=voter_communication.voter,  # The ID of the voter
@@ -132,7 +132,7 @@ def initialize_voter_outreach_thread(
     db.session.commit()
 
     #retrieve filled out VoterCommunication from database
-    outreach_communication_thread = db.session.query(VoterCommunication).get(
+    outreach_communication_thread = db.session.query(Interaction).get(
         outreach_communication_thread.id)
     logging.info(
         f"Created outreach communication thread: {outreach_communication_thread}"

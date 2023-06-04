@@ -12,65 +12,65 @@ class OutreachScheduleEntry:
 
 
 @dataclass
-class VoterProfile:
+class RecipientProfile:
     interests: List[str]
     preferred_contact_method: str
     engagement_history: List[str]
 
 
 @dataclass
-class CampaignEvent:
+class Event:
     event_date: str
     event_type: str
     event_goal: str
-    target_voters: str
+    target_attendee : str
 
 
-class Voter(db.Model):
+class Recipient(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    voter_name = db.Column(db.String(50))
-    voter_information = db.Column(db.Text)
-    voter_phone_number = db.Column(db.String(100))
-    voter_profile = db.Column(db.JSON())
-    voter_engagement_history = db.Column(db.JSON())
+    recipient_name = db.Column(db.String(50))
+    recipient_information = db.Column(db.Text)
+    recipient_phone_number = db.Column(db.String(100))
+    recipient_profile = db.Column(db.JSON())
+    recipient_engagement_history = db.Column(db.JSON())
     # Add relationship
-    communications = relationship('VoterCommunication',
-                                  backref='voter',
+    interactions = relationship('Interaction',
+                                  backref='recipient',
                                   lazy=True)
 
 
-class Candidate(db.Model):
+class Sender(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    candidate_name = db.Column(db.String(50))
-    candidate_information = db.Column(db.Text)
-    candidate_schedule = db.Column(db.JSON())
+    sender_name = db.Column(db.String(50))
+    sender_information = db.Column(db.Text)
+    sender_schedule = db.Column(db.JSON())
     # Add relationship
-    communications = relationship('VoterCommunication',
-                                  backref='candidate',
+    interactions = relationship('Interaction',
+                                  backref='sender',
                                   lazy=True)
 
 
-class Race(db.Model):
+class Campaign(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    race_name = db.Column(db.String(50))
-    race_information = db.Column(db.Text)
-    race_date = db.Column(db.Date)
+    campaign_name = db.Column(db.String(50))
+    campaign_information = db.Column(db.Text)
+    campaign_end_date = db.Column(db.Date)
 
     # Add relationship
-    communications = relationship('VoterCommunication',
-                                  backref='race',
+    interactions = relationship('Interaction',
+                                  backref='campaign',
                                   lazy=True)
 
 
-class VoterCommunication(db.Model):
+class Interaction(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     twilio_conversation_sid = db.Column(db.String(50))
     conversation = db.Column(db.JSON())
-    communication_type = db.Column(db.String(50))
-    communication_goal = db.Column(db.Text)
-    voter_id = db.Column(db.Integer, db.ForeignKey('voter.id'))
-    candidate_id = db.Column(db.Integer, db.ForeignKey('candidate.id'))
-    race_id = db.Column(db.Integer, db.ForeignKey('race.id'))
-    voter_outreach_schedule = db.Column(db.JSON())
+    interaction_type = db.Column(db.String(50))
+    interaction_goal = db.Column(db.Text)
+    recipient_id = db.Column(db.Integer, db.ForeignKey('recipient.id'))
+    sender_id = db.Column(db.Integer, db.ForeignKey('sender.id'))
+    campaign_id = db.Column(db.Integer, db.ForeignKey('campaign.id'))
+    recipient_outreach_schedule = db.Column(db.JSON())
 
-    # Relationships are set up in Voter, Candidate, and Race models
+    # Relationships are set up in Recipient, Sender, and CampaignContext models
