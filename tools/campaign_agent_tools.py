@@ -1,5 +1,5 @@
 import json
-from models import VoterCommunication, OutreachScheduleEntry
+from models import Interaction, OutreachScheduleEntry
 from flask_sqlalchemy import SQLAlchemy
 from logs.logger import logging
 import re
@@ -11,7 +11,7 @@ from tools.utility import remove_trailing_commas
 
 class CampaignTools:
 
-    def __init__(self, communication: VoterCommunication, db: SQLAlchemy):
+    def __init__(self, communication: Interaction, db: SQLAlchemy):
         self.outreach_schedule = communication.voter_outreach_schedule
         self.voter_profile = communication.voter.voter_profile
         self.db = db

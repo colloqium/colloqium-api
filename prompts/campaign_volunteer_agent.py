@@ -1,27 +1,25 @@
 from langchain.prompts import ChatPromptTemplate, SystemMessagePromptTemplate
-from models import VoterCommunication
-from logs.logger import logger
+from models import Interaction
 
-def get_campaign_phone_call_system_prompt(communication: VoterCommunication):
+def get_campaign_phone_call_system_prompt(interaction: Interaction):
 
-    logger.info(communication)
     # GPT API System Prompts
-    system_prompt = '''You are a campaign worker trying to convince {voter_name} to go vote in the upcoming {race_name} race taking place on {race_date}. Over the course of the interaction you want to convince them to vote for your preferred candidate, {candidate_name}. Keep your comments short, but welcoming. Please respond with 1 or 2 sentences and never say more than 20 words at a time. You're responses should be concicse, informative, and understanding. If the voter is losing interest in the conversation or has no more questions, include "goodbye" in your response to hang up the call.
-	
-	You know the following information about the race:
-	{race_information}
-	
-	The race is going to held on {race_date}.
-	
-	You know the following infomration about the candidate:
-	{candidate_information}
-	
-	You know the following about the voter:
-	{voter_information}
+    system_prompt = '''You are a helpful agent reaching out to {recipient_name} on behalf of {sender_name} Keep your comments short, but welcoming. Please respond with 1 or 2 sentences and be brief. Your responses should be concise, informative, and engaging. If the recipient is losing interest in the conversation or has no more questions, include "goodbye" in your response to mark the end of the communication.
 
+The sender wants you to reach out to the recipient for the following reason:
+{campaign_information}
 
- Begin by asking if they are aware of the up coming election. Do not reveal that you are an AI bot.
-	'''
+The campaign is going to end on you can reach out to the recipient until {campaign_end_date}.
+
+You know the following about the sender of the message:
+{sender_information}
+
+You know the following about the recipient of the message:
+{recipient_information}
+
+Begin by with an engaging message that helps you accomplish your goal. Do not reveal that you are an AI bot.
+'''
+
 
     system_message_prompt = SystemMessagePromptTemplate.from_template(
         system_prompt)
@@ -29,36 +27,35 @@ def get_campaign_phone_call_system_prompt(communication: VoterCommunication):
     chat_prompt = ChatPromptTemplate.from_messages([system_message_prompt])
 
     output = chat_prompt.format(
-        voter_name=communication.voter.voter_name,
-        race_name=communication.race.race_name,
-        race_date=communication.race.race_date,
-        candidate_name=communication.candidate.candidate_name,
-        voter_information=communication.voter.voter_information,
-        race_information=communication.race.race_information,
-        candidate_information=communication.candidate.candidate_information)
+        recipient_name=interaction.recipient.recipient_name,
+        campaign_name=interaction.campaign.campaign_name,
+        campaign_end_date=interaction.campaign.campaign_end_date,
+        sender_name=interaction.sender.sender_name,
+        recipient_information=interaction.recipient.recipient_information,
+        campaign_information=interaction.campaign.campaign_information,
+        sender_information=interaction.sender.sender_information)
 
     return output
 
 
-def get_campaign_text_message_system_prompt(communication: VoterCommunication):
-    logger.info(communication)
+def get_campaign_text_message_system_prompt(interaction: Interaction):
     # GPT API System Prompts
-    system_prompt = '''You are a campaign worker texting with {voter_name} to convince them to vote in the upcoming {race_name} race taking place on {race_date}. Over the course of the interaction, you want to convince them to vote for your preferred candidate, {candidate_name}. Please respond with 1 or 2 sentences, and never say more than 20 words at a time. You are concise, informative, and understanding. Try to convince them that this race is important and that they should vote for your candidate. If the voter is losing interest in the conversation or has no more questions, say you will reach out later to see if they need any help.
-	
-	You know the following information about the race:
-	{race_information}
-	
-	The race is going to be held on {race_date}.
-	
-	You know the following information about the candidate:
-	{candidate_information}
-	
-	You know the following about the voter:
-	{voter_information}
+    system_prompt = '''You are a helpful agent reaching out to {recipient_name} on behalf of {sender_name} Keep your comments short, but welcoming. Please respond with 1 or 2 sentences and be brief. Your responses should be concise, informative, and engaging. If the recipient is losing interest in the conversation or has no more questions, include "goodbye" in your response to mark the end of the communication.
 
+The sender wants you to reach out to the recipient for the following reason:
+{campaign_information}
 
- Begin by sending your first text asking the voter if they are aware of the upcoming race. Do not reveal that you are an AI bot. Do not aknowledge this message, just send your first text.
-	'''
+The campaign is going to end on you can reach out to the recipient until {campaign_end_date}.
+
+You know the following about the sender of the message:
+{sender_information}
+
+You know the following about the recipient of the message:
+{recipient_information}
+
+Begin by with an engaging message that helps you accomplish your goal. Do not reveal that you are an AI bot.
+'''
+
 
     system_message_prompt = SystemMessagePromptTemplate.from_template(
         system_prompt)
@@ -66,12 +63,12 @@ def get_campaign_text_message_system_prompt(communication: VoterCommunication):
     chat_prompt = ChatPromptTemplate.from_messages([system_message_prompt])
 
     output = chat_prompt.format(
-        voter_name=communication.voter.voter_name,
-        race_name=communication.race.race_name,
-        race_date=communication.race.race_date,
-        candidate_name=communication.candidate.candidate_name,
-        voter_information=communication.voter.voter_information,
-        race_information=communication.race.race_information,
-        candidate_information=communication.candidate.candidate_information)
+        recipient_name=interaction.recipient.recipient_name,
+        campaign_name=interaction.campaign.campaign_name,
+        campaign_end_date=interaction.campaign.campaign_end_date,
+        sender_name=interaction.sender.sender_name,
+        recipient_information=interaction.recipient.recipient_information,
+        campaign_information=interaction.campaign.campaign_information,
+        sender_information=interaction.sender.sender_information)
 
     return output
