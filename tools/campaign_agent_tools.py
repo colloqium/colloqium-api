@@ -12,10 +12,10 @@ from tools.utility import remove_trailing_commas
 class CampaignTools:
 
     def __init__(self, communication: Interaction, db: SQLAlchemy):
-        self.outreach_schedule = communication.voter_outreach_schedule
-        self.voter_profile = communication.voter.voter_profile
+        self.outreach_schedule = communication.recipient_outreach_schedule
+        self.recipient_profile = communication.recipient.recipient_profile
         self.db = db
-        self.voter_engagement_history = communication.voter.voter_engagement_history
+        self.recipient_engagement_history = communication.recipient.recipient_engagement_history
         self.campaign_events = communication.candidate.candidate_schedule
         self.communication = communication
 
@@ -67,16 +67,16 @@ class CampaignTools:
     def get_outreach_schedule(self, communication_id):
         return self.serialize_outreach_schedule()
 
-    def update_voter_profile(self, update_to_make, communication_id):
-        self.voter_profile.engagement_history.append(update_to_make)
-        return "Voter profile updated: {}".format(update_to_make)
+    def update_recipient_profile(self, update_to_make, communication_id):
+        self.recipient_profile.engagement_history.append(update_to_make)
+        return "recipient profile updated: {}".format(update_to_make)
 
-    def get_voter_information(self, question_about_voter, communication_id):
-        return "Dummy response to question about voter: {}".format(
-            question_about_voter)
+    def get_recipient_information(self, question_about_recipient, communication_id):
+        return "Dummy response to question about recipient: {}".format(
+            question_about_recipient)
 
-    def get_voter_engagement_history(self, communication_id):
-        return self.serialize_voter_engagement_history()
+    def get_recipient_engagement_history(self, communication_id):
+        return self.serialize_recipient_engagement_history()
 
     def make_phone_call(self, goal, communication_id):
         worker = CampaignWorker("Phone Worker")
@@ -114,8 +114,8 @@ class CampaignTools:
     def serialize_outreach_schedule(self):
         return json.dumps([entry.__dict__ for entry in self.outreach_schedule])
 
-    def serialize_voter_engagement_history(self):
-        return json.dumps(self.voter_engagement_history)
+    def serialize_recipient_engagement_history(self):
+        return json.dumps(self.recipient_engagement_history)
 
     def serialize_campaign_events(self):
         return json.dumps([event.__dict__ for event in self.campaign_events])

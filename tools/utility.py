@@ -5,17 +5,17 @@ from database import db
 import re
 import time
 
-def add_message_to_conversation(voter_communication: Interaction, message) -> []:
+def add_message_to_conversation(recipient_communication: Interaction, message) -> []:
     """
-    This function should append the new message to the voter_communication conversation.
+    This function should append the new message to the recipient_communication conversation.
     """
     logging.info(f"Updating conversation with new message: {message}")
-    conversation = voter_communication.conversation.copy()
+    conversation = recipient_communication.conversation.copy()
     conversation.append({"role": "user", "content": message})
     return conversation
 
-def add_llm_response_to_conversation(voter_communication: Interaction) -> str:
-    conversation = voter_communication.conversation.copy()
+def add_llm_response_to_conversation(recipient_communication: Interaction) -> str:
+    conversation = recipient_communication.conversation.copy()
     response_content = ""
     retry_count = 0
     max_retries = 5  # maximum number of retries
@@ -33,8 +33,8 @@ def add_llm_response_to_conversation(voter_communication: Interaction) -> str:
             conversation.append({"role": "assistant", "content": response_content})
             logging.info(f"Adding OpenAI response to conversation: {response_content}")
 
-            voter_communication.conversation = conversation
-            db.session.add(voter_communication)
+            recipient_communication.conversation = conversation
+            db.session.add(recipient_communication)
             db.session.commit()
             break
         except openai.error.RateLimitError:

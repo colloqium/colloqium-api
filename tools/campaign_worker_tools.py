@@ -14,15 +14,15 @@ class CampaignWorker:
         self.communication = communication
 
     def make_phone_call(self, goal):
-        voter = self.communication.voter
-        logging.info(f"Starting a phone call with voter: {voter.voter_name}")
+        recipient = self.communication.recipient
+        logging.info(f"Starting a phone call with recipient: {recipient.recipient_name}")
         return f"Dummy Phone Call with Goal: {goal}"
 
     def start_a_text_thread(self, goal):
-        voter = self.communication.voter
-        new_texting_thread = initialize_voter_outreach_thread(
+        recipient = self.communication.recipient
+        new_texting_thread = initialize_recipient_outreach_thread(
             self.communication, goal, "text")
-        logging.info(f"Starting a text thread with voter: {voter.voter_name}")
+        logging.info(f"Starting a text thread with recipient: {recipient.recipient_name}")
 
         first_message = add_llm_response_to_conversation(new_texting_thread)
 
@@ -38,7 +38,7 @@ class CampaignWorker:
 
         new_texting_thread = db.session.query(Interaction).filter(
             Interaction.id == new_texting_thread.id).first()     
-        # Include voter_communication_id in the URL
+        # Include recipient_communication_id in the URL
 
         logging.info(f"Texting with id: {new_texting_thread.id}")
         logging.info(f"Texting with conversation: {new_texting_thread.conversation}")
@@ -48,8 +48,8 @@ class CampaignWorker:
         return f"Attempted text and got re: {response.text}"
 
     def send_email(self, goal):
-        voter = self.communication.voter
-        logging.info(f"Starting an email with voter: {voter.voter_name}")
+        recipient = self.communication.recipient
+        logging.info(f"Starting an email with recipient: {recipient.recipient_name}")
         return f"Dummy email sent with goal: {goal}"
 
 
@@ -102,16 +102,16 @@ outreach_functions = {
 }
 
 
-def initialize_voter_outreach_thread(
-        voter_communication: Interaction, goal: str,
+def initialize_recipient_outreach_thread(
+        recipient_communication: Interaction, goal: str,
         communication_type: str) -> Interaction:
     if communication_type == "call":
-        # Add information from VoterCallForm to the system prompt
+        # Add information from recipientCallForm to the system prompt
         system_prompt = get_campaign_phone_call_system_prompt(
-            voter_communication)
+            recipient_communication)
     elif communication_type == "text":
         system_prompt = get_campaign_text_message_system_prompt(
-            voter_communication)
+            recipient_communication)
     else:
         logging.error(f"Invalid communication type: {communication_type}")
         raise Exception(f"Invalid communication type: {communication_type}")
@@ -119,19 +119,19 @@ def initialize_voter_outreach_thread(
     #Pre create the first response
     conversation = initialize_conversation(system_prompt)
 
-    # Create the VoterCommunication
+    # Create the recipientCommunication
     outreach_communication_thread = Interaction(
         twilio_conversation_sid='',  # You will need to update this later
         conversation=conversation,
-        voter=voter_communication.voter,  # The ID of the voter
-        candidate=voter_communication.candidate,
-        race=voter_communication.race,
+        recipient=recipient_communication.recipient,  # The ID of the recipient
+        candidate=recipient_communication.candidate,
+        race=recipient_communication.race,
         communication_type=communication_type)
 
     db.session.add(outreach_communication_thread)
     db.session.commit()
 
-    #retrieve filled out VoterCommunication from database
+    #retrieve filled out recipientCommunication from database
     outreach_communication_thread = db.session.query(Interaction).get(
         outreach_communication_thread.id)
     logging.info(

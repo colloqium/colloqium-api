@@ -1,6 +1,5 @@
 # import Flask and other libraries
 from flask import Response, render_template, request, redirect, url_for, session, jsonify
-from flask import Response, render_template, request, redirect, url_for, session, jsonify
 from twilio.twiml.voice_response import VoiceResponse
 from twilio.twiml.messaging_response import MessagingResponse
 from twilio.rest import Client
