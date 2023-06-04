@@ -100,7 +100,8 @@ def twilio_call():
 
     except Exception as e:
         # Log the exception
-        logging.exception('An error occurred while processing the request: %s', e)
+        logging.exception('An error occurred while processing the request: %s',
+                          e)
         # Return a server error response
         return Response('An error occurred while processing the request.',
                         status=500)
@@ -144,13 +145,18 @@ def twilio_message():
     # Now you can add the new message to the conversation
     message_body = request.values.get('Body', None)
     logging.info(f"Recieved message body: {message_body}")
-    voter_communication.conversation = add_message_to_conversation(voter_communication, message_body)
+    voter_communication.conversation = add_message_to_conversation(
+        voter_communication, message_body)
 
-    logging.info(f"Conversation after including message: {voter_communication.conversation}")
+    logging.info(
+        f"Conversation after including message: {voter_communication.conversation}"
+    )
     # generate a new response from openAI to continue the conversation
     message_body = add_llm_response_to_conversation(voter_communication)
     logging.debug(f"AI message: {message_body}")
-    logging.info(f"Conversation after adding LLM response: {voter_communication.conversation}")
+    logging.info(
+        f"Conversation after adding LLM response: {voter_communication.conversation}"
+    )
 
     db.session.add(voter_communication)
     db.session.commit()
@@ -245,7 +251,8 @@ def voter_communication(last_action):
             #Pre create the first response
             conversation = initialize_conversation(system_prompt)
             voter_communication.conversation = conversation
-            initial_statement = add_llm_response_to_conversation(voter_communication)
+            initial_statement = add_llm_response_to_conversation(
+                voter_communication)
             logging.info("Voter communication created successfully")
             db.session.commit()
 
@@ -267,7 +274,9 @@ def voter_communication(last_action):
             elif (communication_type == "text"):
                 # Send a text message
                 logging.info("Redirecting to text message route...")
-                return redirect(url_for('text_message', voter_communication_id=voter_communication.id))
+                return redirect(
+                    url_for('text_message',
+                            voter_communication_id=voter_communication.id))
             elif (communication_type == "plan"):
                 # Create an outreach agent and plan the outreach for the voter
                 logging.info("Redirecting to planning route...")
@@ -328,7 +337,8 @@ def call():
 @csrf_protect.exempt
 def text_message(voter_communication_id):
     try:
-        voter_text_thread = db.session.query(VoterCommunication).get(voter_communication_id)
+        voter_text_thread = db.session.query(VoterCommunication).get(
+            voter_communication_id)
 
         if voter_text_thread:
             voter = Voter.query.get(voter_text_thread.voter_id)
@@ -357,18 +367,21 @@ def text_message(voter_communication_id):
             )
 
             db.session.commit()
-    
+
             return jsonify({
                 'status': 'success',
-                'last_action': f"Sending text to {voter.voter_name} at {voter.voter_phone_number}",
+                'last_action':
+                f"Sending text to {voter.voter_name} at {voter.voter_phone_number}",
                 'First Message': body,
                 'conversation': voter_text_thread.conversation
             }), 200
 
         return jsonify({
-                'status': 'error',
-                'last_action': f"Error Sending text to with communication id {voter_communication_id}"
-            }), 400
+            'status':
+            'error',
+            'last_action':
+            f"Error Sending text to with communication id {voter_communication_id}"
+        }), 400
 
     except Exception as e:
         app.logger.error(f"Exception occurred: {e}", exc_info=True)
@@ -410,12 +423,15 @@ def plan(voter_id):
                 action_result = execute_action(campaign_tools, action_name,
                                                action_params)
                 most_recent_message = f"Observation: {action_result}"
-                add_message_to_conversation(voter_communication, most_recent_message)
+                add_message_to_conversation(voter_communication,
+                                            most_recent_message)
 
-            most_recent_message = add_llm_response_to_conversation(voter_communication)
+            most_recent_message = add_llm_response_to_conversation(
+                voter_communication)
 
             # Update conversation with the latest response
-            add_message_to_conversation(voter_communication, most_recent_message)
+            add_message_to_conversation(voter_communication,
+                                        most_recent_message)
 
             # flush the logs
             for handler in logging.getLogger().handlers:
@@ -426,7 +442,7 @@ def plan(voter_id):
                 if iteration >= max_iterations:
                     most_recent_message = "Observation: The conversation exceeded the maximum number of iterations without reaching a 'WAIT' state. The conversation will be paused here, and will need to be reviewed."
                     add_message_to_conversation(voter_communication,
-                                        most_recent_message)
+                                                most_recent_message)
                 break
 
         db.session.commit()
