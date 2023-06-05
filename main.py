@@ -15,13 +15,7 @@ from tools.scheduler import scheduler
 from logs.logger import logger, logging
 from datetime import date, timedelta
 from database import db
-from flask_migrate import Migrate
 from context import app, csrf_protect
-
-# assuming app and db are defined above
-migrate = Migrate(app, db)
-# assuming app and db are defined above
-migrate = Migrate(app, db)
 
 # Your Twilio account credentials
 account_sid = os.environ['twilio_account_sid']
@@ -35,7 +29,7 @@ call_webhook_url = os.environ['CALL_WEBHOOK_URL']
 client = Client(account_sid, auth_token)
 
 # set OpenAi Key for GPT4
-openai.api_key = os.environ['OPENAI_API_KEY_GPT4']
+openai.api_key = os.environ['OPENAI_API_KEY']
 
 
 # Define a route for handling Twilio webhook requests
@@ -166,10 +160,17 @@ def twilio_message():
     db.session.add(interaction)
     db.session.commit()
 
-    response = MessagingResponse()
-    response.message(message_body)
-    logging.debug(f"Response xml: {response.to_xml()}")
-    return Response(response.to_xml(), content_type="text/xml")
+    client.messages.create(
+                body=message_body,
+                from_=twilio_number,
+                to=recipient.recipient_phone_number)
+    
+    return jsonify({
+                'status': 'success',
+                'last_action':
+                f"Sending text to {recipient.recipient_name} at {recipient.recipient_phone_number}",
+                'Message': message_body,
+            }), 200
 
 
 @app.route("/", methods=['GET', 'POST'])
