@@ -105,6 +105,6 @@ pattern = "**/*.py"
 start = "pylsp"
 
 [deployment]
-run = ["sh", "-c", "python main.py"]
+run = ["sh", "-c", "python3 main.py"]
 ignorePorts = false
 deploymentTarget = "gce"

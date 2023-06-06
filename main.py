@@ -120,22 +120,25 @@ def twilio_message():
                               recipient_phone_number=from_number)
         db.session.add(recipient)
 
-        system_prompt = get_campaign_text_message_system_prompt(
-            recipient, Sender(),
-            Campaign(
-                campaign_end_date=date.today() + timedelta(days=1),
-                campaign_name="Help Find Correct Campaign",
-                campaign_information=
-                "The user reaching out to you is not associated with a campaign. Can you find out who they expect to reach"
-            ))
+        campaign = Campaign()
+
+        campaign.campaign_end_date=date.today() + timedelta(days=1)
+        campaign.campaign_name="Help Find Correct Campaign"
+        campaign.campaign_information="The user reaching out to you is not associated with a campaign. Can you find out who they expect to reach"
+
+        interaction = Interaction(twilio_conversation_sid='',
+                                  interaction_type='text',
+                                  recipient=recipient,
+                                  campaign = campaign,
+        sender = Sender()
+                )
+
+        system_prompt = get_campaign_text_message_system_prompt(interaction)
 
         # Create a new conversation with a system message
         conversation = initialize_conversation(system_prompt)
+        interaction.conversation = conversation
 
-        interaction = Interaction(twilio_conversation_sid='',
-                                  conversation=conversation,
-                                  interaction_type='text',
-                                  recipient_id=recipient.id)
         db.session.add(interaction)
     else:
         # If the recipient exists, find the Interaction for this recipient with type 'text'
