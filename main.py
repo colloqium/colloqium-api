@@ -22,7 +22,7 @@ auth_token = os.environ['twilio_auth_token']
 twilio_number = os.environ['twilio_number']
 
 # The webhook URL for handling the call events
-call_webhook_url = os.environ['CALL_WEBHOOK_URL']
+call_webhook_url = f"{os.environ['BASE_URL']}/twilio_call"
 
 # Create a Twilio client object
 client = Client(account_sid, auth_token)
