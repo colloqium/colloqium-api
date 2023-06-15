@@ -1,5 +1,5 @@
 from langchain.prompts import ChatPromptTemplate, SystemMessagePromptTemplate
-from models import Interaction
+from models.models import Interaction
 from datetime import date
 from logs.logger import logging
 

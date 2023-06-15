@@ -1,14 +1,16 @@
 from flask import Flask
 from flask_wtf.csrf import CSRFProtect
 from flask_migrate import Migrate
-from database import db
+from context.database import db
 import secrets
 from dotenv import load_dotenv
+from routes.blueprint import bp
 
 
 def create_app():
     load_dotenv()
-    app = Flask(__name__)
+    app = Flask(__name__, template_folder='../templates')
+    app.register_blueprint(bp)
     app.config['SECRET_KEY'] = secrets.token_hex(nbytes=8)
     app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///site.db'
 
@@ -18,7 +20,4 @@ def create_app():
         db.create_all()  # Create all tables
         Migrate(app, db)  # initialize Flask-Migrate
 
-    csrf_protect = CSRFProtect()
-    csrf_protect.init_app(app)
-
-    return app, csrf_protect
+    return app

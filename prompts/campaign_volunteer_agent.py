@@ -1,5 +1,5 @@
 from langchain.prompts import ChatPromptTemplate, SystemMessagePromptTemplate
-from models import Interaction
+from models.models import Interaction
 
 def get_campaign_phone_call_system_prompt(interaction: Interaction):
 

@@ -1,4 +1,4 @@
-from database import db
+from context.database import db
 from sqlalchemy.orm import relationship
 from typing import List
 from dataclasses import dataclass

@@ -2,5 +2,6 @@
 instance/
 migrations/
 __pycache__/
+venv/
 *.pyc
 .env

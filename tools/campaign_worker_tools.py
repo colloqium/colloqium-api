@@ -1,7 +1,7 @@
-from models import Interaction
+from models.models import Interaction
 from logs.logger import logging
-from database import db
-from context import app
+from context.database import db
+from flask import current_app
 from prompts.campaign_volunteer_agent import get_campaign_phone_call_system_prompt, get_campaign_text_message_system_prompt
 from tools.utility import initialize_conversation, add_llm_response_to_conversation, add_message_to_conversation
 import requests
@@ -57,7 +57,7 @@ def text_outreach(communication_id, goal):
     logging.info(
         f"Scheduling a text outreach with communicaiton id: {communication_id} and goal: {goal}"
     )
-    with app.app_context():
+    with current_app.app_context():
         communication = db.session.query(Interaction).get(
             communication_id)  # get the instance fresh from the DB
         logging.info(f"Got the communication instance: {communication}")
@@ -70,7 +70,7 @@ def text_outreach(communication_id, goal):
 
 
 def call_outreach(communication_id, goal):
-    with app.app_context():
+    with current_app.app_context():
         communication = db.session.query(Interaction).get(
             communication_id)  # get the instance fresh from the DB
 
@@ -82,7 +82,7 @@ def call_outreach(communication_id, goal):
 
 
 def email_outreach(communication_id, goal):
-    with app.app_context():
+    with current_app.app_context():
         communication = db.session.query(Interaction).get(
             communication_id)  # get the instance fresh from the DB
 

@@ -1,5 +1,5 @@
 import json
-from models import Interaction, OutreachScheduleEntry
+from models.models import Interaction, OutreachScheduleEntry
 from flask_sqlalchemy import SQLAlchemy
 from logs.logger import logging
 import re
