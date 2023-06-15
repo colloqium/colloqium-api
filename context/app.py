@@ -18,7 +18,11 @@ def create_app():
     db.init_app(app)
 
     with app.app_context():
-        db.drop_all()  # first delete all tables
+        meta = db.metadata
+        for table in reversed(meta.sorted_tables):
+            print(f"Dropping table {table}")
+            db.session.execute(table.delete())
+        db.session.commit()
         db.create_all()  # then create all tables
         Migrate(app, db)  # initialize Flask-Migrate
 
