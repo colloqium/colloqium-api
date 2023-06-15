@@ -204,7 +204,8 @@ def interaction(last_action):
             if not campaign:
                 campaign = Campaign(
                     campaign_name=form.campaign_name.data,
-                    campaign_information=form.campaign_information.data)
+                    campaign_information=form.campaign_information.data,
+                    campaign_end_date=form.campaign_end_date.data)
                 db.session.add(campaign)
 
             interaction_type = form.interaction_type.data

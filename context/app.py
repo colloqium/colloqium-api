@@ -13,14 +13,12 @@ def create_app():
     app = Flask(__name__, template_folder='../templates')
     app.register_blueprint(bp)
     app.config['SECRET_KEY'] = secrets.token_hex(nbytes=8)
-    app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///site.db'
-    db_path = os.path.join(os.getcwd(), '../instance/site.db')
+    app.config['SQLALCHEMY_DATABASE_URI'] = os.environ['DATABASE_URL']
 
     db.init_app(app)
 
     with app.app_context():
-        if os.path.exists(db_path):  # check if db file exists
-            os.remove(db_path)  # if it does, remove it
+        db.drop_all()  # first delete all tables
         db.create_all()  # then create all tables
         Migrate(app, db)  # initialize Flask-Migrate
 
