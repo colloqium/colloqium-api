@@ -1,5 +1,5 @@
 from flask_wtf import FlaskForm
-from wtforms import StringField, SubmitField, DateField, SelectField
+from wtforms import StringField, SubmitField, DateField, SelectField, FileField
 from wtforms.validators import DataRequired, Regexp
 from wtforms import TextAreaField
 
@@ -18,11 +18,6 @@ class PhoneNumberValidator(Regexp):
 
 
 class InteractionForm(FlaskForm):
-    recipient_name = StringField('Recipient Name', validators=[DataRequired()])
-    recipient_information = TextAreaField('Recipient Information',
-                                      validators=[DataRequired()])
-    recipient_phone_number = StringField('Phone Number',
-                                     validators=[PhoneNumberValidator()])
     campaign_name = StringField('Campaign Name', validators=[DataRequired()])
     campaign_information = TextAreaField('Campaign Information',
                                      validators=[DataRequired()])
@@ -34,4 +29,7 @@ class InteractionForm(FlaskForm):
                                      choices=[('call', 'Call'),
                                               ('text', 'Text'),
                                               ('plan', 'Plan')])
+    
+    recipient_csv = FileField('Upload Recipients CSV')  # This is the new field for uploading CSVs
+
     submit = SubmitField('Submit')

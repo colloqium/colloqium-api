@@ -9,39 +9,24 @@
   </head>
   <body class="bg-primary">
     <div class="container py-5">
+      <div class="text-center text-white mt-3">
+        <h2>{{last_action}}</h2>
+      </div>
       <div class="row">
-        <div class="col-lg-8 mx-auto">
-          <div class="text-center text-white mt-3">
-            <h2>{{last_action}}</h2>
-          </div>
+        <div class="col-lg-8 mx-auto"> 
           <div class="card">
             <div class="card-header bg-info text-white">
               <h2 class="card-title text-center">Interaction Form</h2>
             </div>
             <div class="card-body">
-              <form method="POST">
+              <form method="POST" enctype="multipart/form-data">
                 {{ form.hidden_tag() }} {{ form.csrf_token }}
                 <div class="form-group">
-                  {{ form.recipient_name.label(class="form-control-label") }} {{
-                  form.recipient_name(class="form-control") }} {% for error in
-                  form.recipient_name.errors %}
-                  <span class="text-danger">{{ error }}</span>
-                  {% endfor %}
-                </div>
-                <div class="form-group">
-                  {{ form.recipient_information.label(class="form-control-label") }}
-                  {{ form.recipient_information(class="form-control") }} {% for
-                  error in form.recipient_information.errors %}
-                  <span class="text-danger">{{ error }}</span>
-                  {% endfor %}
-                </div>
-                <div class="form-group">
-                  {{ form.recipient_phone_number.label(class="form-control-label")
-                  }} {{ form.recipient_phone_number(class="form-control") }} {% for
-                  error in form.recipient_phone_number.errors %}
-                  <span class="text-danger">{{ error }}</span>
-                  {% endfor %}
-                </div>
+                    {{ form.recipient_csv.label(class="form-control-label") }} {{ form.recipient_csv(class="form-control") }}
+                    {% for error in form.recipient_csv.errors %}
+                    <span class="text-danger">{{ error }}</span>
+                    {% endfor %}
+                </div> 
                 <div class="form-group">
                   {{ form.campaign_name.label(class="form-control-label") }} {{
                   form.campaign_name(class="form-control") }} {% for error in
