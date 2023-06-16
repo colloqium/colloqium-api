@@ -26,6 +26,19 @@ class Event:
     target_attendee : str
 
 
+#enum with the different types of interactions. Call, Text, Email, and Plan
+@dataclass
+class InteractionType:
+    CALL = "call"
+    TEXT = "text"
+    EMAIL = "email"
+    PLAN = "plan"
+    EVENT = "event"
+
+    @classmethod
+    def choices(cls):
+        return [(getattr(cls, name), name.capitalize()) for name in dir(cls) if not name.startswith("_") and isinstance(getattr(cls, name), str)]
+
 class Recipient(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     recipient_name = db.Column(db.String(50))

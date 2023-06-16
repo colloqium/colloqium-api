@@ -1,107 +1,48 @@
-import pytest
-from flask import url_for
-from flask_testing import TestCase
-from main import app, db
-from model import Voter, Candidate, Race, VoterCommunication
-from twilio.twiml.voice_response import VoiceResponse
-from twilio.twiml.messaging_response import MessagingResponse
+import unittest
+from context.context import create_test_app
+import io
 
 
-class MyTest(TestCase):
-
-    def create_app(self):
-        app.config['TESTING'] = True
-        app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///:memory:'
-        app.config['CALL_WEBHOOK_URL'] = 'http://mockurlfortesting.com'
-        return app
-
+class TestBlueprint(unittest.TestCase):
     def setUp(self):
-        db.create_all()
+        self.app = create_test_app()
 
-    def tearDown(self):
-        db.session.remove()
-        db.drop_all()
+    def test_twilio_call(self):
+        response = self.app.post('/twilio_call')
+        self.assertEqual(response.status_code, 200)
 
-    def test_home_route(self):
-        response = self.client.get('/')
-        self.assertRedirects(
-            response,
-            url_for('voter_communication',
-                    last_action="LoadingServerForTheFirstTime"))
+    def test_twilio_message(self):
+        response = self.app.post('/twilio_message')
+        self.assertEqual(response.status_code, 200)
 
-    def test_voter_communication_route_get(self):
-        response = self.client.get(
-            url_for('voter_communication', last_action="TestAction"))
-        self.assert200(response)
-        self.assert_template_used('voter_communication.html')
+    def test_index(self):
+        response = self.app.get('/')
+        self.assertEqual(response.status_code, 200)
 
-    def test_voter_communication_route_post(self):
-        response = self.client.post(url_for('voter_communication',
-                                            last_action="TestAction"),
-                                    data={
-                                        'voter_name': 'John Doe',
-                                        'voter_phone_number': '+1234567890',
-                                        'voter_information': 'Test voter',
-                                        'candidate_name': 'Jane Smith',
-                                        'candidate_information':
-                                        'Test candidate',
-                                        'race_name': 'Test Race',
-                                        'race_information': 'Test race',
-                                        'communication_type': 'call'
-                                    })
-        self.assertRedirects(response, url_for('call'))
-        voter = Voter.query.filter_by(voter_name='John Doe').first()
-        self.assertIsNotNone(voter)
-        candidate = Candidate.query.filter_by(
-            candidate_name='Jane Smith').first()
-        self.assertIsNotNone(candidate)
-        race = Race.query.filter_by(race_name='Test Race').first()
-        self.assertIsNotNone(race)
+    def test_interaction(self):
+        with open('test_profiles.csv', 'rb') as csv_file:
+            csv_data = io.BytesIO(csv_file.read())
 
-    def test_twilio_call_route(self):
-        # Create a test VoterCommunication
-        voter_communication = VoterCommunication(
-            twilio_conversation_sid='TestSid',
-            conversation=[{
-                "role": "system",
-                "content": "Test system message"
-            }],
-            communication_type='call',
-            voter_id=1)
-        db.session.add(voter_communication)
-        db.session.commit()
+        with self.app.test_client() as client:
+            response = client.post('/interaction/last_action?last_action=some_value', data={
+                'recipient_csv': (csv_data, 'test.csv'),
+                'campaign_name': 'GOTV for All',
+                'campaign_information': 'Encourage the recipient to register to vote. Find out what state they are in so that you can point them to the right website.',
+                'campaign_end_date': '2023-11-09',
+                'interaction_type': 'text',
+                'sender_name': 'GOTV for All',
+                'sender_information': 'A nonpartisan nonprofit that supports voter registration and turnout.'
+            })
+            self.assertEqual(response.status_code, 200)
 
-        response = self.client.post(url_for('twilio_call'),
-                                    data={
-                                        'CallSid': 'TestSid',
-                                        'SpeechResult': 'Test speech result'
-                                    })
-        self.assert200(response)
-        self.assertEqual(response.mimetype, 'text/xml')
-        self.assertTrue(isinstance(response.response, VoiceResponse))
+    def test_call(self):
+        response = self.app.post('/call/interaction_id')
+        self.assertEqual(response.status_code, 200)
 
-    def test_twilio_message_route(self):
-        # Create a test VoterCommunication
-        voter_communication = VoterCommunication(
-            twilio_conversation_sid='TestSid',
-            conversation=[{
-                "role": "system",
-                "content": "Test system message"
-            }],
-            communication_type='text',
-            voter_id=1)
-        db.session.add(voter_communication)
-        db.session.commit()
+    def test_text_message(self):
+        response = self.app.post('/text_message/interaction_id')
+        self.assertEqual(response.status_code, 200)
 
-        response = self.client.post(url_for('twilio_message'),
-                                    data={
-                                        'From': '+1234567890',
-                                        'Body': 'Test message body'
-                                    })
-        self.assert200(response)
-        self.assertEqual(response.mimetype, 'text/xml')
-        self.assertTrue(isinstance(response.response, MessagingResponse))
-
-
-if __name__ == '__main__':
-    pytest.main()
+    def test_plan(self):
+        response = self.app.post('/plan/recipient_id')
+        self.assertEqual(response.status_code, 200)

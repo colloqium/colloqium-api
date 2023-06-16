@@ -24,14 +24,25 @@ def interaction(last_action):
     try:
         logger.info("Processing Interaction form...")
 
-        # Create instance of recipientCallForm class
+        # Create instance of InteractionForm class
         form = InteractionForm()
 
         # When the form is submitted
         if form.validate_on_submit():
+            
+            # The CSV file should have a header row and the following columns:
+            # - Recipient Name: The name of the recipient
+            # - Recipient Information: Additional information about the recipient (facts about the recipient, etc.)
+            # - Phone Number: The phone number of the recipient (in E.164 format)
+            # Example:
+            # Recipient Name,Recipient Information,Phone Number
+            # John Doe,John has never voted as a tech enthusist who lives in GA,+14155552671
+            # Jane Smith,Jane has recently become a US citizen and cares about animal rights,jane.smith@example.com,+14155552672
+            
             # If a CSV file was uploaded
             if 'recipient_csv' in request.files:
 
+                # Read the CSV data from the uploaded file
                 file = form.recipient_csv.data
                 text_file = io.TextIOWrapper(file, encoding='utf-8')
                 csv_data = csv.reader(text_file, delimiter=',')
@@ -43,116 +54,13 @@ def interaction(last_action):
 
                 # Then we process each row in the CSV
                 for row in csv_data:
-                    # We create a dictionary where the keys are the CSV headers and the values are the row's values
-                    recipient_data = {headers[i]: value for i, value in enumerate(row)}
-
-                    # Then we use this dictionary to create a recipient
-                    recipient_name = recipient_data['Recipient Name']
-                    recipient_information = recipient_data['Recipient Information']
-                    recipient_phone_number = recipient_data['Phone Number']
-    
-                    # Check if a recipient with the given name and phone number already exists
-                    recipient = Recipient.query.filter_by(
-                        recipient_name=recipient_name,
-                        recipient_phone_number=recipient_phone_number).first()
-
-                    # If the recipient does not exist, create a new one
-                    if not recipient:
-                        recipient = Recipient(
-                            recipient_name=recipient_name,
-                            recipient_phone_number=recipient_phone_number,
-                            recipient_information=recipient_information)
-                        db.session.add(recipient)
-
-                    # Check if sender with this name is in database
-                    sender = Sender.query.filter_by(
-                        sender_name=form.sender_name.data).first()
-
-                    if not sender:
-                        sender = Sender(
-                            sender_name=form.sender_name.data,
-                            sender_information=form.sender_information.data)
-                        db.session.add(sender)
-
-                    # Check if campaign wiht this name is in database
-                    campaign = Campaign.query.filter_by(
-                        campaign_name=form.campaign_name.data).first()
-
-                    if not campaign:
-                        campaign = Campaign(
-                            campaign_name=form.campaign_name.data,
-                            campaign_information=form.campaign_information.data,
-                            campaign_end_date=form.campaign_end_date.data)
-                        db.session.add(campaign)
-
-                    interaction_type = form.interaction_type.data
-
-                    # Create the Interaction
-                    interaction = Interaction(
-                        twilio_conversation_sid='',  # You will need to update this later
-                        conversation=[],
-                        recipient=recipient,  # The ID of the recipient
-                        sender=sender,
-                        campaign=campaign,
-                        interaction_type=interaction_type)
-
-                    db.session.add(interaction)
-                    db.session.commit()
-
-                    #get interaction with DB fields
-                    interaction = db.session.query(Interaction).filter_by(
-                        recipient_id=recipient.id,
-                        interaction_type=interaction_type,
-                        campaign_id=campaign.id).first()
-                    
+                    # Create an interaction from the row
+                    interaction = create_interaction_from_csv_row(headers, row, form)
                     interactions.append(interaction)
 
+                # Process each interaction
                 for interaction in interactions:
-                    
-                    interaction_type = interaction.interaction_type
-                    if interaction_type == "call":
-                        # Add information from recipientCallForm to the system prompt
-                        system_prompt = get_campaign_phone_call_system_prompt(
-                            interaction)
-                    elif interaction_type == "text":
-                        system_prompt = get_campaign_text_message_system_prompt(
-                            interaction)
-                    elif interaction_type == "plan":
-                        system_prompt = get_campaign_agent_system_prompt(interaction)
-
-                    user_number = interaction.recipient.recipient_phone_number
-
-                    #Pre create the first response
-                    conversation = initialize_conversation(system_prompt)
-                    interaction.conversation = conversation
-                    initial_statement = add_llm_response_to_conversation(interaction)
-                    logging.info("Interaction created successfully")
-
-                    db.session.commit()
-
-                    # Log the system prompt and user number
-                    logging.info("Interaction Type: %s", interaction_type)
-                    logging.info(f"System prompt: {system_prompt}")
-                    logging.info(f"User number: {user_number}")
-                    logging.info(f"Initial Statement: {initial_statement}")
-                    logging.debug(f"Conversation: {conversation}")
-
-                    # Store data in session
-                    session[
-                        'interaction_id'] = interaction.id  # Store the interaction ID
-
-                    if (interaction_type == "call"):
-                        # Call the recipient
-                        logging.info("Redirecting to call route...")
-                        call(interaction_id=interaction.id)
-                    elif (interaction_type == "text"):
-                        # Send a text message
-                        logging.info("Redirecting to text message route...")
-                        text_message(interaction_id=interaction.id)
-                    elif (interaction_type == "plan"):
-                        # Create an outreach agent and plan the outreach for the recipient
-                        logging.info("Redirecting to planning route...")
-                        plan(recipient_id=recipient.id)     
+                    process_interaction(interaction)   
                 
                 return jsonify({'success': True}), 200
             else:
@@ -167,3 +75,113 @@ def interaction(last_action):
         return render_template('interaction.html',
                                form=form,
                                last_action="Error")
+    
+
+def create_interaction_from_csv_row(headers, row, form) -> Interaction:
+    # We create a dictionary where the keys are the CSV headers and the values are the row's values
+    recipient_data = {headers[i]: value for i, value in enumerate(row)}
+
+    # Then we use this dictionary to create a recipient
+    recipient_name = recipient_data['Recipient Name']
+    recipient_information = recipient_data['Recipient Information']
+    recipient_phone_number = recipient_data['Phone Number']
+
+    # Check if a recipient with the given name and phone number already exists
+    recipient = Recipient.query.filter_by(
+        recipient_name=recipient_name,
+        recipient_phone_number=recipient_phone_number).first()
+
+    # If the recipient does not exist, create a new one
+    if not recipient:
+        recipient = Recipient(
+            recipient_name=recipient_name,
+            recipient_phone_number=recipient_phone_number,
+            recipient_information=recipient_information)
+        db.session.add(recipient)
+
+    # Check if sender with this name is in database
+    sender = Sender.query.filter_by(
+        sender_name=form.sender_name.data).first()
+
+    if not sender:
+        sender = Sender(
+            sender_name=form.sender_name.data,
+            sender_information=form.sender_information.data)
+        db.session.add(sender)
+
+    # Check if campaign with this name is in database
+    campaign = Campaign.query.filter_by(
+        campaign_name=form.campaign_name.data).first()
+
+    if not campaign:
+        campaign = Campaign(
+            campaign_name=form.campaign_name.data,
+            campaign_information=form.campaign_information.data,
+            campaign_end_date=form.campaign_end_date.data)
+        db.session.add(campaign)
+
+    interaction_type = form.interaction_type.data
+
+    # Create the Interaction
+    interaction = Interaction(
+        twilio_conversation_sid='',  # You will need to update this later
+        conversation=[],
+        recipient=recipient,  # The ID of the recipient
+        sender=sender,
+        campaign=campaign,
+        interaction_type=interaction_type)
+
+    db.session.add(interaction)
+    db.session.commit()
+
+    # Get interaction with DB fields
+    interaction = db.session.query(Interaction).filter_by(
+        recipient_id=recipient.id,
+        interaction_type=interaction_type,
+        campaign_id=campaign.id).first()
+
+    return interaction
+
+def process_interaction(interaction):
+    interaction_type = interaction.interaction_type
+
+    if interaction_type == "call":
+        # Add information from recipientCallForm to the system prompt
+        system_prompt = get_campaign_phone_call_system_prompt(interaction)
+    elif interaction_type == "text":
+        system_prompt = get_campaign_text_message_system_prompt(interaction)
+    elif interaction_type == "plan":
+        system_prompt = get_campaign_agent_system_prompt(interaction)
+
+    user_number = interaction.recipient.recipient_phone_number
+
+    # Pre-create the first response
+    conversation = initialize_conversation(system_prompt)
+    interaction.conversation = conversation
+    initial_statement = add_llm_response_to_conversation(interaction)
+    logging.info("Interaction created successfully")
+
+    db.session.commit()
+
+    # Log the system prompt and user number
+    logging.info("Interaction Type: %s", interaction_type)
+    logging.info(f"System prompt: {system_prompt}")
+    logging.info(f"User number: {user_number}")
+    logging.info(f"Initial Statement: {initial_statement}")
+    logging.debug(f"Conversation: {conversation}")
+
+    # Store data in session
+    session['interaction_id'] = interaction.id  # Store the interaction ID
+
+    if interaction_type == "call":
+        # Call the recipient
+        logging.info("Redirecting to call route...")
+        call(interaction_id=interaction.id)
+    elif interaction_type == "text":
+        # Send a text message
+        logging.info("Redirecting to text message route...")
+        text_message(interaction_id=interaction.id)
+    elif interaction_type == "plan":
+        # Create an outreach agent and plan the outreach for the recipient
+        logging.info("Redirecting to planning route...")
+        plan(recipient_id=recipient.id)
