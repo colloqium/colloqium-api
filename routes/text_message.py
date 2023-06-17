@@ -2,7 +2,7 @@ from flask import Blueprint
 # import Flask and other libraries
 from flask import render_template, jsonify
 from forms.interaction_form import InteractionForm
-from models.models import Recipient, Interaction
+from models.models import Recipient, Interaction, Sender
 from logs.logger import logger, logging
 from context.database import db
 from context.apis import client, twilio_number
@@ -17,6 +17,7 @@ def text_message(interaction_id):
 
         if text_thread:
             recipient = Recipient.query.get(text_thread.recipient_id)
+            sender = Sender.query.get(text_thread.sender_id)
             conversation = text_thread.conversation
 
             logging.debug(
@@ -31,7 +32,7 @@ def text_message(interaction_id):
             # Start a new text message thread
             text_message = client.messages.create(
                 body=body,
-                from_=twilio_number,
+                from_=sender.sender_phone_number,
                 to=recipient.recipient_phone_number)
 
             logging.info(

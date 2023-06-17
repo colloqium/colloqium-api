@@ -2,6 +2,8 @@ from context.database import db
 from sqlalchemy.orm import relationship
 from typing import List
 from dataclasses import dataclass
+from context.apis import twilio_numbers
+from wtforms.validators import Regexp
 
 
 @dataclass
@@ -37,7 +39,37 @@ class InteractionType:
 
     @classmethod
     def choices(cls):
+        # Generates a list of tuples containing the valid interaction types for the InteractionType class. Each tuple contains the value of an interaction type attribute and the capitalized name of the attribute.
         return [(getattr(cls, name), name.capitalize()) for name in dir(cls) if not name.startswith("_") and isinstance(getattr(cls, name), str)]
+
+@dataclass
+class SendingPhoneNumber:
+    country_code: str
+    phone_number_after_code: str
+
+    def __post_init__(self):
+        self.country_code_validator = Regexp(
+            # The regular expression to match country codes
+            r'^\+\d$',
+            # The error message to display if the country code is invalid
+            message=
+            'The country code must be in the format +1# where # is a digit'
+        )
+
+    # Create a string that is the country code and phone number in the format +1##########
+    def get_full_phone_number(self):
+        return self.country_code + self.phone_number_after_code
+
+    def validate(self):
+        return self.country_code_validator(self.country_code)
+
+
+AVAILABLE_PHONE_NUMBERS = [
+    SendingPhoneNumber(country_code=number[:2], phone_number_after_code=number[2:]).get_full_phone_number() for number in twilio_numbers
+]
+
+
+
 
 class Recipient(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -57,6 +89,7 @@ class Sender(db.Model):
     sender_name = db.Column(db.String(50))
     sender_information = db.Column(db.Text)
     sender_schedule = db.Column(db.JSON())
+    sender_phone_number = db.Column(db.String(100))
     # Add relationship
     interactions = relationship('Interaction',
                                   backref='sender',

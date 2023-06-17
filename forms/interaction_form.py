@@ -2,7 +2,7 @@ from flask_wtf import FlaskForm
 from wtforms import StringField, SubmitField, DateField, SelectField, FileField
 from wtforms.validators import DataRequired, Regexp
 from wtforms import TextAreaField
-from models.models import InteractionType
+from models.models import InteractionType, AVAILABLE_PHONE_NUMBERS
 
 # Define a custom validator for phone numbers that match "+17066641258"
 class PhoneNumberValidator(Regexp):
@@ -24,6 +24,7 @@ class InteractionForm(FlaskForm):
     sender_name = StringField('Sender Name', validators=[DataRequired()])
     sender_information = TextAreaField('Sender Information',
                                           validators=[DataRequired()])
+    sender_phone_number = SelectField('Sender Number', choices=[(number, number) for number in AVAILABLE_PHONE_NUMBERS], validators=[DataRequired()])
     campaign_end_date = DateField('End Date', validators=[DataRequired()])
     interaction_type = SelectField('Interaction Type',
                                    choices=InteractionType.choices(),

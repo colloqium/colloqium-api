@@ -18,6 +18,7 @@ def twilio_message():
 
     # Get the 'From' number from the incoming request
     from_number = request.values.get('From', None)
+    sender_phone_number = request.values.get('To', None)
 
     # Use the 'From' number to look up the recipient in your database
     recipient = Recipient.query.filter_by(
@@ -50,9 +51,10 @@ def twilio_message():
 
         db.session.add(interaction)
     else:
+        sender = Sender.query.filter_by(sender_phone_number=sender_phone_number).first()
         # If the recipient exists, find the Interaction for this recipient with type 'text'
         interaction = Interaction.query.filter_by(
-            recipient_id=recipient.id, interaction_type='text').first()
+            recipient_id=recipient.id, sender_id=sender.id, interaction_type='text').first()
 
     # Now you can add the new message to the conversation
     message_body = request.values.get('Body', None)
@@ -73,7 +75,7 @@ def twilio_message():
 
     client.messages.create(
                 body=message_body,
-                from_=twilio_number,
+                from_=sender_phone_number,
                 to=recipient.recipient_phone_number)
     
     return jsonify({

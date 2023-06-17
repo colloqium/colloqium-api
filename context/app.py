@@ -17,13 +17,19 @@ def create_app():
 
     db.init_app(app)
 
+    from sqlalchemy import inspect
+
     with app.app_context():
-        meta = db.metadata
-        for table in reversed(meta.sorted_tables):
-            print(f"Dropping table {table}")
-            db.session.execute(table.delete())
-        db.session.commit()
-        db.create_all()  # then create all tables
+        inspector = inspect(db.engine)
+        table_names = inspector.get_table_names()
+        if table_names:
+            meta = db.metadata
+            for table in reversed(meta.sorted_tables):
+                if table.name in table_names:
+                    print(f"Dropping table {table}")
+                    db.session.execute(table.delete())
+            db.session.commit()
         Migrate(app, db)  # initialize Flask-Migrate
+        db.create_all()  # then create all tables
 
     return app

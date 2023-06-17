@@ -106,7 +106,8 @@ def create_interaction_from_csv_row(headers, row, form) -> Interaction:
     if not sender:
         sender = Sender(
             sender_name=form.sender_name.data,
-            sender_information=form.sender_information.data)
+            sender_information=form.sender_information.data,
+            sender_phone_number=form.sender_phone_number.data)
         db.session.add(sender)
 
     # Check if campaign with this name is in database
@@ -154,6 +155,7 @@ def process_interaction(interaction):
         system_prompt = get_campaign_agent_system_prompt(interaction)
 
     user_number = interaction.recipient.recipient_phone_number
+    sender_number = interaction.sender.sender_phone_number
 
     # Pre-create the first response
     conversation = initialize_conversation(system_prompt)
@@ -167,6 +169,7 @@ def process_interaction(interaction):
     logging.info("Interaction Type: %s", interaction_type)
     logging.info(f"System prompt: {system_prompt}")
     logging.info(f"User number: {user_number}")
+    logging.info(f"Sender number: {sender_number}")
     logging.info(f"Initial Statement: {initial_statement}")
     logging.debug(f"Conversation: {conversation}")
 
@@ -184,4 +187,4 @@ def process_interaction(interaction):
     elif interaction_type == "plan":
         # Create an outreach agent and plan the outreach for the recipient
         logging.info("Redirecting to planning route...")
-        plan(recipient_id=recipient.id)
+        plan(recipient_id=interaction.recipient.id)
