@@ -4,7 +4,7 @@ from flask import Response, request
 from twilio.twiml.voice_response import VoiceResponse
 from models.models import Interaction
 from tools.utility import add_message_to_conversation, add_llm_response_to_conversation
-from logs.logger import logger, logging
+# from logs.logger import logger, logging
 from context.database import db
 from context.apis import call_webhook_url
 
@@ -15,10 +15,10 @@ twilio_call_bp = Blueprint('twilio_call', __name__)
 @twilio_call_bp.route("/twilio_call", methods=['POST'])
 def twilio_call():
     try:
-        logging.info("Twilio Phone Call Request Received")
-        logging.info(request.get_data())
+        print("Twilio Phone Call Request Received")
+        print(request.get_data())
         call_id = request.form['CallSid']
-        logging.info("Call id: " + call_id)
+        print("Call id: " + call_id)
         interaction = Interaction.query.filter_by(
             twilio_conversation_sid=call_id).first()
 
@@ -39,7 +39,7 @@ def twilio_call():
         if speech_result:
             add_message_to_conversation(interaction, speech_result)
             # Log the user's message to the console
-            logger.info(f"User message: {speech_result}")
+            print(f"User message: {speech_result}")
 
             # Get the AI response and add it to the conversation
             try:
@@ -51,7 +51,7 @@ def twilio_call():
             # This is the first message and you can just use the completion
             text = conversation[-1]['content']
 
-        logger.info(f"AI message: {text}")
+        print(f"AI message: {text}")
 
         # Return the response as XML
         response.say(text)
@@ -59,16 +59,16 @@ def twilio_call():
         #check if text contains "goodbye", if so, hang up the call, other wise continue gathering input
         if "goodbye" in text.lower():
             response.hangup()
-            logging.info("Goodbye message received, hanging up call")
+            print("Goodbye message received, hanging up call")
         else:
             response.gather(input="speech",
                             action=call_webhook_url,
                             method="POST")
-            logging.info("Gathering input from user")
+            print("Gathering input from user")
 
         response_xml = response.to_xml()
 
-        logging.info('Response successfully created and returned.')
+        print('Response successfully created and returned.')
         db.session.commit()
         return Response(response_xml, content_type="text/xml")
 

@@ -1,0 +1,346 @@
+digraph G {
+
+	graph [bgcolor="#222222", fontcolor="white", fontname="Arial", fontsize=10];
+    node [shape=box, style=filled, fillcolor="#3a3a3a", fontcolor="white", fontname="Arial", fontsize=10, color="#888888"];
+    edge [color="#ffffff", fontcolor="white", fontname="Arial", fontsize=10];
+"tzap_1" [label=<Connection (1) > ];
+"tzap_2" [label=<MutateContext (2) > ];
+"tzap_3" [label=<Work (3) > ];
+"tzap_4" [label=<ApplyWorkflow () Start (4) > ];
+"tzap_5" [label=<ApplyWorkflow (listInspirationFiles) Start (5) > ];
+"tzap_6" [label=<Work (6) > ];
+"tzap_7" [label=<ApplyWorkflow (listInspirationFiles) End (7) > ];
+"tzap_8" [label=<ApplyWorkflow (inspirationWorkflow) Start (8) > ];
+"tzap_9" [label=<ApplyWorkflow (inspirationWorkflow) End (9) > ];
+"tzap_10" [label=<ApplyWorkflow (loadAndSearchEmbeddings) Start (10) > ];
+"tzap_11" [label=<ApplyWorkflow (indexFilesAndEmbeddings) Start (11) > ];
+"tzap_12" [label=<ApplyWorkflow (loadAndFetchEmbeddings) Start (12) > ];
+"tzap_13" [label=<ApplyWorkflow (prepareEmbedFilesWorkflow) Start (13) > ];
+"tzap_14" [label=<prepareEmbedFilesTzap (14) > ];
+"tzap_15" [label=<ApplyWorkflow (prepareEmbedFilesWorkflow) End (15) > ];
+"tzap_16" [label=<ApplyWorkflow (confirmEmbeddingSearch) Start (16) > ];
+"tzap_17" [label=<ApplyWorkflow (confirmEmbeddingSearch) End (17) > ];
+"tzap_18" [label=<ApplyWorkflow (fetchOrCachedEmbeddingForFilesWorkflow) Start (18) > ];
+"tzap_19" [label=<fetchOrCachedEmbeddingForFilesTzap (19) > ];
+"tzap_20" [label=<ApplyWorkflow (fetchOrCachedEmbeddingForFilesWorkflow) End (20) > ];
+"tzap_21" [label=<ApplyWorkflow (saveAndLoadEmbeddingsToDB) Start (21) > ];
+"tzap_22" [label=<ApplyWorkflow (saveAndLoadEmbeddingsToDB) End (22) > ];
+"tzap_23" [label=<ApplyWorkflow (loadAndFetchEmbeddings) End (23) > ];
+"tzap_24" [label=<ApplyWorkflow (indexFilesAndEmbeddings) End (24) > ];
+"tzap_25" [label=<ApplyWorkflow (searchFilesWorkflow) Start (25) > ];
+"tzap_26" [label=<searchResults (26) > ];
+"tzap_27" [label=<ApplyWorkflow (searchFilesWorkflow) End (27) > ];
+"tzap_28" [label=<ApplyWorkflow (loadAndSearchEmbeddings) End (28) > ];
+"tzap_29" [label=<ApplyWorkflow (listInspirationFiles) Start (29) > ];
+"tzap_30" [label=<Work (30) > ];
+"tzap_31" [label=<ApplyWorkflow (listInspirationFiles) End (31) > ];
+"tzap_32" [label=<ApplyWorkflow (SearchWorkflow) Start (32) > ];
+"tzap_33" [label=<AddSystemMessage (33) <br/>Message:<br/>Role:system<br/>Content:<br/>The following file contents ar [...]> ];
+"tzap_34" [label=<AddSystemMessage (34) <br/>Message:<br/>Role:system<br/>Content:<br/>####embedding from file: route [...]> ];
+"tzap_35" [label=<AddSystemMessage (35) <br/>Message:<br/>Role:system<br/>Content:<br/>####embedding from file: route [...]> ];
+"tzap_36" [label=<AddSystemMessage (36) <br/>Message:<br/>Role:system<br/>Content:<br/>####embedding from file: promp [...]> ];
+"tzap_37" [label=<AddSystemMessage (37) <br/>Message:<br/>Role:system<br/>Content:<br/>####embedding from file: promp [...]> ];
+"tzap_38" [label=<AddSystemMessage (38) <br/>Message:<br/>Role:system<br/>Content:<br/>####embedding from file: route [...]> ];
+"tzap_39" [label=<AddSystemMessage (39) <br/>Message:<br/>Role:system<br/>Content:<br/>####embedding from file: route [...]> ];
+"tzap_40" [label=<AddSystemMessage (40) <br/>Message:<br/>Role:system<br/>Content:<br/>####embedding from file: forms [...]> ];
+"tzap_41" [label=<AddSystemMessage (41) <br/>Message:<br/>Role:system<br/>Content:<br/>####embedding from file: stati [...]> ];
+"tzap_42" [label=<ApplyWorkflow (SearchWorkflow) End (42) > ];
+"tzap_43" [label=<AddUserMessage (43) <br/>Message:<br/>Role:user<br/>Content:<br/>Can you modify the interaction [...]> ];
+"tzap_1" -> "tzap_2";
+"tzap_2" -> "tzap_3";
+"tzap_3" -> "tzap_4";
+"tzap_4" -> "tzap_5";
+"tzap_5" -> "tzap_6";
+"tzap_5" -> "tzap_7";
+"tzap_7" -> "tzap_8";
+"tzap_8" -> "tzap_9";
+"tzap_9" -> "tzap_10";
+"tzap_10" -> "tzap_11";
+"tzap_11" -> "tzap_12";
+"tzap_12" -> "tzap_13";
+"tzap_13" -> "tzap_14";
+"tzap_14" -> "tzap_15";
+"tzap_15" -> "tzap_16";
+"tzap_16" -> "tzap_17";
+"tzap_17" -> "tzap_18";
+"tzap_18" -> "tzap_19";
+"tzap_19" -> "tzap_20";
+"tzap_20" -> "tzap_21";
+"tzap_21" -> "tzap_22";
+"tzap_22" -> "tzap_23";
+"tzap_23" -> "tzap_24";
+"tzap_24" -> "tzap_25";
+"tzap_25" -> "tzap_26";
+"tzap_26" -> "tzap_27";
+"tzap_27" -> "tzap_28";
+"tzap_28" -> "tzap_29";
+"tzap_29" -> "tzap_30";
+"tzap_29" -> "tzap_31";
+"tzap_31" -> "tzap_32";
+"tzap_32" -> "tzap_33";
+"tzap_33" -> "tzap_34";
+"tzap_34" -> "tzap_35";
+"tzap_35" -> "tzap_36";
+"tzap_36" -> "tzap_37";
+"tzap_37" -> "tzap_38";
+"tzap_38" -> "tzap_39";
+"tzap_39" -> "tzap_40";
+"tzap_40" -> "tzap_41";
+"tzap_41" -> "tzap_42";
+"tzap_42" -> "tzap_43";
+"tzap_33" -> "chat_0_msg_0" [style=dotted];
+"tzap_34" -> "chat_0_msg_1" [style=dotted];
+"chat_0_msg_0" -> "chat_0_msg_1" [style=dotted];
+"tzap_35" -> "chat_0_msg_2" [style=dotted];
+"chat_0_msg_1" -> "chat_0_msg_2" [style=dotted];
+"tzap_36" -> "chat_0_msg_3" [style=dotted];
+"chat_0_msg_2" -> "chat_0_msg_3" [style=dotted];
+"tzap_37" -> "chat_0_msg_4" [style=dotted];
+"chat_0_msg_3" -> "chat_0_msg_4" [style=dotted];
+"tzap_38" -> "chat_0_msg_5" [style=dotted];
+"chat_0_msg_4" -> "chat_0_msg_5" [style=dotted];
+"tzap_39" -> "chat_0_msg_6" [style=dotted];
+"chat_0_msg_5" -> "chat_0_msg_6" [style=dotted];
+"tzap_40" -> "chat_0_msg_7" [style=dotted];
+"chat_0_msg_6" -> "chat_0_msg_7" [style=dotted];
+"tzap_41" -> "chat_0_msg_8" [style=dotted];
+"chat_0_msg_7" -> "chat_0_msg_8" [style=dotted];
+"chat_0_msg_9" -> "tzap_43" [style=dotted];
+"chat_0_msg_8" -> "chat_0_msg_9" [style=dotted];
+
+	subgraph cluster_chat_0 {
+		label = "GPT Chat(0):";
+		bgcolor = "#333333";
+
+	subgraph cluster_chat_0_REQUEST {
+		label = "REQUEST";
+		bgcolor = "#333333";
+		"chat_0_msg_0" [label=<Message Tokens(11) (0):<br/>Role: system<br/>The following file contents are embeddings for the user input:> , tooltip=<The following file contents are embeddings for the user input:> ];
+		"chat_0_msg_1" [label=<Message Tokens(621) (1):<br/>Role: system<br/>####embedding from file: routes/interaction.py<br/>from flask import Blueprint, request, redirect, url_for, current_app<br/>import csv<br/># import Flask and other libraries<br/>from flask import render_template<br/>from forms.interaction_form import InteractionForm<br/>from models.models import Recipient, Sender, Campaign> , tooltip=<####embedding from file: routes/interaction.py
+from flask import Blueprint, request, redirect, url_for, current_app
+import csv
+# import Flask and other libraries
+from flask import render_template
+from forms.interaction_form import InteractionForm
+from models.models import Recipient, Sender, Campaign, Interaction, InteractionStatus
+from context.constants import INTERACTION_TYPES
+from tools.utility import add_llm_response_to_conversation, initialize_conversation
+from context.database import db
+from logs.logger import get_logger
+import logging
+# Import the functions from the other files
+import io
+
+
+interaction_bp = Blueprint(&#39;interaction&#39;, __name__)
+logger = get_logger()
+
+@interaction_bp.route(&#39;/interaction/\&lt;last_action\&gt;&#39;, methods=[&#39;GET&#39;, &#39;POST&#39;])
+def interaction(last_action):
+    try:
+        print(\&#34;Inside interaction route\&#34;)
+        logging.info(\&#34;Inside interaction route with logging.info\&#34;)
+        print(\&#34;Inside interaction route with print\&#34;)
+        print(\&#34;This should be an error message\&#34;)
+        print(\&#34;This should be a debug message\&#34;) 
+        print(\&#34;This should be an info message\&#34;)
+        print(\&#34;Processing Interaction form...\&#34;)
+        print(\&#34;Test debug message\&#34;)
+
+        # Create instance of InteractionForm class
+        form = InteractionForm()
+
+        # When the form is submitted
+        if form.validate_on_submit():
+            
+            # The CSV file should have a header row and the following columns:
+            # - Recipient Name: The name of the recipient
+            # - Recipient Information: Additional information about the recipient (facts about the recipient, etc.)
+            # - Phone Number: The phone number of the recipient (in E.164 format)
+            # Example:
+            # Recipient Name,Recipient Information,Phone Number
+            # John Doe,John has never voted as a tech enthusist who lives in GA,+14155552671
+            # Jane Smith,Jane has recently become a US citizen and cares about animal rights,jane.smith@example.com,+14155552672
+            
+            # If a CSV file was uploaded
+            if &#39;recipient_csv&#39; in request.files:
+
+                # Read the CSV data from the uploaded file
+                file = form.recipient_csv.data
+                text_file = io.TextIOWrapper(file, encoding=&#39;utf-8&#39;)
+                csv_data = csv.reader(text_file, delimiter=&#39;,&#39;)
+
+                # We expect the first row to be headers, so we get those first
+                headers = next(csv_data)
+
+                interactions = []
+
+                # Then we process each row in the CSV
+                for row in csv_data:
+                    # Create an interaction from the row
+                    interaction = create_interaction_from_csv_row(headers, row, form)
+                    interactions.append(interaction)
+
+                # Process each interaction
+                for interaction in interactions:
+                    initialize_interaction(interaction)   
+                
+                sender = Sender.query.get(interaction.sender_id)
+                #reroute to the confirm messages page
+                return redirect(url_for(&#39;bp.confirm_messages&#39;, sender_id=sender.id))
+            else:
+                print(f\&#34;No form subdmitted.> ];
+		"chat_0_msg_2" [label=<Message Tokens(831) (2):<br/>Role: system<br/>####embedding from file: routes/interaction.py<br/> a new interaction with a recipient and the first system message in the conversation. Does not send the message.<br/>def initialize_interaction(interaction):<br/>    interaction_type = interaction.interaction_type<br/><br/>    system_prompt = INTERACTION_TYPES[interact> , tooltip=<####embedding from file: routes/interaction.py
+ a new interaction with a recipient and the first system message in the conversation. Does not send the message.
+def initialize_interaction(interaction):
+    interaction_type = interaction.interaction_type
+
+    system_prompt = INTERACTION_TYPES[interaction_type].system_initialization_method(interaction)
+
+    user_number = interaction.recipient.recipient_phone_number
+    sender_number = interaction.sender.sender_phone_number
+
+    # Pre-create the first response
+    conversation = initialize_conversation(system_prompt)
+    interaction.conversation = conversation
+    initial_statement = add_llm_response_to_conversation(interaction)
+    print(\&#34;Interaction created successfully\&#34;)
+    interaction.interaction_status = InteractionStatus.INITIALIZED
+
+    db.session.commit()
+
+    # Log the system prompt and user number
+    print(\&#34;Interaction Type: %s\&#34;, interaction_type)
+    print(f\&#34;System prompt: system_prompt\&#34;)
+    print(f\&#34;User number: user_number\&#34;)
+    print(f\&#34;Sender number: sender_number\&#34;)
+    print(f\&#34;Initial Statement:> ];
+		"chat_0_msg_3" [label=<Message Tokens(1043) (3):<br/>Role: system<br/>####embedding from file: prompts/communication_review_agent.py<br/>from langchain.prompts import ChatPromptTemplate, SystemMessagePromptTemplate<br/>from models.models import Interaction<br/><br/><br/>def get_campaign_phone_call_system_prompt(interaction: Interaction):<br/>    # GPT API System Prompts<br/>    system_prompt = &> , tooltip=<####embedding from file: prompts/communication_review_agent.py
+from langchain.prompts import ChatPromptTemplate, SystemMessagePromptTemplate
+from models.models import Interaction
+
+
+def get_campaign_phone_call_system_prompt(interaction: Interaction):
+    # GPT API System Prompts
+    system_prompt = &#39;&#39;&#39;You are a helpful agent reaching out to recipient_name on behalf of sender_name Keep your comments short, but welcoming. Please respond with 1 or 2 sentences and be brief. Your responses should be concise, informative, and engaging. If the recipient is losing interest in the conversation or has no more questions, include \&#34;goodbye\&#34; in your response to mark the end of the communication.
+
+The sender wants you to reach out to the recipient for the following reason:
+campaign_information
+
+The campaign is going to end on you can reach out to the recipient until campaign_end_date.
+
+You know the following about the sender of the message:
+sender_information
+
+You know the following about the recipient of the message:
+recipient_information
+
+Begin> ];
+		"chat_0_msg_4" [label=<Message Tokens(1256) (4):<br/>Role: system<br/>####embedding from file: prompts/campaign_volunteer_agent.py<br/>from langchain.prompts import ChatPromptTemplate, SystemMessagePromptTemplate<br/>from models.models import Interaction<br/><br/>def get_campaign_phone_call_system_prompt(interaction: Interaction):<br/><br/>    # GPT API System Prompts<br/>    system_prompt = &#3> , tooltip=<####embedding from file: prompts/campaign_volunteer_agent.py
+from langchain.prompts import ChatPromptTemplate, SystemMessagePromptTemplate
+from models.models import Interaction
+
+def get_campaign_phone_call_system_prompt(interaction: Interaction):
+
+    # GPT API System Prompts
+    system_prompt = &#39;&#39;&#39;You are a helpful agent reaching out to recipient_name on behalf of sender_name Keep your comments short, but welcoming. Please respond with 1 or 2 sentences and be brief. Your responses should be concise, informative, and engaging. If the recipient is losing interest in the conversation or has no more questions, include \&#34;goodbye\&#34; in your response to mark the end of the communication.
+
+The sender wants you to reach out to the recipient for the following reason:
+campaign_information
+
+The campaign is going to end on you can reach out to the recipient until campaign_end_date.
+
+You know the following about the sender of the message:
+sender_information
+
+You know the following about the recipient of the message:
+recipient_information
+
+Begin> ];
+		"chat_0_msg_5" [label=<Message Tokens(1466) (5):<br/>Role: system<br/>####embedding from file: routes/call.py<br/>from flask import Blueprint<br/># import Flask and other libraries<br/>from flask import render_template, redirect, url_for, session<br/>from forms.interaction_form import InteractionForm<br/>from models.models import Recipient, Sender, Interaction<br/># from logs.logger import l> , tooltip=<####embedding from file: routes/call.py
+from flask import Blueprint
+# import Flask and other libraries
+from flask import render_template, redirect, url_for, session
+from forms.interaction_form import InteractionForm
+from models.models import Recipient, Sender, Interaction
+# from logs.logger import logger
+from context.database import db
+from context.apis import client, call_webhook_url, twilio_number
+
+call_bp = Blueprint(&#39;call&#39;, __name__)
+
+@call_bp.route(\&#34;/call/\&lt;interaction_id\&gt;\&#34;, methods=[&#39;POST&#39;, &#39;GET&#39;])
+def call(interaction_id):
+    try:
+        recipient_call = Interaction.query.get(session[&#39;interaction_id&#39;])
+        recipient = Recipient.query.get(recipient_call.recipient_id)
+        sender = Sender.query.get(recipient_call.sender_id)
+
+        # Clear the session data now that we&#39;re done with it
+        if &#39;interaction_id&#39; in session:
+            del session[&#39;interaction_id&#39;]
+
+        print(
+            f\&#34;Starting call with system prompt &#39;recipient_call.conversation[0].get(&#39;content> ];
+		"chat_0_msg_6" [label=<Message Tokens(1565) (6):<br/>Role: system<br/>####embedding from file: routes/confirm_messages.py<br/>        print(\&#34;Redirecting to interaction page with error message\&#34;)<br/>        return redirect(url_for(&#39;bp.interaction&#39;, last_action=&#39;sender_not_found&#39;))<br/><br/>    # log the name of the sender and the number of interactions to be > , tooltip=<####embedding from file: routes/confirm_messages.py
+        print(\&#34;Redirecting to interaction page with error message\&#34;)
+        return redirect(url_for(&#39;bp.interaction&#39;, last_action=&#39;sender_not_found&#39;))
+
+    # log the name of the sender and the number of interactions to be confirmed
+    print(f\&#34;Sender sender.sender_name has len(interactions) interactions to confirm\&#34;)
+
+    return render_template(&#39;confirm_message.html&#39;,
+                           interactions=interactions, interaction_types=INTERACTION_TYPES)> ];
+		"chat_0_msg_7" [label=<Message Tokens(1724) (7):<br/>Role: system<br/>####embedding from file: forms/interaction_form.py<br/> validators=[DataRequired()])<br/>    sender_information = TextAreaField(&#39;Sender Information&#39;,<br/>                                          validators=[DataRequired()])<br/>    sender_phone_number = SelectField(&#39;Sender Number&#39;, choices=[(number> , tooltip=<####embedding from file: forms/interaction_form.py
+ validators=[DataRequired()])
+    sender_information = TextAreaField(&#39;Sender Information&#39;,
+                                          validators=[DataRequired()])
+    sender_phone_number = SelectField(&#39;Sender Number&#39;, choices=[(number, number) for number in AVAILABLE_PHONE_NUMBERS], validators=[DataRequired()])
+    campaign_end_date = DateField(&#39;End Date&#39;, validators=[DataRequired()])
+    
+    interaction_type_choices = [(str(interaction_type), interaction_type) for interaction_type in INTERACTION_TYPES.values()]
+
+    interaction_type = SelectField(&#39;Interaction Type&#39;,
+                               choices=interaction_type_choices,
+                               validators=[DataRequired()])
+    
+    recipient_csv = FileField(&#39;Upload Recipients CSV&#39;)  # This is the new field for uploading CSVs
+
+    submit = SubmitField(&#39;Submit&#39;)> ];
+		"chat_0_msg_8" [label=<Message Tokens(1899) (8):<br/>Role: system<br/>####embedding from file: static/js/interactions.js<br/>function sendInteraction(button) <br/>  var url = button.getAttribute(\&#34;data-url\&#34;);<br/>  var interactionId = button.getAttribute(\&#34;data-interaction-id\&#34;);<br/>  console.log(interactionId);<br/>  console.log(url);  <br/><br/>  // Update interaction status<br/>> , tooltip=<####embedding from file: static/js/interactions.js
+function sendInteraction(button) 
+  var url = button.getAttribute(\&#34;data-url\&#34;);
+  var interactionId = button.getAttribute(\&#34;data-interaction-id\&#34;);
+  console.log(interactionId);
+  console.log(url);  
+
+  // Update interaction status
+  fetch(url,  
+    method: \&#34;POST\&#34;,
+    headers: 
+      \&#34;Content-Type\&#34;: \&#34;application/json\&#34;
+    ,
+    body: JSON.stringify( interaction_status: \&#34;InteractionStatus.HUMAN_CONFIRMED\&#34; )
+  )
+  .then(function(response) 
+    if (response.status != 200) 
+      button.innerText = \&#34;Error\&#34;;
+     else 
+      button.innerText = \&#34;Sent\&#34;;
+    
+    button.disabled = true;
+  )
+  .catch(function(error) 
+    button.innerText = \&#34;Error\&#34;;
+    button.disabled = true;
+  );
+> ];
+	}
+
+	subgraph cluster_chat_0_RESPONSE {
+		label = "RESPONSE";
+		bgcolor = "#333333";
+		"chat_0_msg_9" [label=<Message Tokens(49) (9):<br/>Role: user<br/>Can you modify the interactions.js file so that it constructs the url from this button:nteraction-id= interaction.id  data-interaction-type= interaction.interaction_type \&gt;Send\&lt;/button\&gt;. The url format should be interaction_type/interaction_id> , tooltip=<Can you modify the interactions.js file so that it constructs the url from this button:nteraction-id= interaction.id  data-interaction-type= interaction.interaction_type \&gt;Send\&lt;/button\&gt;. The url format should be interaction_type/interaction_id> ];
+	}
+	}
+}

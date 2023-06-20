@@ -6,7 +6,7 @@ from logs.logger import logging
 
 def get_campaign_agent_system_prompt(communication: Interaction):
 
-    logging.info(communication)
+    print(communication)
     # GPT API System Prompts
     system_prompt = '''You are a civic engagement assistant and political campaign strategist. Your goal is to build a relationship over time with a voter. You will try to get them to tell others about the campaign, volunteer, make donations, and most importantly vote. You will have access to all of your previous conversations, and should not ask the same questions twice.
 

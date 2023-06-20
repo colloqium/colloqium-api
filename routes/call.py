@@ -3,7 +3,7 @@ from flask import Blueprint
 from flask import render_template, redirect, url_for, session
 from forms.interaction_form import InteractionForm
 from models.models import Recipient, Sender, Interaction
-from logs.logger import logger
+# from logs.logger import logger
 from context.database import db
 from context.apis import client, call_webhook_url, twilio_number
 
@@ -20,7 +20,7 @@ def call(interaction_id):
         if 'interaction_id' in session:
             del session['interaction_id']
 
-        logger.info(
+        print(
             f"Starting call with system prompt '{recipient_call.conversation[0].get('content')}' and user number '{recipient.recipient_phone_number}'"
         )
 
@@ -29,7 +29,7 @@ def call(interaction_id):
                                    to=recipient.recipient_phone_number,
                                    from_=twilio_number)
 
-        logger.info(f"Started call with SID '{call.sid}'")
+        print(f"Started call with SID '{call.sid}'")
 
         #add call.sid to recipient_call
         recipient_call.twilio_conversation_sid = call.sid
@@ -41,7 +41,7 @@ def call(interaction_id):
                     sender.sender_name))
 
     except Exception as e:
-        logger.error(f"Exception occurred: {e}", exc_info=True)
+        print(f"Exception occurred: {e}", exc_info=True)
         return render_template('interaction.html',
                                form=InteractionForm(),
                                last_action="Error")

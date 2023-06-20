@@ -1,10 +1,10 @@
 from flask import Blueprint
 # import Flask and other libraries
 from flask import request, jsonify
-from models.models import Recipient, Sender, Campaign, Interaction
+from models.models import Recipient, Sender, Campaign, Interaction, InteractionType
 from prompts.campaign_volunteer_agent import get_campaign_text_message_system_prompt
 from tools.utility import add_message_to_conversation, add_llm_response_to_conversation, initialize_conversation
-from logs.logger import logging
+# from logs.logger import logging
 from datetime import date, timedelta
 from context.database import db
 from context.apis import client, twilio_number
@@ -14,11 +14,13 @@ twilio_message_bp = Blueprint('twilio_message', __name__)
 
 @twilio_message_bp.route("/twilio_message", methods=['POST'])
 def twilio_message():
-    logging.debug(request.get_data())
+    print("Inbound message received")
 
     # Get the 'From' number from the incoming request
     from_number = request.values.get('From', None)
     sender_phone_number = request.values.get('To', None)
+
+    print(f"From: {from_number} To: {sender_phone_number}")
 
     # Use the 'From' number to look up the recipient in your database
     recipient = Recipient.query.filter_by(
@@ -26,6 +28,8 @@ def twilio_message():
 
     # If the recipient doesn't exist, create a new one and a new Interaction
     if not recipient:
+        
+        print("No recipient found")
         recipient = Recipient(recipient_name='',
                               recipient_phone_number=from_number)
         db.session.add(recipient)
@@ -37,7 +41,7 @@ def twilio_message():
         campaign.campaign_information="The user reaching out to you is not associated with a campaign. Can you find out who they expect to reach"
 
         interaction = Interaction(twilio_conversation_sid='',
-                                  interaction_type='text',
+                                  interaction_type="text_message",
                                   recipient=recipient,
                                   campaign = campaign,
         sender = Sender()
@@ -51,23 +55,33 @@ def twilio_message():
 
         db.session.add(interaction)
     else:
+        print(f"Recipient: {recipient.recipient_name}")
+        
         sender = Sender.query.filter_by(sender_phone_number=sender_phone_number).first()
+        print(f"Sender: {sender.sender_name}")
+        
         # If the recipient exists, find the Interaction for this recipient with type 'text'
         interaction = Interaction.query.filter_by(
-            recipient_id=recipient.id, sender_id=sender.id, interaction_type='text').first()
+            recipient_id=recipient.id, sender_id=sender.id, interaction_type='text_message').first()
+        if interaction is None:
+            print("No interaction found")
+            return jsonify({
+                'status': 'error',
+                'last_action': 'no_interaction_found'
+            }), 200
 
     # Now you can add the new message to the conversation
     message_body = request.values.get('Body', None)
-    logging.info(f"Recieved message body: {message_body}")
+    print(f"Recieved message body: {message_body}")
     interaction.conversation = add_message_to_conversation(
         interaction, message_body)
 
-    logging.debug(
+    print(
         f"Conversation after including message: {interaction.conversation}")
     # generate a new response from openAI to continue the conversation
     message_body = add_llm_response_to_conversation(interaction)
-    logging.debug(f"AI message: {message_body}")
-    logging.debug(
+    print(f"AI message: {message_body}")
+    print(
         f"Conversation after adding LLM response: {interaction.conversation}")
 
     db.session.add(interaction)

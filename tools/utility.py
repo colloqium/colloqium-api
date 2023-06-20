@@ -1,17 +1,16 @@
 from models.models import Interaction
-from logs.logger import logging
+# from logs.logger import logger
 import openai
 from context.database import db
 import re
 import time
-
 
 def add_message_to_conversation(recipient_communication: Interaction,
                                 message) -> []:
     """
     This function should append the new message to the recipient_communication conversation.
     """
-    logging.info(f"Updating conversation with new message: {message}")
+    (f"Updating conversation with new message: {message}")
     conversation = recipient_communication.conversation.copy()
     conversation.append({"role": "user", "content": message})
     return conversation
@@ -28,17 +27,17 @@ def add_llm_response_to_conversation(
     while retry_count < max_retries:
         try:
             # generate a new response from OpenAI to continue the conversation
-            logging.info("Starting OpenAI Completion")
+            ("Starting OpenAI Completion")
             completion = openai.ChatCompletion.create(model="gpt-4",
                                                       messages=conversation,
                                                       temperature=0.9)
-            logging.info("Finished OpenAI Completion")
+            ("Finished OpenAI Completion")
             response_content = completion.choices[0].message.content
             conversation.append({
                 "role": "assistant",
                 "content": response_content
             })
-            logging.info(
+            (
                 f"Adding OpenAI response to conversation: {response_content}")
 
             recipient_communication.conversation = conversation
@@ -47,7 +46,7 @@ def add_llm_response_to_conversation(
             break
         except openai.error.RateLimitError:
             # sleep for a while before retrying
-            logging.info(
+            (
                 f"Model overloaded, waiting for {wait_time} seconds before retry..."
             )
             time.sleep(wait_time)
@@ -55,7 +54,7 @@ def add_llm_response_to_conversation(
             continue
 
     if retry_count == max_retries:
-        logging.error("Max retries reached, OpenAI model still overloaded.")
+        print("Max retries reached, OpenAI model still overloaded.")
 
     return response_content
 
@@ -68,3 +67,14 @@ def remove_trailing_commas(json_like):
     json_like = re.sub(",[ \t\r\n]+}", "}", json_like)
     json_like = re.sub(",[ \t\r\n]+\]", "]", json_like)
     return json_like
+
+def format_phone_number(phone_number: str) -> str:
+    """
+    This function should format the phone number to be in the format +1xxxxxxxxxx
+
+    It should check whether or not the number has the +1 country code, if not, it should add it.
+    """
+    if phone_number[0] == "+":
+        return phone_number
+    else:
+        return "+1" + phone_number

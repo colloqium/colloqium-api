@@ -27,15 +27,15 @@ class CampaignTools:
                 "We are not working on the communication you expect.")
             return f"You are not working on the communication you expect. Expected: {self.communication.id} Actual: {communication_id}"
 
-        logging.info("Setting outreach schedule for campaign agent.")
+        print("Setting outreach schedule for campaign agent.")
 
         self.outreach_schedule = self.parse_outreach_schedule(schedule_json)
 
-        logging.info(f"Outreach schedule set to: {self.outreach_schedule}")
+        print(f"Outreach schedule set to: {self.outreach_schedule}")
 
         # Get first outreach from schedule
         next_outreach = filter_outreach(self.outreach_schedule)
-        logging.info(f"Next outreach is: {next_outreach}")
+        print(f"Next outreach is: {next_outreach}")
 
         # outreach_date = datetime.datetime.strptime(next_outreach.outreach_date, '%Y-%m-%d %H:%M:%S')
 
@@ -54,7 +54,7 @@ class CampaignTools:
                               run_date=outreach_date,
                               args=[self.communication.id, outreach_goal])
             scheduler.start()
-            logging.info(
+            print(
                 f"Outreach scheduled for {outreach_type} with goal: {outreach_goal}"
             )
         else:
@@ -105,7 +105,7 @@ class CampaignTools:
 
     @staticmethod
     def parse_outreach_schedule(schedule_json):
-        logging.info(f"Parsing schedule json: {schedule_json}")
+        print(f"Parsing schedule json: {schedule_json}")
         json_remove_trailing_number = re.split('(?<=\]),', schedule_json)[0]
         json_remove_trailing_comma = remove_trailing_commas(json_remove_trailing_number)
         schedule = json.loads(json_remove_trailing_comma)
@@ -123,12 +123,12 @@ class CampaignTools:
 
 def extract_action(message):
 
-    logging.info("Extracting action for agent")
+    print("Extracting action for agent")
     action_tag = 'Action:'
     pause_tag = 'PAUSE'
 
     if action_tag not in message:
-        logging.info(f"No action tag found in message: {message}")
+        print(f"No action tag found in message: {message}")
         return None, None
 
     # Extract everything between 'Action:' and 'PAUSE' or end of the string
@@ -136,19 +136,19 @@ def extract_action(message):
     end = message.index(pause_tag) if pause_tag in message else None
     action_content = message[start:end].strip()
 
-    logging.info(f"Action content: {action_content}")
+    print(f"Action content: {action_content}")
 
     # Extract the action name and parameters
     action_match = re.match(r'(\w+)\(([\s\S]*)\)', action_content)
     if action_match:
-        logging.info(f"Action match: {action_match}")
+        print(f"Action match: {action_match}")
         action_name = action_match.group(1)
 
-        logging.info(f"Extracted Action name: {action_name}")
+        print(f"Extracted Action name: {action_name}")
 
         # Try converting parameters from JSON string to Python object, if fails assume it's a plain string
         action_params_str = action_match.group(2).strip()
-        logging.info(f"Action params: {action_params_str}")
+        print(f"Action params: {action_params_str}")
 
         try:
             action_params = json.loads(action_params_str)
@@ -161,13 +161,13 @@ def extract_action(message):
 
 
 def execute_action(campaign_tools: CampaignTools, action_name, action_params):
-    logging.info(f"Executing action: {action_name}")
+    print(f"Executing action: {action_name}")
     # Check if the provided action name corresponds to a method in CampaignTools
 
     result = f"No action named '{action_name}' found in CampaignTools"
     if hasattr(campaign_tools, str(action_name)):
 
-        logging.info("Action exisits in CampaignTools")
+        print("Action exisits in CampaignTools")
 
         # Retrieve the method from the campaign_tools object
         action_method = getattr(campaign_tools, action_name)
@@ -179,7 +179,7 @@ def execute_action(campaign_tools: CampaignTools, action_name, action_params):
         # Execute the action method with action_params as an argument
         result = action_method(action_params, campaign_tools.communication.id)
     else:
-        logging.info(
+        print(
             f"No acition named '{action_name}' found in CampaignTools")
         # If there is no method with the provided name, return an error message
         return f"There is no available action with name {action_name}"
@@ -189,7 +189,7 @@ def execute_action(campaign_tools: CampaignTools, action_name, action_params):
 
 def filter_outreach(outreach_list):
 
-    logging.info(f"Filtering list {outreach_list}")
+    print(f"Filtering list {outreach_list}")
 
     # Get today's date
     today = datetime.date.today()

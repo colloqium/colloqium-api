@@ -2,7 +2,7 @@ from flask_wtf import FlaskForm
 from wtforms import StringField, SubmitField, DateField, SelectField, FileField
 from wtforms.validators import DataRequired, Regexp
 from wtforms import TextAreaField
-from models.models import InteractionType, AVAILABLE_PHONE_NUMBERS
+from context.constants import INTERACTION_TYPES, AVAILABLE_PHONE_NUMBERS
 
 # Define a custom validator for phone numbers that match "+17066641258"
 class PhoneNumberValidator(Regexp):
@@ -26,10 +26,13 @@ class InteractionForm(FlaskForm):
                                           validators=[DataRequired()])
     sender_phone_number = SelectField('Sender Number', choices=[(number, number) for number in AVAILABLE_PHONE_NUMBERS], validators=[DataRequired()])
     campaign_end_date = DateField('End Date', validators=[DataRequired()])
-    interaction_type = SelectField('Interaction Type',
-                                   choices=InteractionType.choices(),
-                                    validators=[DataRequired()])
+    
+    interaction_type_choices = [(str(interaction_type), interaction_type) for interaction_type in INTERACTION_TYPES.values()]
 
+    interaction_type = SelectField('Interaction Type',
+                               choices=interaction_type_choices,
+                               validators=[DataRequired()])
+    
     recipient_csv = FileField('Upload Recipients CSV')  # This is the new field for uploading CSVs
 
     submit = SubmitField('Submit')

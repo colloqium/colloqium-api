@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+
+{% block content %}
+  <h1>Interactions</h1>
+  <ul>
+    {% for interaction in interactions %}
+    {% set interaction_type = interaction.interaction_type %}
+    {% set interaction_id = interaction.id %}
+      <li>
+        <h2>Recipient Name: {{ interaction.recipient.recipient_name }}</h2>
+        <h3>Interaction Type: {{ interaction_types[interaction.interaction_type].name }}</h3>
+        <p>Interaction Message: {{ interaction.conversation[-1].content }}</p>
+        <form id="interaction-form-{{ interaction.id }}">
+          <input type="hidden" name="interaction_id" value="{{ interaction.id }}">
+          <button type="button" onclick="sendInteraction(this)" data-interaction-id="{{ interaction.id }}" data-interaction-type="{{ interaction.interaction_type }}">Send</button>
+        </form>
+      </li>
+    {% endfor %}
+  </ul>
+{% endblock %}
+
+{% block scripts %}
+  <script src="{{ url_for('static', filename='js/interactions.js') }}"></script>
+{% endblock %}

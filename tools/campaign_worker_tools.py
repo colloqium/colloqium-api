@@ -15,14 +15,14 @@ class CampaignWorker:
 
     def make_phone_call(self, goal):
         recipient = self.communication.recipient
-        logging.info(f"Starting a phone call with recipient: {recipient.recipient_name}")
+        print(f"Starting a phone call with recipient: {recipient.recipient_name}")
         return f"Dummy Phone Call with Goal: {goal}"
 
     def start_a_text_thread(self, goal):
         recipient = self.communication.recipient
         new_texting_thread = initialize_recipient_outreach_thread(
             self.communication, goal, "text")
-        logging.info(f"Starting a text thread with recipient: {recipient.recipient_name}")
+        print(f"Starting a text thread with recipient: {recipient.recipient_name}")
 
         first_message = add_llm_response_to_conversation(new_texting_thread)
 
@@ -30,18 +30,18 @@ class CampaignWorker:
 
         new_texting_thread.conversation = updated_conversation
 
-        logging.info(f"First message: {new_texting_thread.conversation}")
+        print(f"First message: {new_texting_thread.conversation}")
         db.session.add(new_texting_thread)
         db.session.commit()
 
-        logging.info(f"Texting thread id after db commit {new_texting_thread.id}")
+        print(f"Texting thread id after db commit {new_texting_thread.id}")
 
         new_texting_thread = db.session.query(Interaction).filter(
             Interaction.id == new_texting_thread.id).first()     
         # Include recipient_communication_id in the URL
 
-        logging.info(f"Texting with id: {new_texting_thread.id}")
-        logging.info(f"Texting with conversation: {new_texting_thread.conversation}")
+        print(f"Texting with id: {new_texting_thread.id}")
+        print(f"Texting with conversation: {new_texting_thread.conversation}")
         url = os.environ['BASE_URL'] + f"text_message/{new_texting_thread.id}"
 
         response = requests.post(url)
@@ -49,18 +49,18 @@ class CampaignWorker:
 
     def send_email(self, goal):
         recipient = self.communication.recipient
-        logging.info(f"Starting an email with recipient: {recipient.recipient_name}")
+        print(f"Starting an email with recipient: {recipient.recipient_name}")
         return f"Dummy email sent with goal: {goal}"
 
 
 def text_outreach(communication_id, goal):
-    logging.info(
+    print(
         f"Scheduling a text outreach with communicaiton id: {communication_id} and goal: {goal}"
     )
     with current_app.app_context():
         communication = db.session.query(Interaction).get(
             communication_id)  # get the instance fresh from the DB
-        logging.info(f"Got the communication instance: {communication}")
+        print(f"Got the communication instance: {communication}")
         worker = CampaignWorker(
             communication
         )  # create a new CampaignWorker with the fresh communication instance
@@ -134,7 +134,7 @@ def initialize_recipient_outreach_thread(
     #retrieve filled out recipientCommunication from database
     outreach_communication_thread = db.session.query(Interaction).get(
         outreach_communication_thread.id)
-    logging.info(
+    print(
         f"Created outreach communication thread: {outreach_communication_thread}"
     )
 

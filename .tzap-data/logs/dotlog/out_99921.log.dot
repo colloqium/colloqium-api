@@ -1,0 +1,760 @@
+digraph G {
+
+	graph [bgcolor="#222222", fontcolor="white", fontname="Arial", fontsize=10];
+    node [shape=box, style=filled, fillcolor="#3a3a3a", fontcolor="white", fontname="Arial", fontsize=10, color="#888888"];
+    edge [color="#ffffff", fontcolor="white", fontname="Arial", fontsize=10];
+"tzap_1" [label=<Connection (1) > ];
+"tzap_2" [label=<MutateContext (2) > ];
+"tzap_3" [label=<Work (3) > ];
+"tzap_4" [label=<ApplyWorkflow () Start (4) > ];
+"tzap_5" [label=<ApplyWorkflow (listInspirationFiles) Start (5) > ];
+"tzap_6" [label=<Work (6) > ];
+"tzap_7" [label=<ApplyWorkflow (listInspirationFiles) End (7) > ];
+"tzap_8" [label=<ApplyWorkflow (inspirationWorkflow) Start (8) > ];
+"tzap_9" [label=<ApplyWorkflow (inspirationWorkflow) End (9) > ];
+"tzap_10" [label=<ApplyWorkflow (loadAndSearchEmbeddings) Start (10) > ];
+"tzap_11" [label=<ApplyWorkflow (indexFilesAndEmbeddings) Start (11) > ];
+"tzap_12" [label=<ApplyWorkflow (loadAndFetchEmbeddings) Start (12) > ];
+"tzap_13" [label=<ApplyWorkflow (prepareEmbedFilesWorkflow) Start (13) > ];
+"tzap_14" [label=<prepareEmbedFilesTzap (14) > ];
+"tzap_15" [label=<ApplyWorkflow (prepareEmbedFilesWorkflow) End (15) > ];
+"tzap_16" [label=<ApplyWorkflow (confirmEmbeddingSearch) Start (16) > ];
+"tzap_17" [label=<ApplyWorkflow (confirmEmbeddingSearch) End (17) > ];
+"tzap_18" [label=<ApplyWorkflow (fetchOrCachedEmbeddingForFilesWorkflow) Start (18) > ];
+"tzap_19" [label=<fetchOrCachedEmbeddingForFilesTzap (19) > ];
+"tzap_20" [label=<ApplyWorkflow (fetchOrCachedEmbeddingForFilesWorkflow) End (20) > ];
+"tzap_21" [label=<ApplyWorkflow (saveAndLoadEmbeddingsToDB) Start (21) > ];
+"tzap_22" [label=<ApplyWorkflow (saveAndLoadEmbeddingsToDB) End (22) > ];
+"tzap_23" [label=<ApplyWorkflow (loadAndFetchEmbeddings) End (23) > ];
+"tzap_24" [label=<ApplyWorkflow (indexFilesAndEmbeddings) End (24) > ];
+"tzap_25" [label=<ApplyWorkflow (searchFilesWorkflow) Start (25) > ];
+"tzap_26" [label=<searchResults (26) > ];
+"tzap_27" [label=<ApplyWorkflow (searchFilesWorkflow) End (27) > ];
+"tzap_28" [label=<ApplyWorkflow (loadAndSearchEmbeddings) End (28) > ];
+"tzap_29" [label=<ApplyWorkflow (listInspirationFiles) Start (29) > ];
+"tzap_30" [label=<Work (30) > ];
+"tzap_31" [label=<ApplyWorkflow (listInspirationFiles) End (31) > ];
+"tzap_32" [label=<ApplyWorkflow (SearchWorkflow) Start (32) > ];
+"tzap_33" [label=<AddSystemMessage (33) <br/>Message:<br/>Role:system<br/>Content:<br/>The following file contents ar [...]> ];
+"tzap_34" [label=<AddSystemMessage (34) <br/>Message:<br/>Role:system<br/>Content:<br/>####embedding from file: logs/ [...]> ];
+"tzap_35" [label=<AddSystemMessage (35) <br/>Message:<br/>Role:system<br/>Content:<br/>####embedding from file: tools [...]> ];
+"tzap_36" [label=<AddSystemMessage (36) <br/>Message:<br/>Role:system<br/>Content:<br/>####embedding from file: route [...]> ];
+"tzap_37" [label=<AddSystemMessage (37) <br/>Message:<br/>Role:system<br/>Content:<br/>####embedding from file: conte [...]> ];
+"tzap_38" [label=<AddSystemMessage (38) <br/>Message:<br/>Role:system<br/>Content:<br/>####embedding from file: route [...]> ];
+"tzap_39" [label=<AddSystemMessage (39) <br/>Message:<br/>Role:system<br/>Content:<br/>####embedding from file: promp [...]> ];
+"tzap_40" [label=<AddSystemMessage (40) <br/>Message:<br/>Role:system<br/>Content:<br/>####embedding from file: promp [...]> ];
+"tzap_41" [label=<AddSystemMessage (41) <br/>Message:<br/>Role:system<br/>Content:<br/>####embedding from file: route [...]> ];
+"tzap_42" [label=<AddSystemMessage (42) <br/>Message:<br/>Role:system<br/>Content:<br/>####embedding from file: route [...]> ];
+"tzap_43" [label=<ApplyWorkflow (SearchWorkflow) End (43) > ];
+"tzap_44" [label=<AddUserMessage (44) <br/>Message:<br/>Role:user<br/>Content:<br/>My logger does not appear to b [...]> ];
+"tzap_45" [label=<requestChat (45) > ];
+"tzap_46" [label=<ApplyWorkflow () End (46) > ];
+"tzap_47" [label=<AddAssistantMessage (47) <br/>Message:<br/>Role:assistant<br/>Content:<br/>It seems like there might be s [...]> ];
+"tzap_48" [label=<Work (48) > ];
+"tzap_49" [label=<ApplyWorkflow () Start (49) > ];
+"tzap_50" [label=<ApplyWorkflow (listInspirationFiles) Start (50) > ];
+"tzap_51" [label=<Work (51) > ];
+"tzap_52" [label=<ApplyWorkflow (listInspirationFiles) End (52) > ];
+"tzap_53" [label=<ApplyWorkflow (inspirationWorkflow) Start (53) > ];
+"tzap_54" [label=<ApplyWorkflow (inspirationWorkflow) End (54) > ];
+"tzap_55" [label=<ApplyWorkflow (loadAndSearchEmbeddings) Start (55) > ];
+"tzap_56" [label=<ApplyWorkflow (indexFilesAndEmbeddings) Start (56) > ];
+"tzap_57" [label=<ApplyWorkflow (loadAndFetchEmbeddings) Start (57) > ];
+"tzap_58" [label=<ApplyWorkflow (prepareEmbedFilesWorkflow) Start (58) > ];
+"tzap_59" [label=<prepareEmbedFilesTzap (59) > ];
+"tzap_60" [label=<ApplyWorkflow (prepareEmbedFilesWorkflow) End (60) > ];
+"tzap_61" [label=<ApplyWorkflow (confirmEmbeddingSearch) Start (61) > ];
+"tzap_62" [label=<ApplyWorkflow (confirmEmbeddingSearch) End (62) > ];
+"tzap_63" [label=<ApplyWorkflow (fetchOrCachedEmbeddingForFilesWorkflow) Start (63) > ];
+"tzap_64" [label=<fetchOrCachedEmbeddingForFilesTzap (64) > ];
+"tzap_65" [label=<ApplyWorkflow (fetchOrCachedEmbeddingForFilesWorkflow) End (65) > ];
+"tzap_66" [label=<ApplyWorkflow (saveAndLoadEmbeddingsToDB) Start (66) > ];
+"tzap_67" [label=<ApplyWorkflow (saveAndLoadEmbeddingsToDB) End (67) > ];
+"tzap_68" [label=<ApplyWorkflow (loadAndFetchEmbeddings) End (68) > ];
+"tzap_69" [label=<ApplyWorkflow (indexFilesAndEmbeddings) End (69) > ];
+"tzap_70" [label=<ApplyWorkflow (searchFilesWorkflow) Start (70) > ];
+"tzap_71" [label=<searchResults (71) > ];
+"tzap_72" [label=<ApplyWorkflow (searchFilesWorkflow) End (72) > ];
+"tzap_73" [label=<ApplyWorkflow (loadAndSearchEmbeddings) End (73) > ];
+"tzap_74" [label=<ApplyWorkflow (listInspirationFiles) Start (74) > ];
+"tzap_75" [label=<Work (75) > ];
+"tzap_76" [label=<ApplyWorkflow (listInspirationFiles) End (76) > ];
+"tzap_77" [label=<ApplyWorkflow (SearchWorkflow) Start (77) > ];
+"tzap_78" [label=<AddSystemMessage (78) <br/>Message:<br/>Role:system<br/>Content:<br/>The following file contents ar [...]> ];
+"tzap_79" [label=<AddSystemMessage (79) <br/>Message:<br/>Role:system<br/>Content:<br/>####embedding from file: main. [...]> ];
+"tzap_80" [label=<AddSystemMessage (80) <br/>Message:<br/>Role:system<br/>Content:<br/>####embedding from file: conte [...]> ];
+"tzap_81" [label=<AddSystemMessage (81) <br/>Message:<br/>Role:system<br/>Content:<br/>####embedding from file: conte [...]> ];
+"tzap_82" [label=<AddSystemMessage (82) <br/>Message:<br/>Role:system<br/>Content:<br/>####embedding from file: route [...]> ];
+"tzap_83" [label=<AddSystemMessage (83) <br/>Message:<br/>Role:system<br/>Content:<br/>####embedding from file: route [...]> ];
+"tzap_84" [label=<AddSystemMessage (84) <br/>Message:<br/>Role:system<br/>Content:<br/>####embedding from file: conte [...]> ];
+"tzap_85" [label=<AddSystemMessage (85) <br/>Message:<br/>Role:system<br/>Content:<br/>####embedding from file: testi [...]> ];
+"tzap_86" [label=<AddSystemMessage (86) <br/>Message:<br/>Role:system<br/>Content:<br/>####embedding from file: route [...]> ];
+"tzap_87" [label=<AddSystemMessage (87) <br/>Message:<br/>Role:system<br/>Content:<br/>####embedding from file: conte [...]> ];
+"tzap_88" [label=<ApplyWorkflow (SearchWorkflow) End (88) > ];
+"tzap_89" [label=<AddUserMessage (89) <br/>Message:<br/>Role:user<br/>Content:<br/>My logger does not appear to b [...]> ];
+"tzap_90" [label=<AddAssistantMessage (90) <br/>Message:<br/>Role:assistant<br/>Content:<br/>It seems like there might be s [...]> ];
+"tzap_91" [label=<AddUserMessage (91) <br/>Message:<br/>Role:user<br/>Content:<br/>This is a flask application ru [...]> ];
+"tzap_92" [label=<requestChat (92) > ];
+"tzap_93" [label=<ApplyWorkflow () End (93) > ];
+"tzap_94" [label=<AddAssistantMessage (94) <br/>Message:<br/>Role:assistant<br/>Content:<br/>In that case, could you try ch [...]> ];
+"tzap_95" [label=<Work (95) > ];
+"tzap_96" [label=<ApplyWorkflow () Start (96) > ];
+"tzap_97" [label=<ApplyWorkflow (listInspirationFiles) Start (97) > ];
+"tzap_98" [label=<Work (98) > ];
+"tzap_99" [label=<ApplyWorkflow (listInspirationFiles) End (99) > ];
+"tzap_100" [label=<ApplyWorkflow (inspirationWorkflow) Start (100) > ];
+"tzap_101" [label=<ApplyWorkflow (inspirationWorkflow) End (101) > ];
+"tzap_102" [label=<ApplyWorkflow (loadAndSearchEmbeddings) Start (102) > ];
+"tzap_103" [label=<ApplyWorkflow (indexFilesAndEmbeddings) Start (103) > ];
+"tzap_104" [label=<ApplyWorkflow (loadAndFetchEmbeddings) Start (104) > ];
+"tzap_105" [label=<ApplyWorkflow (prepareEmbedFilesWorkflow) Start (105) > ];
+"tzap_106" [label=<prepareEmbedFilesTzap (106) > ];
+"tzap_107" [label=<ApplyWorkflow (prepareEmbedFilesWorkflow) End (107) > ];
+"tzap_108" [label=<ApplyWorkflow (confirmEmbeddingSearch) Start (108) > ];
+"tzap_109" [label=<ApplyWorkflow (confirmEmbeddingSearch) End (109) > ];
+"tzap_110" [label=<ApplyWorkflow (fetchOrCachedEmbeddingForFilesWorkflow) Start (110) > ];
+"tzap_111" [label=<fetchOrCachedEmbeddingForFilesTzap (111) > ];
+"tzap_112" [label=<ApplyWorkflow (fetchOrCachedEmbeddingForFilesWorkflow) End (112) > ];
+"tzap_113" [label=<ApplyWorkflow (saveAndLoadEmbeddingsToDB) Start (113) > ];
+"tzap_114" [label=<ApplyWorkflow (saveAndLoadEmbeddingsToDB) End (114) > ];
+"tzap_115" [label=<ApplyWorkflow (loadAndFetchEmbeddings) End (115) > ];
+"tzap_116" [label=<ApplyWorkflow (indexFilesAndEmbeddings) End (116) > ];
+"tzap_117" [label=<ApplyWorkflow (searchFilesWorkflow) Start (117) > ];
+"tzap_118" [label=<searchResults (118) > ];
+"tzap_119" [label=<ApplyWorkflow (searchFilesWorkflow) End (119) > ];
+"tzap_120" [label=<ApplyWorkflow (loadAndSearchEmbeddings) End (120) > ];
+"tzap_121" [label=<ApplyWorkflow (listInspirationFiles) Start (121) > ];
+"tzap_122" [label=<Work (122) > ];
+"tzap_123" [label=<ApplyWorkflow (listInspirationFiles) End (123) > ];
+"tzap_124" [label=<ApplyWorkflow (SearchWorkflow) Start (124) > ];
+"tzap_125" [label=<AddSystemMessage (125) <br/>Message:<br/>Role:system<br/>Content:<br/>The following file contents ar [...]> ];
+"tzap_126" [label=<AddSystemMessage (126) <br/>Message:<br/>Role:system<br/>Content:<br/>####embedding from file: route [...]> ];
+"tzap_127" [label=<AddSystemMessage (127) <br/>Message:<br/>Role:system<br/>Content:<br/>####embedding from file: route [...]> ];
+"tzap_128" [label=<AddSystemMessage (128) <br/>Message:<br/>Role:system<br/>Content:<br/>####embedding from file: route [...]> ];
+"tzap_129" [label=<AddSystemMessage (129) <br/>Message:<br/>Role:system<br/>Content:<br/>####embedding from file: conte [...]> ];
+"tzap_130" [label=<AddSystemMessage (130) <br/>Message:<br/>Role:system<br/>Content:<br/>####embedding from file: testi [...]> ];
+"tzap_131" [label=<AddSystemMessage (131) <br/>Message:<br/>Role:system<br/>Content:<br/>####embedding from file: logs/ [...]> ];
+"tzap_132" [label=<AddSystemMessage (132) <br/>Message:<br/>Role:system<br/>Content:<br/>####embedding from file: route [...]> ];
+"tzap_133" [label=<AddSystemMessage (133) <br/>Message:<br/>Role:system<br/>Content:<br/>####embedding from file: route [...]> ];
+"tzap_134" [label=<AddSystemMessage (134) <br/>Message:<br/>Role:system<br/>Content:<br/>####embedding from file: route [...]> ];
+"tzap_135" [label=<AddSystemMessage (135) <br/>Message:<br/>Role:system<br/>Content:<br/>####embedding from file: route [...]> ];
+"tzap_136" [label=<ApplyWorkflow (SearchWorkflow) End (136) > ];
+"tzap_137" [label=<AddUserMessage (137) <br/>Message:<br/>Role:user<br/>Content:<br/>My logger does not appear to b [...]> ];
+"tzap_138" [label=<AddAssistantMessage (138) <br/>Message:<br/>Role:assistant<br/>Content:<br/>It seems like there might be s [...]> ];
+"tzap_139" [label=<AddUserMessage (139) <br/>Message:<br/>Role:user<br/>Content:<br/>This is a flask application ru [...]> ];
+"tzap_140" [label=<AddAssistantMessage (140) <br/>Message:<br/>Role:assistant<br/>Content:<br/>In that case, could you try ch [...]> ];
+"tzap_141" [label=<AddUserMessage (141) <br/>Message:<br/>Role:user<br/>Content:<br/>The logs in the create_app sec [...]> ];
+"tzap_1" -> "tzap_2";
+"tzap_2" -> "tzap_3";
+"tzap_3" -> "tzap_4";
+"tzap_4" -> "tzap_5";
+"tzap_5" -> "tzap_6";
+"tzap_5" -> "tzap_7";
+"tzap_7" -> "tzap_8";
+"tzap_8" -> "tzap_9";
+"tzap_9" -> "tzap_10";
+"tzap_10" -> "tzap_11";
+"tzap_11" -> "tzap_12";
+"tzap_12" -> "tzap_13";
+"tzap_13" -> "tzap_14";
+"tzap_14" -> "tzap_15";
+"tzap_15" -> "tzap_16";
+"tzap_16" -> "tzap_17";
+"tzap_17" -> "tzap_18";
+"tzap_18" -> "tzap_19";
+"tzap_19" -> "tzap_20";
+"tzap_20" -> "tzap_21";
+"tzap_21" -> "tzap_22";
+"tzap_22" -> "tzap_23";
+"tzap_23" -> "tzap_24";
+"tzap_24" -> "tzap_25";
+"tzap_25" -> "tzap_26";
+"tzap_26" -> "tzap_27";
+"tzap_27" -> "tzap_28";
+"tzap_28" -> "tzap_29";
+"tzap_29" -> "tzap_30";
+"tzap_29" -> "tzap_31";
+"tzap_31" -> "tzap_32";
+"tzap_32" -> "tzap_33";
+"tzap_33" -> "tzap_34";
+"tzap_34" -> "tzap_35";
+"tzap_35" -> "tzap_36";
+"tzap_36" -> "tzap_37";
+"tzap_37" -> "tzap_38";
+"tzap_38" -> "tzap_39";
+"tzap_39" -> "tzap_40";
+"tzap_40" -> "tzap_41";
+"tzap_41" -> "tzap_42";
+"tzap_42" -> "tzap_43";
+"tzap_43" -> "tzap_44";
+"tzap_44" -> "tzap_45";
+"tzap_45" -> "tzap_46";
+"tzap_46" -> "tzap_47";
+"tzap_2" -> "tzap_48";
+"tzap_48" -> "tzap_49";
+"tzap_49" -> "tzap_50";
+"tzap_50" -> "tzap_51";
+"tzap_50" -> "tzap_52";
+"tzap_52" -> "tzap_53";
+"tzap_53" -> "tzap_54";
+"tzap_54" -> "tzap_55";
+"tzap_55" -> "tzap_56";
+"tzap_56" -> "tzap_57";
+"tzap_57" -> "tzap_58";
+"tzap_58" -> "tzap_59";
+"tzap_59" -> "tzap_60";
+"tzap_60" -> "tzap_61";
+"tzap_61" -> "tzap_62";
+"tzap_62" -> "tzap_63";
+"tzap_63" -> "tzap_64";
+"tzap_64" -> "tzap_65";
+"tzap_65" -> "tzap_66";
+"tzap_66" -> "tzap_67";
+"tzap_67" -> "tzap_68";
+"tzap_68" -> "tzap_69";
+"tzap_69" -> "tzap_70";
+"tzap_70" -> "tzap_71";
+"tzap_71" -> "tzap_72";
+"tzap_72" -> "tzap_73";
+"tzap_73" -> "tzap_74";
+"tzap_74" -> "tzap_75";
+"tzap_74" -> "tzap_76";
+"tzap_76" -> "tzap_77";
+"tzap_77" -> "tzap_78";
+"tzap_78" -> "tzap_79";
+"tzap_79" -> "tzap_80";
+"tzap_80" -> "tzap_81";
+"tzap_81" -> "tzap_82";
+"tzap_82" -> "tzap_83";
+"tzap_83" -> "tzap_84";
+"tzap_84" -> "tzap_85";
+"tzap_85" -> "tzap_86";
+"tzap_86" -> "tzap_87";
+"tzap_87" -> "tzap_88";
+"tzap_88" -> "tzap_89";
+"tzap_89" -> "tzap_90";
+"tzap_90" -> "tzap_91";
+"tzap_91" -> "tzap_92";
+"tzap_92" -> "tzap_93";
+"tzap_93" -> "tzap_94";
+"tzap_2" -> "tzap_95";
+"tzap_95" -> "tzap_96";
+"tzap_96" -> "tzap_97";
+"tzap_97" -> "tzap_98";
+"tzap_97" -> "tzap_99";
+"tzap_99" -> "tzap_100";
+"tzap_100" -> "tzap_101";
+"tzap_101" -> "tzap_102";
+"tzap_102" -> "tzap_103";
+"tzap_103" -> "tzap_104";
+"tzap_104" -> "tzap_105";
+"tzap_105" -> "tzap_106";
+"tzap_106" -> "tzap_107";
+"tzap_107" -> "tzap_108";
+"tzap_108" -> "tzap_109";
+"tzap_109" -> "tzap_110";
+"tzap_110" -> "tzap_111";
+"tzap_111" -> "tzap_112";
+"tzap_112" -> "tzap_113";
+"tzap_113" -> "tzap_114";
+"tzap_114" -> "tzap_115";
+"tzap_115" -> "tzap_116";
+"tzap_116" -> "tzap_117";
+"tzap_117" -> "tzap_118";
+"tzap_118" -> "tzap_119";
+"tzap_119" -> "tzap_120";
+"tzap_120" -> "tzap_121";
+"tzap_121" -> "tzap_122";
+"tzap_121" -> "tzap_123";
+"tzap_123" -> "tzap_124";
+"tzap_124" -> "tzap_125";
+"tzap_125" -> "tzap_126";
+"tzap_126" -> "tzap_127";
+"tzap_127" -> "tzap_128";
+"tzap_128" -> "tzap_129";
+"tzap_129" -> "tzap_130";
+"tzap_130" -> "tzap_131";
+"tzap_131" -> "tzap_132";
+"tzap_132" -> "tzap_133";
+"tzap_133" -> "tzap_134";
+"tzap_134" -> "tzap_135";
+"tzap_135" -> "tzap_136";
+"tzap_136" -> "tzap_137";
+"tzap_137" -> "tzap_138";
+"tzap_138" -> "tzap_139";
+"tzap_139" -> "tzap_140";
+"tzap_140" -> "tzap_141";
+"tzap_33" -> "chat_0_msg_0" [style=dotted];
+"tzap_34" -> "chat_0_msg_1" [style=dotted];
+"chat_0_msg_0" -> "chat_0_msg_1" [style=dotted];
+"tzap_35" -> "chat_0_msg_2" [style=dotted];
+"chat_0_msg_1" -> "chat_0_msg_2" [style=dotted];
+"tzap_36" -> "chat_0_msg_3" [style=dotted];
+"chat_0_msg_2" -> "chat_0_msg_3" [style=dotted];
+"tzap_37" -> "chat_0_msg_4" [style=dotted];
+"chat_0_msg_3" -> "chat_0_msg_4" [style=dotted];
+"tzap_38" -> "chat_0_msg_5" [style=dotted];
+"chat_0_msg_4" -> "chat_0_msg_5" [style=dotted];
+"tzap_39" -> "chat_0_msg_6" [style=dotted];
+"chat_0_msg_5" -> "chat_0_msg_6" [style=dotted];
+"tzap_40" -> "chat_0_msg_7" [style=dotted];
+"chat_0_msg_6" -> "chat_0_msg_7" [style=dotted];
+"tzap_41" -> "chat_0_msg_8" [style=dotted];
+"chat_0_msg_7" -> "chat_0_msg_8" [style=dotted];
+"tzap_42" -> "chat_0_msg_9" [style=dotted];
+"chat_0_msg_8" -> "chat_0_msg_9" [style=dotted];
+"chat_0_msg_10" -> "tzap_44" [style=dotted];
+"chat_0_msg_9" -> "chat_0_msg_10" [style=dotted];
+"tzap_78" -> "chat_1_msg_0" [style=dotted];
+"tzap_79" -> "chat_1_msg_1" [style=dotted];
+"chat_1_msg_0" -> "chat_1_msg_1" [style=dotted];
+"tzap_80" -> "chat_1_msg_2" [style=dotted];
+"chat_1_msg_1" -> "chat_1_msg_2" [style=dotted];
+"tzap_81" -> "chat_1_msg_3" [style=dotted];
+"chat_1_msg_2" -> "chat_1_msg_3" [style=dotted];
+"tzap_82" -> "chat_1_msg_4" [style=dotted];
+"chat_1_msg_3" -> "chat_1_msg_4" [style=dotted];
+"tzap_83" -> "chat_1_msg_5" [style=dotted];
+"chat_1_msg_4" -> "chat_1_msg_5" [style=dotted];
+"tzap_84" -> "chat_1_msg_6" [style=dotted];
+"chat_1_msg_5" -> "chat_1_msg_6" [style=dotted];
+"tzap_85" -> "chat_1_msg_7" [style=dotted];
+"chat_1_msg_6" -> "chat_1_msg_7" [style=dotted];
+"tzap_86" -> "chat_1_msg_8" [style=dotted];
+"chat_1_msg_7" -> "chat_1_msg_8" [style=dotted];
+"tzap_87" -> "chat_1_msg_9" [style=dotted];
+"chat_1_msg_8" -> "chat_1_msg_9" [style=dotted];
+"tzap_89" -> "chat_1_msg_10" [style=dotted];
+"chat_1_msg_9" -> "chat_1_msg_10" [style=dotted];
+"tzap_90" -> "chat_1_msg_11" [style=dotted];
+"chat_1_msg_10" -> "chat_1_msg_11" [style=dotted];
+"chat_1_msg_12" -> "tzap_91" [style=dotted];
+"chat_1_msg_11" -> "chat_1_msg_12" [style=dotted];
+
+	subgraph cluster_chat_0 {
+		label = "GPT Chat(0):";
+		bgcolor = "#333333";
+
+	subgraph cluster_chat_0_REQUEST {
+		label = "REQUEST";
+		bgcolor = "#333333";
+		"chat_0_msg_0" [label=<Message Tokens(11) (0):<br/>Role: system<br/>The following file contents are embeddings for the user input:> , tooltip=<The following file contents are embeddings for the user input:> ];
+		"chat_0_msg_1" [label=<Message Tokens(153) (1):<br/>Role: system<br/>####embedding from file: logs/logger.py<br/>import logging<br/>from logging.handlers import WatchedFileHandler<br/><br/># Create logger<br/>logger = logging.getLogger(__name__)<br/>logger.setLevel(logging.DEBUG)<br/><br/># Create file handler<br/>file_handler = WatchedFileHandler(&#39;logs/votebuddy.log&#39;)<br/>file_handler.setLevel(log> , tooltip=<####embedding from file: logs/logger.py
+import logging
+from logging.handlers import WatchedFileHandler
+
+# Create logger
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.DEBUG)
+
+# Create file handler
+file_handler = WatchedFileHandler(&#39;logs/votebuddy.log&#39;)
+file_handler.setLevel(logging.DEBUG)
+
+# Create console handler
+console_handler = logging.StreamHandler()
+console_handler.setLevel(logging.DEBUG)
+
+# Create formatter
+formatter = logging.Formatter(&#39;%(asctime)s - %(name)s - %(levelname)s - %(message)s&#39;)
+
+# Add formatter to handlers
+file_handler.setFormatter(formatter)
+console_handler.setFormatter(formatter)
+
+# Add the handlers to the logger
+logger.addHandler(file_handler)
+logger.addHandler(console_handler)> ];
+		"chat_0_msg_2" [label=<Message Tokens(365) (2):<br/>Role: system<br/>####embedding from file: tools/campaign_worker_tools.py<br/>from models.models import Interaction<br/>from logs.logger import logging<br/>from context.database import db<br/>from flask import current_app<br/>from prompts.campaign_volunteer_agent import get_campaign_phone_call_system_prompt, get_campaign_text_message_sy> , tooltip=<####embedding from file: tools/campaign_worker_tools.py
+from models.models import Interaction
+from logs.logger import logging
+from context.database import db
+from flask import current_app
+from prompts.campaign_volunteer_agent import get_campaign_phone_call_system_prompt, get_campaign_text_message_system_prompt
+from tools.utility import initialize_conversation, add_llm_response_to_conversation, add_message_to_conversation
+import requests
+import os
+
+
+class CampaignWorker:
+
+    def __init__(self, communication: Interaction):
+        self.communication = communication
+
+    def make_phone_call(self, goal):
+        recipient = self.communication.recipient
+        print(f\&#34;Starting a phone call with recipient: recipient.recipient_name\&#34;)
+        return f\&#34;Dummy Phone Call with Goal: goal\&#34;
+
+    def start_a_text_thread(self, goal):
+        recipient = self.communication.recipient
+        new_texting_thread = initialize_recipient_outreach_thread(
+            self.communication, goal, \&#34;text\&#34;)
+        print(f\&#34;Starting a text thread with recipient: recipient.recipient_name> ];
+		"chat_0_msg_3" [label=<Message Tokens(541) (3):<br/>Role: system<br/>####embedding from file: routes/interaction.py<br/>    user_number = interaction.recipient.recipient_phone_number<br/>    sender_number = interaction.sender.sender_phone_number<br/><br/>    # Pre-create the first response<br/>    conversation = initialize_conversation(system_prompt)<br/>    interaction.conversation = conve> , tooltip=<####embedding from file: routes/interaction.py
+    user_number = interaction.recipient.recipient_phone_number
+    sender_number = interaction.sender.sender_phone_number
+
+    # Pre-create the first response
+    conversation = initialize_conversation(system_prompt)
+    interaction.conversation = conversation
+    initial_statement = add_llm_response_to_conversation(interaction)
+    print(\&#34;Interaction created successfully\&#34;)
+    interaction.interaction_status = InteractionStatus.INITIALIZED
+
+    db.session.commit()
+
+    # Log the system prompt and user number
+    print(\&#34;Interaction Type: %s\&#34;, interaction_type)
+    print(f\&#34;System prompt: system_prompt\&#34;)
+    print(f\&#34;User number: user_number\&#34;)
+    print(f\&#34;Sender number: sender_number\&#34;)
+    print(f\&#34;Initial Statement: initial_statement\&#34;)
+    print(f\&#34;Conversation: conversation\&#34;)> ];
+		"chat_0_msg_4" [label=<Message Tokens(750) (4):<br/>Role: system<br/>####embedding from file: context/app.py<br/>import shutil<br/>from flask import Flask<br/>from flask_migrate import Migrate, upgrade, init<br/>from context.database import db<br/>import secrets<br/>from dotenv import load_dotenv<br/>from routes.blueprint import bp<br/>import os<br/>from logs.logger import logger as root_logger<br/><br/><br/>def c> , tooltip=<####embedding from file: context/app.py
+import shutil
+from flask import Flask
+from flask_migrate import Migrate, upgrade, init
+from context.database import db
+import secrets
+from dotenv import load_dotenv
+from routes.blueprint import bp
+import os
+from logs.logger import logger as root_logger
+
+
+def create_app(logger=root_logger):
+    print(\&#34;Creating app\&#34;)
+    load_dotenv()
+    app = Flask(__name__, template_folder=&#39;../templates&#39;)
+    app.logger = logger
+    
+    for handler in logger.handlers:
+        print(f\&#34;Handler: handler\&#34;)
+        app.logger.addHandler(handler)
+    
+    app.logger.setLevel(logger.level)
+
+    app.register_blueprint(bp)
+    app.config[&#39;SECRET_KEY&#39;] = secrets.token_hex(nbytes=8)
+    app.config[&#39;SQLALCHEMY_DATABASE_URI&#39;] = os.environ[&#39;DATABASE_URL&#39;] 
+
+    db.init_app(app)
+    print(\&#34;before database context\&#34;)
+    with app.app_context():
+        reset_database(app, db)
+        root_print(\&#34;Inside database context\&#34;)
+
+    logger> ];
+		"chat_0_msg_5" [label=<Message Tokens(962) (5):<br/>Role: system<br/>####embedding from file: routes/twilio_call.py<br/>Sid<br/>        conversation = interaction.conversation<br/><br/>        # If conversation does not exist, log an error and return<br/>        if not conversation:<br/>            logging.error(&#39;Could not retrieve conversation from database.&#39;)<br/>            return Re> , tooltip=<####embedding from file: routes/twilio_call.py
+Sid
+        conversation = interaction.conversation
+
+        # If conversation does not exist, log an error and return
+        if not conversation:
+            logging.error(&#39;Could not retrieve conversation from database.&#39;)
+            return Response(&#39;Failed to retrieve conversation.&#39;, status=500)
+
+        # Retrieve the speech result from the Twilio request
+        speech_result = request.values.get(&#39;SpeechResult&#39;, None)
+
+        response = VoiceResponse()
+
+        # Add the user&#39;s message to the conversation
+        if speech_result:
+            add_message_to_conversation(interaction, speech_result)
+            # Log the user&#39;s message to the console
+            print(f\&#34;User message: speech_result\&#34;)
+
+            # Get the AI response and add it to the conversation
+            try:
+                text = add_llm_response_to_conversation(interaction)
+            except:
+                text = \&#34;Sorry, I am having trouble hearing you. I will try to call again later, Goodbye\&#34;
+            conversation.append(\&#34;role\&#34;: \&#34;assistant\&#34;, \&#34;> ];
+		"chat_0_msg_6" [label=<Message Tokens(1375) (6):<br/>Role: system<br/>####embedding from file: prompts/campaign_planner_agent.py<br/>from langchain.prompts import ChatPromptTemplate, SystemMessagePromptTemplate<br/>from models.models import Interaction<br/>from datetime import date<br/>from logs.logger import logging<br/><br/><br/>def get_campaign_agent_system_prompt(communication: Interaction):> , tooltip=<####embedding from file: prompts/campaign_planner_agent.py
+from langchain.prompts import ChatPromptTemplate, SystemMessagePromptTemplate
+from models.models import Interaction
+from datetime import date
+from logs.logger import logging
+
+
+def get_campaign_agent_system_prompt(communication: Interaction):
+
+    print(communication)
+    # GPT API System Prompts
+    system_prompt = &#39;&#39;&#39;You are a civic engagement assistant and political campaign strategist. Your goal is to build a relationship over time with a voter. You will try to get them to tell others about the campaign, volunteer, make donations, and most importantly vote. You will have access to all of your previous conversations, and should not ask the same questions twice.
+
+Over time you will keep track of what is important to voter_name. You know the following about them:
+voter_information
+
+You have access to tools that will allow you to reach out to the voter, keep them informed about their civic process, use news to inform your opinions among other things.
+
+You should be deliberative and thoughtful about what communication you send to the voter to avoid overloading them. You understand how inundated they are with messages and adds and political information so you want to make each communication meaningful and engaging. You must never lie. If you are uncertain, it is better to say so. You think strategically about who in a community have influence on other voters and tailor your outreach to activities their networks. After each communication, you should re-evaluate the outreach plan to see if it needs to be updated (e.g. she seems really excited so we should ask them to volunteer or they are not at all aligned with the candidate. Outreach should be focused on finding common ground)
+
+You are a supporter of the candidate_name who is running for race_name. You know the following about the race:
+race_information
+
+This is a summary of the candidate:
+candidate_information
+
+You run in a loop of Thought, Action, PAUSE, Observation, WAIT.
+Use Thought to describe your thoughts about how you> ];
+		"chat_0_msg_7" [label=<Message Tokens(1588) (7):<br/>Role: system<br/>####embedding from file: prompts/campaign_planner_agent.py<br/> until the communication is done before moving on.<br/>WAIT (Waiting for update from scheduled outreach)<br/><br/>Any action you use must include a communication ID that will allow us to retrieve the information. For this engagement, you&#39;re communic> , tooltip=<####embedding from file: prompts/campaign_planner_agent.py
+ until the communication is done before moving on.
+WAIT (Waiting for update from scheduled outreach)
+
+Any action you use must include a communication ID that will allow us to retrieve the information. For this engagement, you&#39;re communication id is \&#34;communication_id\&#34;. The actions you have access to are:
+- set_outreach_schedule(schedule_json, communication_id) - create the voter outreach schedule. Communications will be sent to the voter at the specified dates and times. You will get the results of the communication when they happen
+- get_outreach_schedule(communication_id) - get the current voter outreach plan as a json 
+- update_voter_profile(update to make, communication_id) - should be used after each communication to save new information you learned about the voter.
+- get_voter_information(question about voter, communication_id)
+- get_voter_engagement_history(communication_id) - returns information about your history of engagement with this voter
+- get_recent_news(topic) - to align comments with voter interests and stay> ];
+		"chat_0_msg_8" [label=<Message Tokens(1800) (8):<br/>Role: system<br/>####embedding from file: routes/twilio_message.py<br/>from flask import Blueprint<br/># import Flask and other libraries<br/>from flask import request, jsonify<br/>from models.models import Recipient, Sender, Campaign, Interaction<br/>from prompts.campaign_volunteer_agent import get_campaign_text_message_system_prompt<br/>> , tooltip=<####embedding from file: routes/twilio_message.py
+from flask import Blueprint
+# import Flask and other libraries
+from flask import request, jsonify
+from models.models import Recipient, Sender, Campaign, Interaction
+from prompts.campaign_volunteer_agent import get_campaign_text_message_system_prompt
+from tools.utility import add_message_to_conversation, add_llm_response_to_conversation, initialize_conversation
+from logs.logger import logging
+from datetime import date, timedelta
+from context.database import db
+from context.apis import client, twilio_number
+
+
+twilio_message_bp = Blueprint(&#39;twilio_message&#39;, __name__)
+
+@twilio_message_bp.route(\&#34;/twilio_message\&#34;, methods=[&#39;POST&#39;])
+def twilio_message():
+    print(request.get_data())
+
+    # Get the &#39;From&#39; number from the incoming request
+    from_number = request.values.get(&#39;From&#39;, None)
+    sender_phone_number = request.values.get(&#39;To&#39;, None)
+
+    # Use the &#39;From&#39; number to look up the recipient in your database
+    recipient = Recipient> ];
+		"chat_0_msg_9" [label=<Message Tokens(1930) (9):<br/>Role: system<br/>####embedding from file: routes/twilio_message.py<br/>)<br/>    print(f\&#34;AI message: message_body\&#34;)<br/>    print(<br/>        f\&#34;Conversation after adding LLM response: interaction.conversation\&#34;)<br/><br/>    db.session.add(interaction)<br/>    db.session.commit()<br/><br/>    client.messages.create(<br/> > , tooltip=<####embedding from file: routes/twilio_message.py
+)
+    print(f\&#34;AI message: message_body\&#34;)
+    print(
+        f\&#34;Conversation after adding LLM response: interaction.conversation\&#34;)
+
+    db.session.add(interaction)
+    db.session.commit()
+
+    client.messages.create(
+                body=message_body,
+                from_=sender_phone_number,
+                to=recipient.recipient_phone_number)
+    
+    return jsonify(
+                &#39;status&#39;: &#39;success&#39;,
+                &#39;last_action&#39;:
+                f\&#34;Sending text to recipient.recipient_name at recipient.recipient_phone_number\&#34;,
+                &#39;Message&#39;: message_body,
+            ), 200> ];
+	}
+
+	subgraph cluster_chat_0_RESPONSE {
+		label = "RESPONSE";
+		bgcolor = "#333333";
+		"chat_0_msg_10" [label=<Message Tokens(76) (10):<br/>Role: user<br/>My logger does not appear to be working. It does not print to the console or to the votebuddy.log file I have created. As far as I can tell I am initializing it correctly. One example where it should be used is in line 22 of interactin.py. The print statement works which indicates that I am connecte> , tooltip=<My logger does not appear to be working. It does not print to the console or to the votebuddy.log file I have created. As far as I can tell I am initializing it correctly. One example where it should be used is in line 22 of interactin.py. The print statement works which indicates that I am connected to the shell, but the log does nothing> ];
+	}
+	}
+
+	subgraph cluster_chat_1 {
+		label = "GPT Chat(1):";
+		bgcolor = "#333333";
+
+	subgraph cluster_chat_1_REQUEST {
+		label = "REQUEST";
+		bgcolor = "#333333";
+		"chat_1_msg_0" [label=<Message Tokens(11) (0):<br/>Role: system<br/>The following file contents are embeddings for the user input:> , tooltip=<The following file contents are embeddings for the user input:> ];
+		"chat_1_msg_1" [label=<Message Tokens(78) (1):<br/>Role: system<br/>####embedding from file: main.py<br/># import Flask and other libraries<br/>from tools.scheduler import scheduler<br/>from context.context import app<br/><br/>#Run the app on port 5000<br/>if __name__ == \&#34;__main__\&#34;:<br/>    app.run(host=&#39;0.0.0.0&#39;, port=5000)<br/>    scheduler.start()> , tooltip=<####embedding from file: main.py
+# import Flask and other libraries
+from tools.scheduler import scheduler
+from context.context import app
+
+#Run the app on port 5000
+if __name__ == \&#34;__main__\&#34;:
+    app.run(host=&#39;0.0.0.0&#39;, port=5000)
+    scheduler.start()> ];
+		"chat_1_msg_2" [label=<Message Tokens(124) (2):<br/>Role: system<br/>####embedding from file: context/context.py<br/># context.py<br/>from context.app import create_app<br/><br/>app = create_app()<br/><br/>def create_test_app():<br/>    app.config[&#39;TESTING&#39;] = True<br/>    return app.test_client()> , tooltip=<####embedding from file: context/context.py
+# context.py
+from context.app import create_app
+
+app = create_app()
+
+def create_test_app():
+    app.config[&#39;TESTING&#39;] = True
+    return app.test_client()> ];
+		"chat_1_msg_3" [label=<Message Tokens(144) (3):<br/>Role: system<br/>####embedding from file: context/database.py<br/>from flask_sqlalchemy import SQLAlchemy<br/><br/>db = SQLAlchemy()> , tooltip=<####embedding from file: context/database.py
+from flask_sqlalchemy import SQLAlchemy
+
+db = SQLAlchemy()> ];
+		"chat_1_msg_4" [label=<Message Tokens(356) (4):<br/>Role: system<br/>####embedding from file: routes/twilio_message.py<br/>from flask import Blueprint<br/># import Flask and other libraries<br/>from flask import request, jsonify<br/>from models.models import Recipient, Sender, Campaign, Interaction<br/>from prompts.campaign_volunteer_agent import get_campaign_text_message_system_prompt<br/>> , tooltip=<####embedding from file: routes/twilio_message.py
+from flask import Blueprint
+# import Flask and other libraries
+from flask import request, jsonify
+from models.models import Recipient, Sender, Campaign, Interaction
+from prompts.campaign_volunteer_agent import get_campaign_text_message_system_prompt
+from tools.utility import add_message_to_conversation, add_llm_response_to_conversation, initialize_conversation
+from logs.logger import logging
+from datetime import date, timedelta
+from context.database import db
+from context.apis import client, twilio_number
+
+
+twilio_message_bp = Blueprint(&#39;twilio_message&#39;, __name__)
+
+@twilio_message_bp.route(\&#34;/twilio_message\&#34;, methods=[&#39;POST&#39;])
+def twilio_message():
+    print(request.get_data())
+
+    # Get the &#39;From&#39; number from the incoming request
+    from_number = request.values.get(&#39;From&#39;, None)
+    sender_phone_number = request.values.get(&#39;To&#39;, None)
+
+    # Use the &#39;From&#39; number to look up the recipient in your database
+    recipient = Recipient> ];
+		"chat_1_msg_5" [label=<Message Tokens(566) (5):<br/>Role: system<br/>####embedding from file: routes/blueprint.py<br/>from flask import Blueprint<br/><br/># Import the routes from the separate files<br/>from routes.twilio_call import twilio_call<br/>from routes.twilio_message import twilio_message<br/>from routes.index import index<br/>from routes.interaction import interaction<br/>from routes.call> , tooltip=<####embedding from file: routes/blueprint.py
+from flask import Blueprint
+
+# Import the routes from the separate files
+from routes.twilio_call import twilio_call
+from routes.twilio_message import twilio_message
+from routes.index import index
+from routes.interaction import interaction
+from routes.call import call
+from routes.text_message import text_message
+from routes.plan import plan
+from routes.confirm_messages import confirm_messages
+from logs.logger import logger
+
+bp = Blueprint(&#39;bp&#39;, __name__)
+
+print(\&#34;Registering routes\&#34;)
+
+# Register the routes with the blueprint
+bp.add_url_rule(\&#34;/twilio_call\&#34;, view_func=twilio_call, methods=[&#39;POST&#39;])
+bp.add_url_rule(\&#34;/twilio_message\&#34;, view_func=twilio_message, methods=[&#39;POST&#39;])
+bp.add_url_rule(\&#34;/\&#34;, view_func=index, methods=[&#39;GET&#39;, &#39;POST&#39;])
+bp.add_url_rule(\&#34;/interaction/\&lt;last_action\&gt;\&#34;, view_func=interaction, methods=[&#39;GET&#39;, &#39;POST&#39;])
+bp.add_url_rule(\&#34;/call/\&lt;interaction_id\&gt;\&#34;, view_func=call, methods=[&#39;> ];
+		"chat_1_msg_6" [label=<Message Tokens(868) (6):<br/>Role: system<br/>####embedding from file: context/app.py<br/>import shutil<br/>from flask import Flask<br/>from flask_migrate import Migrate, upgrade, init<br/>from context.database import db<br/>import secrets<br/>from dotenv import load_dotenv<br/>from routes.blueprint import bp<br/>import os<br/>from logs.logger import logger as root_logger<br/><br/><br/>def c> , tooltip=<####embedding from file: context/app.py
+import shutil
+from flask import Flask
+from flask_migrate import Migrate, upgrade, init
+from context.database import db
+import secrets
+from dotenv import load_dotenv
+from routes.blueprint import bp
+import os
+from logs.logger import logger as root_logger
+
+
+def create_app(logger=root_logger):
+    print(\&#34;Creating app\&#34;)
+    load_dotenv()
+    app = Flask(__name__, template_folder=&#39;../templates&#39;)
+    app.logger = logger
+    
+    for handler in logger.handlers:
+        print(f\&#34;Handler: handler\&#34;)
+        app.logger.addHandler(handler)
+    
+    app.logger.setLevel(logger.level)
+
+    app.register_blueprint(bp)
+    app.config[&#39;SECRET_KEY&#39;] = secrets.token_hex(nbytes=8)
+    app.config[&#39;SQLALCHEMY_DATABASE_URI&#39;] = os.environ[&#39;DATABASE_URL&#39;] 
+
+    db.init_app(app)
+    print(\&#34;before database context\&#34;)
+    with app.app_context():
+        reset_database(app, db)
+        root_print(\&#34;Inside database context\&#34;)
+
+    print(\&#34;App created\&#34;)
+    return app
+
+def reset_database(app, db):
+    root_print(\&#34;Resetting database\&#34;)
+    db.session.close_all()
+    db.drop_all()
+    
+    # check if migrations folder exists
+    if os.path.exists(&#39;migrations&#39;):
+        shutil.rmtree(&#39;migrations&#39;)
+        
+        # create migrations folder
+    os.mkdir(&#39;migrations&#39;)
+
+    Migrate(app, db)
+    init()
+    upgrade()
+    db.create_all()> ];
+		"chat_1_msg_7" [label=<Message Tokens(1079) (7):<br/>Role: system<br/>####embedding from file: testing/poc_test.py<br/>import unittest<br/>from context.context import create_test_app<br/>import io<br/><br/><br/>class TestBlueprint(unittest.TestCase):<br/>    def setUp(self):<br/>        self.app = create_test_app()<br/><br/>    def test_twilio_call(self):<br/>        response = self.app.post(&#39;/twilio_call&#> , tooltip=<####embedding from file: testing/poc_test.py
+import unittest
+from context.context import create_test_app
+import io
+
+
+class TestBlueprint(unittest.TestCase):
+    def setUp(self):
+        self.app = create_test_app()
+
+    def test_twilio_call(self):
+        response = self.app.post(&#39;/twilio_call&#39;)
+        self.assertEqual(response.status_code, 200)
+
+    def test_twilio_message(self):
+        response = self.app.post(&#39;/twilio_message&#39;)
+        self.assertEqual(response.status_code, 200)
+
+    def test_index(self):
+        response = self.app.get(&#39;/&#39;)
+        self.assertEqual(response.status_code, 200)
+
+    def test_interaction(self):
+        with open(&#39;test_profiles.csv&#39;, &#39;rb&#39;) as csv_file:
+            csv_data = io.BytesIO(csv_file.read())
+
+        with self.app.test_client() as client:
+            response = client.post(&#39;/interaction/last_action?last_action=some_value&#39;, data=
+                &#39;recipient_csv&#39;: (csv_data, &#39;test.csv&#39;),
+                &#39;campaign_name&#39;: &#39;GOTV for All&#39;,
+> ];
+		"chat_1_msg_8" [label=<Message Tokens(1154) (8):<br/>Role: system<br/>####embedding from file: routes/index.py<br/>from flask import Blueprint<br/># import Flask and other libraries<br/>from flask import redirect, url_for<br/><br/>index_bp = Blueprint(&#39;index&#39;, __name__)<br/><br/>@index_bp.route(\&#34;/\&#34;, methods=[&#39;GET&#39;, &#39;POST&#39;])<br/>def index():<br/>    return redirect(<br/>    > , tooltip=<####embedding from file: routes/index.py
+from flask import Blueprint
+# import Flask and other libraries
+from flask import redirect, url_for
+
+index_bp = Blueprint(&#39;index&#39;, __name__)
+
+@index_bp.route(\&#34;/\&#34;, methods=[&#39;GET&#39;, &#39;POST&#39;])
+def index():
+    return redirect(
+        url_for(&#39;bp.interaction&#39;, last_action=\&#34;LoadingServerForTheFirstTime\&#34;))> ];
+		"chat_1_msg_9" [label=<Message Tokens(1202) (9):<br/>Role: system<br/>####embedding from file: context/csrf.py<br/>from flask_wtf.csrf import CSRFProtect<br/>from flask import current_app<br/><br/><br/>with current_app.app_context():<br/>    csrf_protect = CSRFProtect()<br/>    csrf_protect.init_app(current_app)> , tooltip=<####embedding from file: context/csrf.py
+from flask_wtf.csrf import CSRFProtect
+from flask import current_app
+
+
+with current_app.app_context():
+    csrf_protect = CSRFProtect()
+    csrf_protect.init_app(current_app)> ];
+		"chat_1_msg_10" [label=<Message Tokens(1278) (10):<br/>Role: user<br/>My logger does not appear to be working. It does not print to the console or to the votebuddy.log file I have created. As far as I can tell I am initializing it correctly. One example where it should be used is in line 22 of interactin.py. The print statement works which indicates that I am connecte> , tooltip=<My logger does not appear to be working. It does not print to the console or to the votebuddy.log file I have created. As far as I can tell I am initializing it correctly. One example where it should be used is in line 22 of interactin.py. The print statement works which indicates that I am connected to the shell, but the log does nothing> ];
+		"chat_1_msg_11" [label=<Message Tokens(1304) (11):<br/>Role: assistant<br/>It seems like there might be something wrong with the way you are configuring your logger. What platform are you running this code on?> , tooltip=<It seems like there might be something wrong with the way you are configuring your logger. What platform are you running this code on?> ];
+	}
+
+	subgraph cluster_chat_1_RESPONSE {
+		label = "RESPONSE";
+		bgcolor = "#333333";
+		"chat_1_msg_12" [label=<Message Tokens(10) (12):<br/>Role: user<br/>This is a flask application running with python and poetry> , tooltip=<This is a flask application running with python and poetry> ];
+	}
+	}
+}

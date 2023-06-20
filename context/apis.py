@@ -19,4 +19,4 @@ call_webhook_url = f"{os.environ['BASE_URL']}/twilio_call"
 client = Client(account_sid, auth_token)
 
 # set OpenAi Key for GPT4
-openai.api_key = os.environ['OPENAI_API_KEY']
+openai.api_key = os.environ['OPENAI_APIKEY']

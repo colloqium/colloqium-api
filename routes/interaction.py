@@ -1,28 +1,25 @@
-from flask import Blueprint, request, jsonify
+from flask import Blueprint, request, redirect, url_for, current_app
 import csv
 # import Flask and other libraries
-from flask import render_template, session
+from flask import render_template
 from forms.interaction_form import InteractionForm
-from models.models import Recipient, Sender, Campaign, Interaction
-from prompts.campaign_volunteer_agent import get_campaign_phone_call_system_prompt, get_campaign_text_message_system_prompt
-from prompts.campaign_planner_agent import get_campaign_agent_system_prompt
+from models.models import Recipient, Sender, Campaign, Interaction, InteractionStatus
+from context.constants import INTERACTION_TYPES
 from tools.utility import add_llm_response_to_conversation, initialize_conversation
-from logs.logger import logger, logging
 from context.database import db
+from logs.logger import get_logger
+import logging
 # Import the functions from the other files
-from routes.call import call
-from routes.text_message import text_message
-from routes.plan import plan
 import io
 
 
 interaction_bp = Blueprint('interaction', __name__)
-
+logger = get_logger()
 
 @interaction_bp.route('/interaction/<last_action>', methods=['GET', 'POST'])
 def interaction(last_action):
     try:
-        logger.info("Processing Interaction form...")
+        print("Processing Interaction form...")
 
         # Create instance of InteractionForm class
         form = InteractionForm()
@@ -56,22 +53,26 @@ def interaction(last_action):
                 for row in csv_data:
                     # Create an interaction from the row
                     interaction = create_interaction_from_csv_row(headers, row, form)
+                    print(f"Created Interaction: {interaction}")
                     interactions.append(interaction)
 
                 # Process each interaction
                 for interaction in interactions:
-                    process_interaction(interaction)   
+                    initialize_interaction(interaction)
+                    print(f"Initialized Interaction: {interaction.id}")
                 
-                return jsonify({'success': True}), 200
+                sender = Sender.query.get(interaction.sender_id)
+                #reroute to the confirm messages page
+                return redirect(url_for('bp.confirm_messages', sender_id=sender.id))
             else:
-                logging.info(f"No form submitted. Error: {form.errors}")
+                print(f"No form subdmitted. Error: {form.errors}")
                 return render_template('interaction.html',
                                     form=form,
                                     last_action=last_action)
-        return render_template('interaction.html', form=form, last_action=last_action)
+        return render_template('interaction.html', form=form, last_action='create_interaction')
 
     except Exception as e:
-        logger.error(f"Exception occurred: {e}", exc_info=True)
+        print(f"Exception occurred: {e}", exc_info=True)
         return render_template('interaction.html',
                                form=form,
                                last_action="Error")
@@ -85,6 +86,7 @@ def create_interaction_from_csv_row(headers, row, form) -> Interaction:
     recipient_name = recipient_data['Recipient Name']
     recipient_information = recipient_data['Recipient Information']
     recipient_phone_number = recipient_data['Phone Number']
+    print(f"Recipient phone number from CSV: {recipient_phone_number}")
 
     # Check if a recipient with the given name and phone number already exists
     recipient = Recipient.query.filter_by(
@@ -121,7 +123,8 @@ def create_interaction_from_csv_row(headers, row, form) -> Interaction:
             campaign_end_date=form.campaign_end_date.data)
         db.session.add(campaign)
 
-    interaction_type = form.interaction_type.data
+    # access the name field of the InteractionType object represented by the slelection in the form. Make it lower case and replace spaces with underscores
+    interaction_type = form.interaction_type.data.lower().replace(" ", "_")
 
     # Create the Interaction
     interaction = Interaction(
@@ -139,20 +142,15 @@ def create_interaction_from_csv_row(headers, row, form) -> Interaction:
     interaction = db.session.query(Interaction).filter_by(
         recipient_id=recipient.id,
         interaction_type=interaction_type,
-        campaign_id=campaign.id).first()
+        campaign_id=campaign.id, sender_id=sender.id).first()
 
     return interaction
 
-def process_interaction(interaction):
+# Creates a new interaction with a recipient and the first system message in the conversation. Does not send the message.
+def initialize_interaction(interaction):
     interaction_type = interaction.interaction_type
 
-    if interaction_type == "call":
-        # Add information from recipientCallForm to the system prompt
-        system_prompt = get_campaign_phone_call_system_prompt(interaction)
-    elif interaction_type == "text":
-        system_prompt = get_campaign_text_message_system_prompt(interaction)
-    elif interaction_type == "plan":
-        system_prompt = get_campaign_agent_system_prompt(interaction)
+    system_prompt = INTERACTION_TYPES[interaction_type].system_initialization_method(interaction)
 
     user_number = interaction.recipient.recipient_phone_number
     sender_number = interaction.sender.sender_phone_number
@@ -161,30 +159,15 @@ def process_interaction(interaction):
     conversation = initialize_conversation(system_prompt)
     interaction.conversation = conversation
     initial_statement = add_llm_response_to_conversation(interaction)
-    logging.info("Interaction created successfully")
+    print("Interaction created successfully")
+    interaction.interaction_status = InteractionStatus.INITIALIZED
 
     db.session.commit()
 
     # Log the system prompt and user number
-    logging.info("Interaction Type: %s", interaction_type)
-    logging.info(f"System prompt: {system_prompt}")
-    logging.info(f"User number: {user_number}")
-    logging.info(f"Sender number: {sender_number}")
-    logging.info(f"Initial Statement: {initial_statement}")
-    logging.debug(f"Conversation: {conversation}")
-
-    # Store data in session
-    session['interaction_id'] = interaction.id  # Store the interaction ID
-
-    if interaction_type == "call":
-        # Call the recipient
-        logging.info("Redirecting to call route...")
-        call(interaction_id=interaction.id)
-    elif interaction_type == "text":
-        # Send a text message
-        logging.info("Redirecting to text message route...")
-        text_message(interaction_id=interaction.id)
-    elif interaction_type == "plan":
-        # Create an outreach agent and plan the outreach for the recipient
-        logging.info("Redirecting to planning route...")
-        plan(recipient_id=interaction.recipient.id)
+    print("Interaction Type: %s", interaction_type)
+    print(f"System prompt: {system_prompt}")
+    print(f"User number: {user_number}")
+    print(f"Sender number: {sender_number}")
+    print(f"Initial Statement: {initial_statement}")
+    print(f"Conversation: {conversation}")

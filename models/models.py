@@ -2,7 +2,6 @@ from context.database import db
 from sqlalchemy.orm import relationship
 from typing import List
 from dataclasses import dataclass
-from context.apis import twilio_numbers
 from wtforms.validators import Regexp
 
 
@@ -31,16 +30,19 @@ class Event:
 #enum with the different types of interactions. Call, Text, Email, and Plan
 @dataclass
 class InteractionType:
-    CALL = "call"
-    TEXT = "text"
-    EMAIL = "email"
-    PLAN = "plan"
-    EVENT = "event"
+    name: str
+    method: callable
+    system_initialization_method: callable
 
-    @classmethod
-    def choices(cls):
-        # Generates a list of tuples containing the valid interaction types for the InteractionType class. Each tuple contains the value of an interaction type attribute and the capitalized name of the attribute.
-        return [(getattr(cls, name), name.capitalize()) for name in dir(cls) if not name.startswith("_") and isinstance(getattr(cls, name), str)]
+    #String representation that removes underscores and capitalizes the first letter of each word
+    def __str__(self):
+        return self.name.replace("_", " ").capitalize()
+
+@dataclass
+class InteractionStatus:
+    INITIALIZED = "initialized"
+    HUMAN_CONFIRMED = "human_confirmed"
+    SENT = "sent"
 
 @dataclass
 class SendingPhoneNumber:
@@ -62,13 +64,6 @@ class SendingPhoneNumber:
 
     def validate(self):
         return self.country_code_validator(self.country_code)
-
-
-AVAILABLE_PHONE_NUMBERS = [
-    SendingPhoneNumber(country_code=number[:2], phone_number_after_code=number[2:]).get_full_phone_number() for number in twilio_numbers
-]
-
-
 
 
 class Recipient(db.Model):
@@ -118,5 +113,6 @@ class Interaction(db.Model):
     sender_id = db.Column(db.Integer, db.ForeignKey('sender.id'))
     campaign_id = db.Column(db.Integer, db.ForeignKey('campaign.id'))
     recipient_outreach_schedule = db.Column(db.JSON())
+    interaction_status = db.Column(db.String(50)) #initialized, human_confirmed, sent
 
     # Relationships are set up in Recipient, Sender, and CampaignContext models

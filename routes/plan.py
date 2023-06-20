@@ -5,7 +5,7 @@ from flask import session, jsonify
 from models.models import Interaction
 from tools.campaign_agent_tools import CampaignTools, extract_action, execute_action
 from tools.utility import add_message_to_conversation, add_llm_response_to_conversation
-from logs.logger import logger, logging
+# from logs.logger import logger, logging
 from context.database import db
 
 plan_bp = Blueprint('plan', __name__)
@@ -19,9 +19,9 @@ def plan(recipient_id):
 
         most_recent_message = interaction.conversation[-1].get('content')
 
-        logging.info(f"Creating plan for {recipient.recipient_name}")
-        logging.debug(f"Conversation so far: {interaction.conversation}")
-        logging.info(f"Most Recent Message {most_recent_message}")
+        print(f"Creating plan for {recipient.recipient_name}")
+        print(f"Conversation so far: {interaction.conversation}")
+        print(f"Most Recent Message {most_recent_message}")
 
         # Instantiate campaign tools
         campaign_tools = CampaignTools(interaction, db)
@@ -67,5 +67,5 @@ def plan(recipient_id):
         }), 200
 
     except Exception as e:
-        logger.error(f"Exception occurred: {e}", exc_info=True)
+        print(f"Exception occurred: {e}", exc_info=True)
         return jsonify({'status': 'error', 'last_action': 'Error'}), 500
