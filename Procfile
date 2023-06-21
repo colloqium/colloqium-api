@@ -1,1 +1,1 @@
-web: gunicorn main:app
+web: poetry run python3 main.py
