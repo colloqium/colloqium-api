@@ -74,7 +74,10 @@ def format_phone_number(phone_number: str) -> str:
 
     It should check whether or not the number has the +1 country code, if not, it should add it.
     """
-    if phone_number[0] == "+":
-        return phone_number
+    digits = [char for char in phone_number if char.isdigit()]
+    if len(digits) == 10:
+        return "+1" + "".join(digits)
+    elif len(digits) == 11:
+        return "+" + "".join(digits[1:])
     else:
-        return "+1" + phone_number
+        return phone_number

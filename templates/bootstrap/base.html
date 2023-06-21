@@ -1,0 +1,24 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.1/dist/css/bootstrap.min.css" integrity="sha384-cFuoQi+xAmEt+H8nndJIMjbYRRJGTLJ3YqISu37DQSXPr1T9UDyvJUnxp6JvpCDB" crossorigin="anonymous">
+
+    {% block head %}{% endblock %}
+    <title>{% block title %}AI Phone Bank POC{% endblock %}</title>
+  </head>
+  <body>
+    {% block content %}{% endblock %}
+
+    <!-- Optional JavaScript -->
+    <!-- jQuery first, then Popper.js, then Bootstrap JS -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/2.9.3/umd/popper.min.js" integrity="sha512-kLltbEweC+da58Vv6QTFPzx/XzzuppM2O29Zzv4yec2w34qZk4p9a/+jvMbs2LBrWf/3rJlyj1iUjDUyquQPTg==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.1/dist/js/bootstrap.min.js" integrity="sha384-dLlBXz6MieaUwrRAeugQePxzSZcyk7xj7xk1wTvc8r8K10ZWTm6VNOIViRu+Z8Ec" crossorigin="anonymous"></script>
+    {% block scripts %}{% endblock %}
+  </body>
+</html>

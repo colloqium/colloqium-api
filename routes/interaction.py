@@ -5,21 +5,20 @@ from flask import render_template
 from forms.interaction_form import InteractionForm
 from models.models import Recipient, Sender, Campaign, Interaction, InteractionStatus
 from context.constants import INTERACTION_TYPES
-from tools.utility import add_llm_response_to_conversation, initialize_conversation
+from tools.utility import add_llm_response_to_conversation, initialize_conversation, format_phone_number
 from context.database import db
-from logs.logger import get_logger
-import logging
+from logs.logger import logger
 # Import the functions from the other files
 import io
 
 
 interaction_bp = Blueprint('interaction', __name__)
-logger = get_logger()
 
 @interaction_bp.route('/interaction/<last_action>', methods=['GET', 'POST'])
 def interaction(last_action):
     try:
         print("Processing Interaction form...")
+        logger.info("Processing Interaction form...")
 
         # Create instance of InteractionForm class
         form = InteractionForm()
@@ -85,7 +84,7 @@ def create_interaction_from_csv_row(headers, row, form) -> Interaction:
     # Then we use this dictionary to create a recipient
     recipient_name = recipient_data['Recipient Name']
     recipient_information = recipient_data['Recipient Information']
-    recipient_phone_number = recipient_data['Phone Number']
+    recipient_phone_number = format_phone_number(recipient_data['Phone Number'])
     print(f"Recipient phone number from CSV: {recipient_phone_number}")
 
     # Check if a recipient with the given name and phone number already exists
