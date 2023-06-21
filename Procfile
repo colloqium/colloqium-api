@@ -1,1 +1,1 @@
-web: /app/.local/bin/poetry run python3 main.py
+web: .local/bin/poetry run python3 main.py
