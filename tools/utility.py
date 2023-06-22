@@ -78,6 +78,6 @@ def format_phone_number(phone_number: str) -> str:
     if len(digits) == 10:
         return "+1" + "".join(digits)
     elif len(digits) == 11:
-        return "+" + "".join(digits[1:])
+        return "+" + "".join(digits[0:])
     else:
         return phone_number

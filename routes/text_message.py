@@ -5,6 +5,7 @@ from models.models import Recipient, Interaction, Sender, InteractionStatus
 # from logs.logger import logger, logging
 from context.database import db
 from context.apis import client
+from tools.utility import format_phone_number
 
 text_message_bp = Blueprint('text_message', __name__)
 
@@ -40,7 +41,7 @@ def text_message(interaction_id):
             text_message = client.messages.create(
                 body=body,
                 from_=sender.sender_phone_number,
-                to=recipient.recipient_phone_number)
+                to=format_phone_number(recipient.recipient_phone_number))
 
             print(
                 f"Started text Conversation with recipient '{recipient.recipient_name}' on text SID '{text_message.sid}'"
