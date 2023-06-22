@@ -17,24 +17,26 @@ def create_app():
     app.config['STATIC_FOLDER'] = STATIC_FOLDER
 
     db.init_app(app)
+    Migrate(app, db)
     with app.app_context():
-        setup_migrations(app, db)
+        #if tables don't match migration, create them
+        db.create_all()
 
     return app
 
-def setup_migrations(app, db):
-    db.session.close_all()
+# def setup_migrations(app, db):
+#     db.session.close_all()
 
-    # setup migrations
-    Migrate(app, db)
+#     # setup migrations
+#     Migrate(app, db)
 
-    # check if migrations folder does not exists, then initialize
-    if not os.path.exists('migrations'):
-        # Create a migrations folder and the initial migration
-        with app.app_context():
-            os.mkdir('migrations')
-            upgrade()
+#     # check if migrations folder does not exists, then initialize
+#     if not os.path.exists('migrations'):
+#         # Create a migrations folder and the initial migration
+#         with app.app_context():
+#             os.mkdir('migrations')
+#             upgrade()
 
-    # Run the migration and apply it to the database
-    with app.app_context():
-        upgrade()
+#     # Run the migration and apply it to the database
+#     with app.app_context():
+#         upgrade()
