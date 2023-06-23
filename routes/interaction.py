@@ -10,7 +10,7 @@ from context.database import db
 from logs.logger import logger
 # Import the functions from the other files
 import io
-from context.analytics import analytics
+from context.analytics import analytics, EVENT_OPTIONS
 
 
 interaction_bp = Blueprint('interaction', __name__)
@@ -167,7 +167,7 @@ def initialize_interaction(interaction):
     print("Interaction created successfully")
     interaction.interaction_status = InteractionStatus.INITIALIZED
 
-    analytics.track(interaction.recipient.id, 'Interaction Initialized', {
+    analytics.track(interaction.recipient.id, EVENT_OPTIONS.initialized, {
         'sender_id': interaction.sender.id,
         'interaction_type': interaction.interaction_type,
         'interaction_id': interaction.id

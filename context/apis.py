@@ -13,8 +13,10 @@ segment_write_key = os.environ['WRITE_KEY']
 
 twilio_numbers = [twilio_number, second_twilio_number]
 
+base_url = os.environ['BASE_URL']
+
 # The webhook URL for handling the call events
-call_webhook_url = f"{os.environ['BASE_URL']}/twilio_call"
+call_webhook_url = base_url+"/twilio_call"
 
 # Create a Twilio client object
 client = Client(account_sid, auth_token)

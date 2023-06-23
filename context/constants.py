@@ -8,7 +8,7 @@ AVAILABLE_PHONE_NUMBERS = [
 ]
 
 INTERACTION_TYPES = {
-    "text_message": InteractionType(name="text_message", method=text_message, system_initialization_method=get_campaign_text_message_system_prompt),
+    "text_message": InteractionType(name="text_message", method=text_message, system_initialization_method=get_campaign_text_message_system_prompt, callback_route="twilio_message_callback"),
 }
 
 STATIC_FOLDER = "../static"

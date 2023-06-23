@@ -7,6 +7,7 @@ from context.database import db
 from context.apis import client
 from tools.utility import format_phone_number
 from context.analytics import analytics, EVENT_OPTIONS
+from context.apis import base_url
 
 text_message_bp = Blueprint('text_message', __name__)
 
@@ -38,11 +39,15 @@ def text_message(interaction_id):
                 f"Starting text message with body'{body}' and user number '{recipient.recipient_phone_number}'"
             )
 
+            callback_route = base_url + "twilio_message_callback"
+            print(f"Sending callback to '{callback_route}'")
+
             # Start a new text message thread
             text_message = client.messages.create(
                 body=body,
                 from_=sender.sender_phone_number,
-                to=format_phone_number(recipient.recipient_phone_number))
+                to=format_phone_number(recipient.recipient_phone_number),
+                status_callback=callback_route)
 
             print(
                 f"Started text Conversation with recipient '{recipient.recipient_name}' on text SID '{text_message.sid}'"

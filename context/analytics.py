@@ -14,3 +14,4 @@ class EVENT_OPTIONS:
     initialized = 'Interactin Initialized'
     sent =  'Interaction Sent'
     recieved = 'Interaction Recieved'
+    interaction_call_back = 'Interaction Call Back'

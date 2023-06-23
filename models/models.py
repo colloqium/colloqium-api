@@ -33,6 +33,7 @@ class InteractionType:
     name: str
     method: callable
     system_initialization_method: callable
+    callback_route: str
 
     #String representation that removes underscores and capitalizes the first letter of each word
     def __str__(self):

@@ -7,7 +7,7 @@ from tools.utility import add_message_to_conversation, add_llm_response_to_conve
 # from logs.logger import logging
 from datetime import date, timedelta
 from context.database import db
-from context.apis import client
+from context.apis import client, base_url
 from context.analytics import analytics, EVENT_OPTIONS
 
 
@@ -20,6 +20,7 @@ def twilio_message():
     # Get the 'From' number from the incoming request
     from_number = request.values.get('From', None)
     sender_phone_number = request.values.get('To', None)
+    message_body = request.values.get('Body', None)
 
     print(f"From: {from_number} To: {sender_phone_number}")
 
@@ -54,6 +55,13 @@ def twilio_message():
         conversation = initialize_conversation(system_prompt)
         interaction.conversation = conversation
 
+        analytics.track(from_number, EVENT_OPTIONS.recieved, {
+                'interaction_id': interaction.id,
+                'recipient_phone_number': from_number,
+                'interaction_type': interaction.interaction_type,
+                'message': message_body,
+            })
+
         db.session.add(interaction)
     else:
         print(f"Recipient: {recipient.recipient_name}")
@@ -74,7 +82,6 @@ def twilio_message():
     
     
     # Now you can add the new message to the conversation
-    message_body = request.values.get('Body', None)
     print(f"Recieved message body: {message_body}")
     analytics.track(recipient.id, EVENT_OPTIONS.recieved, {
                 'interaction_id': interaction.id,
@@ -89,20 +96,15 @@ def twilio_message():
 
     interaction.conversation = add_message_to_conversation(
         interaction, message_body)
+    
+    callback_route = base_url + "twilio_message_callback"
 
     print(
         f"Conversation after including message: {interaction.conversation}")
     # generate a new response from openAI to continue the conversation
     message_body = add_llm_response_to_conversation(interaction)
     print(f"AI message: {message_body}")
-    analytics.track(recipient.id, EVENT_OPTIONS.sent, {
-                'interaction_id': interaction.id,
-                'recipient_name': recipient.recipient_name,
-                'recipient_phone_number': recipient.recipient_phone_number,
-                'sender_name': sender.sender_name,
-                'sender_phone_number': sender.sender_phone_number,
-                'message': message_body,
-            })
+
 
 
     print(
@@ -114,7 +116,17 @@ def twilio_message():
     client.messages.create(
                 body=message_body,
                 from_=sender_phone_number,
+                status_callback=callback_route,
                 to=recipient.recipient_phone_number)
+    
+    analytics.track(recipient.id, EVENT_OPTIONS.sent, {
+                'interaction_id': interaction.id,
+                'recipient_name': recipient.recipient_name,
+                'recipient_phone_number': recipient.recipient_phone_number,
+                'sender_name': sender.sender_name,
+                'sender_phone_number': sender.sender_phone_number,
+                'message': message_body,
+            })
     
     return jsonify({
                 'status': 'success',
