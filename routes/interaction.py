@@ -10,6 +10,7 @@ from context.database import db
 from logs.logger import logger
 # Import the functions from the other files
 import io
+from context.analytics import analytics
 
 
 interaction_bp = Blueprint('interaction', __name__)
@@ -142,6 +143,11 @@ def create_interaction_from_csv_row(headers, row, form) -> Interaction:
         recipient_id=recipient.id,
         interaction_type=interaction_type,
         campaign_id=campaign.id, sender_id=sender.id).first()
+    
+    analytics.identify(interaction.recipient.id, {
+        'name': interaction.recipient.recipient_name,
+        'phone': interaction.recipient.recipient_phone_number
+    })
 
     return interaction
 
@@ -160,6 +166,12 @@ def initialize_interaction(interaction):
     initial_statement = add_llm_response_to_conversation(interaction)
     print("Interaction created successfully")
     interaction.interaction_status = InteractionStatus.INITIALIZED
+
+    analytics.track(interaction.recipient.id, 'Interaction Initialized', {
+        'sender_id': interaction.sender.id,
+        'interaction_type': interaction.interaction_type,
+        'interaction_id': interaction.id
+    })
 
     db.session.commit()
 

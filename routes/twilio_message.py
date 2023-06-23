@@ -1,13 +1,14 @@
 from flask import Blueprint
 # import Flask and other libraries
 from flask import request, jsonify
-from models.models import Recipient, Sender, Campaign, Interaction, InteractionType
+from models.models import Recipient, Sender, Campaign, Interaction
 from prompts.campaign_volunteer_agent import get_campaign_text_message_system_prompt
 from tools.utility import add_message_to_conversation, add_llm_response_to_conversation, initialize_conversation
 # from logs.logger import logging
 from datetime import date, timedelta
 from context.database import db
-from context.apis import client, twilio_number
+from context.apis import client
+from context.analytics import analytics
 
 
 twilio_message_bp = Blueprint('twilio_message', __name__)
@@ -70,9 +71,21 @@ def twilio_message():
                 'last_action': 'no_interaction_found'
             }), 200
 
+    
+    
     # Now you can add the new message to the conversation
     message_body = request.values.get('Body', None)
     print(f"Recieved message body: {message_body}")
+    analytics.track(recipient.id, 'Text Message Recieved', {
+                'interaction_id': interaction.id,
+                'recipient_name': recipient.recipient_name,
+                'recipient_phone_number': recipient.recipient_phone_number,
+                'sender_name': sender.sender_name,
+                'sender_phone_number': sender.sender_phone_number,
+                'message': message_body,
+            })
+
+
     interaction.conversation = add_message_to_conversation(
         interaction, message_body)
 
@@ -81,6 +94,16 @@ def twilio_message():
     # generate a new response from openAI to continue the conversation
     message_body = add_llm_response_to_conversation(interaction)
     print(f"AI message: {message_body}")
+    analytics.track(recipient.id, 'Text Message Sent', {
+                'interaction_id': interaction.id,
+                'recipient_name': recipient.recipient_name,
+                'recipient_phone_number': recipient.recipient_phone_number,
+                'sender_name': sender.sender_name,
+                'sender_phone_number': sender.sender_phone_number,
+                'message': message_body,
+            })
+
+
     print(
         f"Conversation after adding LLM response: {interaction.conversation}")
 
