@@ -8,7 +8,7 @@ from tools.utility import add_message_to_conversation, add_llm_response_to_conve
 from datetime import date, timedelta
 from context.database import db
 from context.apis import client
-from context.analytics import analytics
+from context.analytics import analytics, EVENT_OPTIONS
 
 
 twilio_message_bp = Blueprint('twilio_message', __name__)
@@ -76,12 +76,13 @@ def twilio_message():
     # Now you can add the new message to the conversation
     message_body = request.values.get('Body', None)
     print(f"Recieved message body: {message_body}")
-    analytics.track(recipient.id, 'Text Message Recieved', {
+    analytics.track(recipient.id, EVENT_OPTIONS.recieved, {
                 'interaction_id': interaction.id,
                 'recipient_name': recipient.recipient_name,
                 'recipient_phone_number': recipient.recipient_phone_number,
                 'sender_name': sender.sender_name,
                 'sender_phone_number': sender.sender_phone_number,
+                'interaction_type': interaction.interaction_type,
                 'message': message_body,
             })
 
@@ -94,7 +95,7 @@ def twilio_message():
     # generate a new response from openAI to continue the conversation
     message_body = add_llm_response_to_conversation(interaction)
     print(f"AI message: {message_body}")
-    analytics.track(recipient.id, 'Text Message Sent', {
+    analytics.track(recipient.id, EVENT_OPTIONS.sent, {
                 'interaction_id': interaction.id,
                 'recipient_name': recipient.recipient_name,
                 'recipient_phone_number': recipient.recipient_phone_number,

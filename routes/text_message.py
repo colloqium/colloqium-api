@@ -6,7 +6,7 @@ from models.models import Recipient, Interaction, Sender, InteractionStatus
 from context.database import db
 from context.apis import client
 from tools.utility import format_phone_number
-from context.analytics import analytics
+from context.analytics import analytics, EVENT_OPTIONS
 
 text_message_bp = Blueprint('text_message', __name__)
 
@@ -47,8 +47,9 @@ def text_message(interaction_id):
             print(
                 f"Started text Conversation with recipient '{recipient.recipient_name}' on text SID '{text_message.sid}'"
             )
-            analytics.track(recipient.id, 'Text Message Sent', {
+            analytics.track(recipient.id, EVENT_OPTIONS.sent, {
                 'interaction_id': interaction_id,
+                'interaction_type': text_thread.interaction_type,
                 'recipient_name': recipient.recipient_name,
                 'recipient_phone_number': recipient.recipient_phone_number,
                 'sender_name': sender.sender_name,
