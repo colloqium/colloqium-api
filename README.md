@@ -3,6 +3,7 @@
 ## Prerequisites
 - Python 3.10.12
 - pip
+- ngrok
 
 ## Installation & Setup
 
@@ -22,6 +23,7 @@ poetry install
     - Create a Twilio account
     - Create a Twilio phone number
     - Create a Twilio API key and secret
+    - Create a TwIML App and set the url to your deployment
     - Create OpenAI account and get API key
     - Create a Segment account and get WRITE_KEY
 
@@ -31,6 +33,8 @@ poetry shell
 6. Run the project:
 python main.py
 
+7. Run ngrok to expose the local server to Twilio:
+ngrok http --domain=NGROK_DOMAIN_HERE 5000
 ## Troubleshooting
 
 If you encounter any problems with the above steps, please open an issue in the repository or contact the maintainer at obletonadrian@gmail.com.
