@@ -627,6 +627,19 @@ flask = ">=2.2.5"
 sqlalchemy = ">=1.4.18"
 
 [[package]]
+name = "flask-sslify"
+version = "0.1.5"
+description = "Force SSL on your Flask app."
+optional = false
+python-versions = "*"
+files = [
+    {file = "Flask-SSLify-0.1.5.tar.gz", hash = "sha256:d33e1d3c09cd95154176aa8a7319418e52129fc482dd56d8a8ad7c24500d543e"},
+]
+
+[package.dependencies]
+Flask = "*"
+
+[[package]]
 name = "flask-wtf"
 version = "1.1.1"
 description = "Form rendering, validation, and CSRF protection for Flask with WTForms."
@@ -2336,4 +2349,4 @@ testing = ["big-O", "flake8 (<5)", "jaraco.functools", "jaraco.itertools", "more
 [metadata]
 lock-version = "2.0"
 python-versions = "3.10.12"
-content-hash = "4ff30870b4c50fc67f50156f03e66a0b885c5057ebd474b5f90bf6983c889e24"
+content-hash = "6b4c5606030ff21353c503f3514aef1e4407fb733e872462b984bb90a9ae53a1"

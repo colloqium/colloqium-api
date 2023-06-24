@@ -1,10 +1,6 @@
-from flask import Flask, Blueprint, send_from_directory
-from context.constants import STATIC_FOLDER
+from flask import send_file, current_app as app
 import os
 
-static = Blueprint('static', __name__)
-
-
-@static.route('/static/js/<filename>')
-def send_js(filename):
-    return send_from_directory(os.path.join(STATIC_FOLDER, 'js'), filename)
+def static(path):
+    print("inside static")
+    return send_file(os.path.join(app.config['STATIC_FOLDER'], path))

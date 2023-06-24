@@ -11,10 +11,10 @@ from context.apis import client, base_url
 from context.analytics import analytics, EVENT_OPTIONS
 
 
-twilio_message_bp = Blueprint('twilio_message', __name__)
+inbound_message_bp = Blueprint('inbound_message', __name__)
 
-@twilio_message_bp.route("/twilio_message", methods=['POST'])
-def twilio_message():
+@inbound_message_bp.route("/inbound_message", methods=['POST'])
+def inbound_message():
     print("Inbound message received")
 
     # Get the 'From' number from the incoming request

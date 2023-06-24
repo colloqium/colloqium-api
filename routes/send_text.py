@@ -9,17 +9,21 @@ from tools.utility import format_phone_number
 from context.analytics import analytics, EVENT_OPTIONS
 from context.apis import base_url
 
-text_message_bp = Blueprint('text_message', __name__)
+send_text_bp = Blueprint('send_text', __name__)
 
 
-@text_message_bp.route("/text_message/<interaction_id>", methods=['POST'])
-def text_message(interaction_id):
+@send_text_bp.route("/send_text/", methods=['POST'])
+def send_text():
     
     #check if the request includes the required confirmations
-    if not check_request(request):
+
+    request_erros = get_request_errors(request)
+    if len(request_erros) > 0:
         print("missing required fields  in request")
-        return jsonify({'status': 'error', 'last_action': 'missing_required_fields'})
+        return jsonify({'status': 'error', 'last_action': 'missing_required_fields', 'errors': request_erros})
     
+    interaction_id = request.json.get('interaction_id')
+
     try:
         text_thread = db.session.query(Interaction).get(interaction_id)
         #set the interaction_status to InteractionStatus.HUMAN_CONFIRMED
@@ -91,6 +95,28 @@ def text_message(interaction_id):
         }), 400
     
 
-def check_request(request):
-    #check if the request has an "interaction_status" field and that the field is equal to InteractionStatus.HUMAN_CONFIRMED
-    return request.json and 'interaction_status' in request.json and request.json['interaction_status'] != InteractionStatus.HUMAN_CONFIRMED
+
+#Returns none or returns an array of error messages
+def get_request_errors(request):
+    
+    errors = []
+
+    
+    #check if the request has a json body
+    if not request.json:
+        errors.append("No json body in request")
+
+    #check if there is an interaction_status field
+    if not 'interaction_status' in request.json:
+        errors.append("No interaction_status field in request")
+
+
+    #check if the interaction_status is InteractionStatus.HUMAN_CONFIRMED
+    if not request.json.get('interaction_status') == InteractionStatus.HUMAN_CONFIRMED:
+        errors.append("interaction_status is not InteractionStatus.HUMAN_CONFIRMED")
+    
+    #check if the request has an "interaction_id" field
+    if not 'interaction_id' in request.json:
+        errors.append("No interaction_id field in request")
+    
+    return errors

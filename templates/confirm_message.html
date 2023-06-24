@@ -39,7 +39,7 @@
           <td>
             <form id="interaction-form-{{ interaction.id }}">
               <input type="hidden" name="interaction_id" value="{{ interaction.id }}">
-              <button type="button" class="btn btn-primary" onclick="sendInteraction(this)" data-interaction-id="{{ interaction.id }}" data-interaction-type="{{ interaction.interaction_type }}">Send</button>
+              <button type="button" class="btn btn-primary" onclick="sendInteraction(this)" data-interaction-id="{{ interaction.id }}" data-interaction-method="{{ interaction_types[interaction_type].method.__name__ }}">Send</button>
             </form>
           </td>
         </tr>
@@ -51,5 +51,5 @@
 {% endblock %}
 
 {% block scripts %}
-  <script src="{{ url_for('static', filename='js/interactions.js') }}"></script>
+<script src="{{ url_for('bp.static', path='js/interactions.js') }}"></script>
 {% endblock %}

@@ -5,16 +5,27 @@ from context.database import db
 import secrets
 from dotenv import load_dotenv
 from routes.blueprint import bp
-from context.constants import STATIC_FOLDER
 
 def create_app():
     load_dotenv()
     app = Flask(__name__, template_folder='../templates')
+
+
+    # Get the absolute path of the project directory
+    project_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '../'))
+    print(f"Project directory is {project_dir}")
+
+    # Set the STATIC_FOLDER configuration to the "static" directory in the project directory
+    static_folder = os.path.join(project_dir, 'static')
+
+    app.config['STATIC_FOLDER'] = static_folder
+
+    print(f"Static folder is {app.config['STATIC_FOLDER']}")
+
     
     app.register_blueprint(bp)
     app.config['SECRET_KEY'] = secrets.token_hex(nbytes=8)
     app.config['SQLALCHEMY_DATABASE_URI'] = os.environ['DATABASE_URL'] 
-    app.config['STATIC_FOLDER'] = STATIC_FOLDER
 
     db.init_app(app)
     Migrate(app, db)

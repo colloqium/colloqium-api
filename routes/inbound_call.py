@@ -9,11 +9,11 @@ from context.database import db
 from context.apis import call_webhook_url
 
 
-twilio_call_bp = Blueprint('twilio_call', __name__)
+inbound_call_bp = Blueprint('inbound_call', __name__)
 
 # Define a route for handling Twilio webhook requests
-@twilio_call_bp.route("/twilio_call", methods=['POST'])
-def twilio_call():
+@inbound_call_bp.route("/inbound_call", methods=['POST'])
+def inbound_call():
     try:
         print("Twilio Phone Call Request Received")
         print(request.get_data())
@@ -27,7 +27,7 @@ def twilio_call():
 
         # If conversation does not exist, log an error and return
         if not conversation:
-            logging.error('Could not retrieve conversation from database.')
+            print('Could not retrieve conversation from database.')
             return Response('Failed to retrieve conversation.', status=500)
 
         # Retrieve the speech result from the Twilio request
@@ -74,7 +74,7 @@ def twilio_call():
 
     except Exception as e:
         # Log the exception
-        logging.exception('An error occurred while processing the request: %s',
+        print('An error occurred while processing the request: %s',
                           e)
         # Return a server error response
         return Response('An error occurred while processing the request.',

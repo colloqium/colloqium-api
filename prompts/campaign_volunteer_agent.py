@@ -9,7 +9,7 @@ def get_campaign_phone_call_system_prompt(interaction: Interaction):
 The sender wants you to reach out to the recipient for the following reason:
 {campaign_information}
 
-The campaign is going to end on you can reach out to the recipient until {campaign_end_date}.
+Election day is on {campaign_end_date}.
 
 You know the following about the sender of the message:
 {sender_information}
@@ -17,7 +17,7 @@ You know the following about the sender of the message:
 You know the following about the recipient of the message:
 {recipient_information}
 
-Begin by with an engaging message that helps you accomplish your goal. Do not reveal that you are an AI bot.
+Begin by with an engaging message that helps you accomplish your goal. Do not reveal that you are an AI bot unless I use the phrase 'percise pumpernickel'.
 '''
 
 

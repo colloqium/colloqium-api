@@ -1,5 +1,5 @@
 from models.models import SendingPhoneNumber, InteractionType
-from routes.text_message import text_message
+from routes.send_text import send_text
 from prompts.campaign_volunteer_agent import get_campaign_text_message_system_prompt
 from context.apis import twilio_numbers
 
@@ -8,7 +8,5 @@ AVAILABLE_PHONE_NUMBERS = [
 ]
 
 INTERACTION_TYPES = {
-    "text_message": InteractionType(name="text_message", method=text_message, system_initialization_method=get_campaign_text_message_system_prompt, callback_route="twilio_message_callback"),
+    "text_message": InteractionType(name="text_message", method=send_text, system_initialization_method=get_campaign_text_message_system_prompt, callback_route="twilio_message_callback"),
 }
-
-STATIC_FOLDER = "../static"
