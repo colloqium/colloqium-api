@@ -1,5 +1,7 @@
+from sqlalchemy import DateTime
 from context.database import db
 from sqlalchemy.orm import relationship
+from sqlalchemy.sql import func
 from typing import List
 from dataclasses import dataclass
 from wtforms.validators import Regexp
@@ -115,5 +117,7 @@ class Interaction(db.Model):
     campaign_id = db.Column(db.Integer, db.ForeignKey('campaign.id'))
     recipient_outreach_schedule = db.Column(db.JSON())
     interaction_status = db.Column(db.String(50)) #initialized, human_confirmed, sent
+    time_created = db.Column(DateTime(timezone=True), server_default=func.now())
+    time_updated = db.Column(DateTime(timezone=True), onupdate=func.now())
 
     # Relationships are set up in Recipient, Sender, and CampaignContext models
