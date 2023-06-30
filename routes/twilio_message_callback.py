@@ -18,21 +18,30 @@ def twilio_message_callback():
     sender = Sender.query.filter_by(sender_phone_number=from_number).first()
 
     
-    if sender:
-        # get recipient with to number
-        recipient = Recipient.query.filter_by(recipient_phone_number=to_number).first()
+    if  not sender:
+        return jsonify({'success': False}), 400
 
-        # get the interaction
-        interaction = Interaction.query.filter_by(sender=sender, recipient=recipient, interaction_type="text_message").first()
 
-        analytics.track(recipient.id, EVENT_OPTIONS.interaction_call_back, {
-                    'status': status,
-                    'interaction_id': interaction.id,
-                    'interaction_type': interaction.interaction_type,
-                    'recipient_name': recipient.recipient_name,
-                    'recipient_phone_number': recipient.recipient_phone_number,
-                    'sender_name': sender.sender_name,
-                    'sender_phone_number': sender.sender_phone_number,
-                })
+    # get recipient with to number
+    recipient = Recipient.query.filter_by(recipient_phone_number=to_number).first()
+
+    if not recipient:
+        return jsonify({'success': False}), 400
+
+    # get the interaction
+    interaction = Interaction.query.filter_by(sender=sender, recipient=recipient, interaction_type="text_message").first()
+
+    if not interaction:
+        return jsonify({'success': False}), 400
+
+    analytics.track(recipient.id, EVENT_OPTIONS.interaction_call_back, {
+                'status': status,
+                'interaction_id': interaction.id,
+                'interaction_type': interaction.interaction_type,
+                'recipient_name': recipient.recipient_name,
+                'recipient_phone_number': recipient.recipient_phone_number,
+                'sender_name': sender.sender_name,
+                'sender_phone_number': sender.sender_phone_number,
+            })
 
     return jsonify({'success': True}), 200
