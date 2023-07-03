@@ -9,9 +9,10 @@ account_sid = os.environ['twilio_account_sid']
 auth_token = os.environ['twilio_auth_token']
 twilio_number = os.environ['twilio_number']
 second_twilio_number = os.environ['second_twilio_number']
+third_twilio_number = os.environ['third_twilio_number']
 segment_write_key = os.environ['WRITE_KEY']
 
-twilio_numbers = [twilio_number, second_twilio_number]
+twilio_numbers = [twilio_number, second_twilio_number, third_twilio_number]
 
 base_url = os.environ['BASE_URL']
 
