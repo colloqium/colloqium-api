@@ -1,4 +1,4 @@
-from flask import Blueprint, request
+from flask import Blueprint, request, Response
 # import Flask and other libraries
 from flask import jsonify
 from models.models import Recipient, Interaction, Sender, InteractionStatus
@@ -12,8 +12,19 @@ from context.apis import base_url
 send_text_bp = Blueprint('send_text', __name__)
 
 
-@send_text_bp.route("/send_text/", methods=['POST'])
+@send_text_bp.route("/send_text", methods=['POST', 'OPTIONS'])
 def send_text():
+
+    print("send_text route called")
+
+    if request.method == 'OPTIONS':
+        print("OPTIONS request")
+        # Preflight request. Reply successfully:
+        resp = Response(status=200)
+        resp.headers['Access-Control-Allow-Origin'] = '*'
+        resp.headers['Access-Control-Allow-Methods'] = 'POST, OPTIONS'
+        resp.headers['Access-Control-Allow-Headers'] = 'content-type'
+        return resp
     
     #check if the request includes the required confirmations
 
@@ -46,10 +57,12 @@ def send_text():
             callback_route = base_url + "twilio_message_callback"
             print(f"Sending callback to '{callback_route}'")
 
+
+            sender_phone_number = sender.phone_numbers[0].get_full_phone_number()
             # Start a new text message thread
             text_message = client.messages.create(
                 body=body,
-                from_=sender.sender_phone_number,
+                from_=format_phone_number(sender_phone_number),
                 to=format_phone_number(recipient.recipient_phone_number),
                 status_callback=callback_route)
 
@@ -62,7 +75,7 @@ def send_text():
                 'recipient_name': recipient.recipient_name,
                 'recipient_phone_number': recipient.recipient_phone_number,
                 'sender_name': sender.sender_name,
-                'sender_phone_number': sender.sender_phone_number,
+                'sender_phone_number': sender_phone_number,
                 'message': body,
             })
 
@@ -76,21 +89,14 @@ def send_text():
                 'conversation': text_thread.conversation
             }), 200
         else:
-            print(f"No interaction found with id {interaction_id}")
-
-        return jsonify({
-            'status':
-            'error',
-            'last_action':
-            f"Error Sending text to with interaction id {interaction_id}"
-        }), 400
+            return jsonify({ 'status': 'error', 'message': f"Interaction with id {interaction_id} not found" }), 400
 
     except Exception as e:
         print(f"Exception occurred: {e}", exc_info=True)
         return jsonify({
             'status':
             'error',
-            'last_action':
+            'message':
             f"Error Sending text. Exception: {e}"
         }), 400
     

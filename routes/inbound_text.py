@@ -1,11 +1,10 @@
 from flask import Blueprint
 # import Flask and other libraries
 from flask import request, jsonify
-from models.models import Recipient, Sender, Campaign, Interaction
-from prompts.campaign_volunteer_agent import get_campaign_text_message_system_prompt
-from tools.utility import add_message_to_conversation, add_llm_response_to_conversation, initialize_conversation
+from models.models import Recipient, Interaction
+from models.model_utility import get_phone_number_from_db
+from tools.utility import add_message_to_conversation, add_llm_response_to_conversation
 # from logs.logger import logging
-from datetime import date, timedelta
 from context.database import db
 from context.apis import client, base_url
 from context.analytics import analytics, EVENT_OPTIONS
@@ -32,41 +31,22 @@ def inbound_message():
     if not recipient:
         
         print("No recipient found")
-        recipient = Recipient(recipient_name='',
-                              recipient_phone_number=from_number)
-        db.session.add(recipient)
-
-        campaign = Campaign()
-
-        campaign.campaign_end_date=date.today() + timedelta(days=1)
-        campaign.campaign_name="Help Find Correct Campaign"
-        campaign.campaign_information="The user reaching out to you is not associated with a campaign. Can you find out who they expect to reach"
-
-        interaction = Interaction(twilio_conversation_sid='',
-                                  interaction_type="text_message",
-                                  recipient=recipient,
-                                  campaign = campaign,
-        sender = Sender()
-                )
-
-        system_prompt = get_campaign_text_message_system_prompt(interaction)
-
-        # Create a new conversation with a system message
-        conversation = initialize_conversation(system_prompt)
-        interaction.conversation = conversation
-
-        analytics.track(from_number, EVENT_OPTIONS.recieved, {
-                'interaction_id': interaction.id,
-                'recipient_phone_number': from_number,
-                'interaction_type': interaction.interaction_type,
-                'message': message_body,
-            })
-
-        db.session.add(interaction)
+        return jsonify({'status': 'error', 'message': 'no_recipient_found'}), 200
+    
     else:
         print(f"Recipient: {recipient.recipient_name}")
+
+        # get the phone number object for this number from the database
+        phone_number = get_phone_number_from_db(sender_phone_number)
+
+        if phone_number is None:
+            # return an http error indicating that the phone number is not in the database
+            return jsonify({
+                'status': 'error',
+                'message': 'phone_number_not_found'
+            }), 200
         
-        sender = Sender.query.filter_by(sender_phone_number=sender_phone_number).first()
+        sender = phone_number.sender
         print(f"Sender: {sender.sender_name}")
         
         # If the recipient exists, find the Interaction for this recipient with type 'text'
@@ -88,7 +68,7 @@ def inbound_message():
                 'recipient_name': recipient.recipient_name,
                 'recipient_phone_number': recipient.recipient_phone_number,
                 'sender_name': sender.sender_name,
-                'sender_phone_number': sender.sender_phone_number,
+                'sender_phone_number': sender_phone_number,
                 'interaction_type': interaction.interaction_type,
                 'message': message_body,
             })
@@ -124,7 +104,7 @@ def inbound_message():
                 'recipient_name': recipient.recipient_name,
                 'recipient_phone_number': recipient.recipient_phone_number,
                 'sender_name': sender.sender_name,
-                'sender_phone_number': sender.sender_phone_number,
+                'sender_phone_number': sender_phone_number,
                 'message': message_body,
             })
     

@@ -1,5 +1,6 @@
 import os
 from flask import Flask
+from flask_cors import CORS
 from flask_migrate import Migrate, upgrade
 from context.database import db
 import secrets
@@ -25,7 +26,10 @@ def create_app():
     
     app.register_blueprint(bp)
     app.config['SECRET_KEY'] = secrets.token_hex(nbytes=8)
-    app.config['SQLALCHEMY_DATABASE_URI'] = os.environ['DATABASE_URL'] 
+    app.config['SQLALCHEMY_DATABASE_URI'] = os.environ['DATABASE_URL']
+
+    CORS(app, resources={r"/*": {"origins": "*"}})
+    app.config['CORS_HEADERS'] = 'Content-Type'
 
     db.init_app(app)
     Migrate(app, db)

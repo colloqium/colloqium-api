@@ -1,155 +1,69 @@
-from flask import Blueprint, request, redirect, url_for, current_app
-import csv
+from flask import Blueprint, request, jsonify
 # import Flask and other libraries
-from flask import render_template
-from forms.interaction_form import InteractionForm
-from models.models import Recipient, Sender, Campaign, Interaction, InteractionStatus
+from models.models import Recipient, Campaign, Interaction, InteractionStatus
 from context.constants import INTERACTION_TYPES
-from tools.utility import add_llm_response_to_conversation, initialize_conversation, format_phone_number
+from tools.utility import add_llm_response_to_conversation, initialize_conversation
 from context.database import db
-from logs.logger import logger
 # Import the functions from the other files
-import io
 from context.analytics import analytics, EVENT_OPTIONS
 
 
 interaction_bp = Blueprint('interaction', __name__)
 
-@interaction_bp.route('/interaction/<last_action>', methods=['GET', 'POST'])
-def interaction(last_action):
-    try:
-        print("Processing Interaction form...")
-        logger.info("Processing Interaction form...")
-
-        # Create instance of InteractionForm class
-        form = InteractionForm()
-
-        # When the form is submitted
-        if form.validate_on_submit():
-            
-            # The CSV file should have a header row and the following columns:
-            # - Recipient Name: The name of the recipient
-            # - Recipient Information: Additional information about the recipient (facts about the recipient, etc.)
-            # - Phone Number: The phone number of the recipient (in E.164 format)
-            # Example:
-            # Recipient Name,Recipient Information,Phone Number
-            # John Doe,John has never voted as a tech enthusist who lives in GA,+14155552671
-            # Jane Smith,Jane has recently become a US citizen and cares about animal rights,jane.smith@example.com,+14155552672
-            
-            # If a CSV file was uploaded
-            if 'recipient_csv' in request.files:
-
-                # Read the CSV data from the uploaded file
-                file = form.recipient_csv.data
-                text_file = io.TextIOWrapper(file, encoding='utf-8')
-                csv_data = csv.reader(text_file, delimiter=',')
-
-                # We expect the first row to be headers, so we get those first
-                headers = next(csv_data)
-
-                interactions = []
-
-                # Then we process each row in the CSV
-                for row in csv_data:
-                    # Create an interaction from the row
-                    interaction = create_interaction_from_csv_row(headers, row, form)
-                    print(f"Created Interaction: {interaction}")
-                    interactions.append(interaction)
-
-                # Process each interaction
-                for interaction in interactions:
-                    initialize_interaction(interaction)
-                    print(f"Initialized Interaction: {interaction.id}")
-                
-                sender = Sender.query.get(interaction.sender_id)
-                #reroute to the confirm messages page
-                return redirect(url_for('bp.confirm_messages', sender_id=sender.id))
-            else:
-                print(f"No form subdmitted. Error: {form.errors}")
-                return render_template('interaction.html',
-                                    form=form,
-                                    last_action=last_action)
-        return render_template('interaction.html', form=form, last_action='create_interaction')
-
-    except Exception as e:
-        print(f"Exception occurred: {e}", exc_info=True)
-        return render_template('interaction.html',
-                               form=form,
-                               last_action="Error")
+@interaction_bp.route('/interaction', methods=['POST', 'GET'])
+def interaction():
     
+    if request.method != 'GET' and not request.is_json:
+        return jsonify({'error': 'Request body must be JSON', 'status_code': 400}), 400
 
-def create_interaction_from_csv_row(headers, row, form) -> Interaction:
-    # We create a dictionary where the keys are the CSV headers and the values are the row's values
-    recipient_data = {headers[i]: value for i, value in enumerate(row)}
+    if request.method == 'GET':
+        data = request.args
+        return get_interaction(data)
+    else:
+        data = request.json
+        return create_interaction(data)
 
-    # Then we use this dictionary to create a recipient
-    recipient_name = recipient_data['Recipient Name']
-    recipient_information = recipient_data['Recipient Information']
-    recipient_phone_number = format_phone_number(recipient_data['Phone Number'])
-    print(f"Recipient phone number from CSV: {recipient_phone_number}")
 
-    # Check if a recipient with the given name and phone number already exists
-    recipient = Recipient.query.filter_by(
-        recipient_name=recipient_name,
-        recipient_phone_number=recipient_phone_number).first()
 
-    # If the recipient does not exist, create a new one
+def create_interaction(data):
+    recipient_id = data['recipient_id']
+    campaign_id = data['campaign_id']
+    interaction_type = data['interaction_type']
+
+    # Check if required fields are missing
+    if not recipient_id or not campaign_id or not interaction_type:
+        return jsonify({'error': 'recipient_id, campaign_id, and interaction_type are all required', 'status_code': 400}), 400
+
+    # Check if recipient and campaign exist
+    recipient = Recipient.query.get(recipient_id)
+    campaign = Campaign.query.get(campaign_id)
+
     if not recipient:
-        recipient = Recipient(
-            recipient_name=recipient_name,
-            recipient_phone_number=recipient_phone_number,
-            recipient_information=recipient_information)
-        db.session.add(recipient)
-
-    # Check if sender with this name is in database
-    sender = Sender.query.filter_by(
-        sender_name=form.sender_name.data).first()
-
-    if not sender:
-        sender = Sender(
-            sender_name=form.sender_name.data,
-            sender_information=form.sender_information.data,
-            sender_phone_number=form.sender_phone_number.data)
-        db.session.add(sender)
-
-    # Check if campaign with this name is in database
-    campaign = Campaign.query.filter_by(
-        campaign_name=form.campaign_name.data).first()
+        return jsonify({'error': 'Recipient does not exist', 'status_code': 404}), 404
 
     if not campaign:
-        campaign = Campaign(
-            campaign_name=form.campaign_name.data,
-            campaign_information=form.campaign_information.data,
-            campaign_end_date=form.campaign_end_date.data)
-        db.session.add(campaign)
+        return jsonify({'error': 'Campaign does not exist', 'status_code': 404}), 404
+    
+    # check if the interaction types is in the keys of INTERACTION_TYPES
+    if interaction_type not in INTERACTION_TYPES.keys():
+        return jsonify({'error': 'Invalid interaction type', 'status_code': 400}), 400
 
-    # access the name field of the InteractionType object represented by the slelection in the form. Make it lower case and replace spaces with underscores
-    interaction_type = form.interaction_type.data.lower().replace(" ", "_")
-
-    # Create the Interaction
+    # Create new interaction
     interaction = Interaction(
-        twilio_conversation_sid='',  # You will need to update this later
-        conversation=[],
-        recipient=recipient,  # The ID of the recipient
-        sender=sender,
-        campaign=campaign,
-        interaction_type=interaction_type)
+        recipient_id=recipient.id,
+        sender_id=campaign.sender_id,
+        campaign_id=campaign.id,
+        interaction_type=interaction_type,
+        interaction_status=InteractionStatus.INITIALIZED
+    )
 
     db.session.add(interaction)
     db.session.commit()
 
-    # Get interaction with DB fields
-    interaction = db.session.query(Interaction).filter_by(
-        recipient_id=recipient.id,
-        interaction_type=interaction_type,
-        campaign_id=campaign.id, sender_id=sender.id).first()
-    
-    analytics.identify(interaction.recipient.id, {
-        'name': interaction.recipient.recipient_name,
-        'phone': interaction.recipient.recipient_phone_number
-    })
+    # Initialize interaction
+    initialize_interaction(interaction)
 
-    return interaction
+    return jsonify({'interaction_id': interaction.id, 'status_code': 201}), 201
 
 # Creates a new interaction with a recipient and the first system message in the conversation. Does not send the message.
 def initialize_interaction(interaction):
@@ -158,7 +72,7 @@ def initialize_interaction(interaction):
     system_prompt = INTERACTION_TYPES[interaction_type].system_initialization_method(interaction)
 
     user_number = interaction.recipient.recipient_phone_number
-    sender_number = interaction.sender.sender_phone_number
+    sender_number = interaction.sender.select_phone_number_for_interaction(interaction)
 
     # Pre-create the first response
     conversation = initialize_conversation(system_prompt)
@@ -167,13 +81,14 @@ def initialize_interaction(interaction):
     print("Interaction created successfully")
     interaction.interaction_status = InteractionStatus.INITIALIZED
 
+    db.session.commit()
+
     analytics.track(interaction.recipient.id, EVENT_OPTIONS.initialized, {
         'sender_id': interaction.sender.id,
+        'sender_phone_number': sender_number,
         'interaction_type': interaction.interaction_type,
         'interaction_id': interaction.id
     })
-
-    db.session.commit()
 
     # Log the system prompt and user number
     print("Interaction Type: %s", interaction_type)
@@ -182,3 +97,39 @@ def initialize_interaction(interaction):
     print(f"Sender number: {sender_number}")
     print(f"Initial Statement: {initial_statement}")
     print(f"Conversation: {conversation}")
+
+def get_interaction(data):
+    #Check if there is a sender id. If there is return all interactions for that sender
+    if 'sender_id' in data.keys():
+        sender_id = data['sender_id']
+
+        interactions = Interaction.query.filter_by(sender_id=sender_id).all()
+        if not interactions:
+            return jsonify({'error': 'Sender does not have any interactions', 'status_code': 404}), 404
+        return jsonify([interaction.to_dict() for interaction in interactions]), 200
+
+    #Check if there is a recipient id. If there is return all interactions for that recipient
+    if 'recipient_id' in data.keys():
+        recipient_id = data['recipient_id']
+        interactions = Interaction.query.filter_by(recipient_id=recipient_id).all()
+        if not interactions:
+            return jsonify({'error': 'Recipient does not have any interactions', 'status_code': 404}), 404
+        return jsonify([interaction.to_dict() for interaction in interactions]), 200
+    
+    #Check if there is a campaign id. If there is return all interactions for that campaign
+    if 'campaign_id' in data.keys():
+        campaign_id = data['campaign_id']
+        interactions = Interaction.query.filter_by(campaign_id=campaign_id).all()
+        if not interactions:
+            return jsonify({'error': 'Campaign does not have any interactions', 'status_code': 404}), 404
+        return jsonify([interaction.to_dict() for interaction in interactions]), 200
+    
+    #Check if there is an interaction id. If there is return that interaction
+    if 'interaction_id' in data.keys():
+        interaction_id = data['interaction_id']
+        interaction = Interaction.query.get(interaction_id)
+        if not interaction:
+            return jsonify({'error': 'Interaction does not exist', 'status_code': 404}), 404
+        return jsonify(interaction.to_dict()), 200
+
+    return jsonify({'error': 'No valid query parameters', 'status_code': 400}), 400

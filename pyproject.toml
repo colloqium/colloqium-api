@@ -24,6 +24,7 @@ toml = "^0.10.2"
 psycopg2-binary = "^2.9.6"
 segment-analytics-python = "^2.2.3"
 flask-sslify = "^0.1.5"
+flask-cors = "^4.0.0"
 
 [tool.poetry.dev-dependencies]
 debugpy = "^1.6.2"

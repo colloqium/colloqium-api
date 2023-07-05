@@ -1,6 +1,7 @@
 # URL to handle twilio status callbacks
 from flask import Blueprint, request, jsonify
-from models.models import Recipient, Interaction, Sender
+from models.models import Recipient, Interaction, Sender, PhoneNumber
+from models.model_utility import get_phone_number_from_db
 from context.analytics import analytics, EVENT_OPTIONS
 
 twilio_message_callback_bp = Blueprint('twilio_message_callback', __name__)
@@ -14,25 +15,28 @@ def twilio_message_callback():
     from_number = request.values.get('From', None)
     to_number = request.values.get('To', None)
     status = request.values.get('MessageStatus', None)
-    # get sender with from number
-    sender = Sender.query.filter_by(sender_phone_number=from_number).first()
-
     
-    if  not sender:
-        return jsonify({'success': False}), 400
+    
+    # find the PhoneNumber object for the from number
+    phone_number = get_phone_number_from_db(from_number)
+    
+    if  not phone_number:
+        return jsonify({'status': 'error', 'message': "Sender number not found in our system"}), 400
+    
+    sender = phone_number.sender
 
 
     # get recipient with to number
     recipient = Recipient.query.filter_by(recipient_phone_number=to_number).first()
 
     if not recipient:
-        return jsonify({'success': False}), 400
+        return jsonify({'status': 'error', 'message': 'No recipient found'}), 400
 
     # get the interaction
     interaction = Interaction.query.filter_by(sender=sender, recipient=recipient, interaction_type="text_message").first()
 
     if not interaction:
-        return jsonify({'success': False}), 400
+        return jsonify({'status': 'error', 'message': 'No interaction found'}), 400
 
     analytics.track(recipient.id, EVENT_OPTIONS.interaction_call_back, {
                 'status': status,
@@ -41,7 +45,7 @@ def twilio_message_callback():
                 'recipient_name': recipient.recipient_name,
                 'recipient_phone_number': recipient.recipient_phone_number,
                 'sender_name': sender.sender_name,
-                'sender_phone_number': sender.sender_phone_number,
+                'sender_phone_number': phone_number.get_full_phone_number(),
             })
 
-    return jsonify({'success': True}), 200
+    return jsonify({'status': 'success'}), 200

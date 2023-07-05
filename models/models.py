@@ -69,7 +69,13 @@ class SendingPhoneNumber:
         return self.country_code_validator(self.country_code)
 
 
-class Recipient(db.Model):
+class BaseModel(db.Model):
+    __abstract__ = True
+
+    def to_dict(self):
+        return {c.name: getattr(self, c.name) for c in self.__table__.columns}
+
+class Recipient(BaseModel):
     id = db.Column(db.Integer, primary_key=True)
     recipient_name = db.Column(db.String(50))
     recipient_information = db.Column(db.Text)
@@ -82,38 +88,14 @@ class Recipient(db.Model):
                                   lazy=True)
 
 
-class Sender(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    sender_name = db.Column(db.String(50))
-    sender_information = db.Column(db.Text)
-    sender_schedule = db.Column(db.JSON())
-    sender_phone_number = db.Column(db.String(100))
-    # Add relationship
-    interactions = relationship('Interaction',
-                                  backref='sender',
-                                  lazy=True)
-
-
-class Campaign(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    campaign_name = db.Column(db.String(50))
-    campaign_information = db.Column(db.Text)
-    campaign_end_date = db.Column(db.Date)
-
-    # Add relationship
-    interactions = relationship('Interaction',
-                                  backref='campaign',
-                                  lazy=True)
-
-
-class Interaction(db.Model):
+class Interaction(BaseModel):
     id = db.Column(db.Integer, primary_key=True)
     twilio_conversation_sid = db.Column(db.String(50))
     conversation = db.Column(db.JSON())
     interaction_type = db.Column(db.String(50))
     interaction_goal = db.Column(db.Text)
     recipient_id = db.Column(db.Integer, db.ForeignKey('recipient.id'))
-    sender_id = db.Column(db.Integer, db.ForeignKey('sender.id'))
+    sender_id = db.Column(db.Integer, db.ForeignKey('sender.id'), name="sender_id")
     campaign_id = db.Column(db.Integer, db.ForeignKey('campaign.id'))
     recipient_outreach_schedule = db.Column(db.JSON())
     interaction_status = db.Column(db.String(50)) #initialized, human_confirmed, sent
@@ -121,3 +103,70 @@ class Interaction(db.Model):
     time_updated = db.Column(DateTime(timezone=True), onupdate=func.now())
 
     # Relationships are set up in Recipient, Sender, and CampaignContext models
+
+    #overwrite to_dict method to include the sender and recipient and the conversation object
+    def to_dict(self):
+        interaction_dict = super().to_dict()
+        interaction_dict["sender"] = self.sender.to_dict()
+        interaction_dict["recipient"] = self.recipient.to_dict()
+        
+        # Assign conversation list directly
+        interaction_dict["conversation"] = self.conversation if self.conversation else []
+
+        return interaction_dict
+
+
+class Sender(BaseModel):
+    id = db.Column(db.Integer, primary_key=True)
+    sender_name = db.Column(db.String(50))
+    sender_information = db.Column(db.Text)
+    sender_schedule = db.Column(db.JSON())
+    # Add relationship
+    interactions = relationship('Interaction',
+                                  backref='sender',
+                                  lazy=True)
+    phone_numbers = relationship('PhoneNumber',
+                                  backref='sender',
+                                  lazy=True)
+    
+    def select_phone_number_for_interaction(self, interaction: Interaction):
+        print(f"Selecting phone number for interaction {interaction.id}")
+        return self.phone_numbers[0].get_full_phone_number()
+    
+    #overwrite the base to_dict method to include the phone numbers
+    def to_dict(self):
+        sender_dict = super().to_dict()
+        sender_dict["phone_numbers"] = [phone_number.get_full_phone_number() for phone_number in self.phone_numbers]
+        return sender_dict
+
+
+class Campaign(BaseModel):
+    id = db.Column(db.Integer, primary_key=True)
+    campaign_name = db.Column(db.String(50))
+    campaign_information = db.Column(db.Text)
+    sender_id = db.Column(db.Integer, db.ForeignKey('sender.id'), name="sender_id")
+    campaign_end_date = db.Column(db.Date)
+
+    # Add relationship
+    interactions = relationship('Interaction',
+                                  backref='campaign',
+                                  lazy=True)
+
+class PhoneNumber(BaseModel):
+    id = db.Column(db.Integer, primary_key=True)
+    country_code = db.Column(db.String(10))
+    phone_number_after_code = db.Column(db.String(20))
+    sender_id = db.Column(db.Integer, db.ForeignKey('sender.id'), name="sender_id")
+
+    def __init__(self, full_phone_number):
+        # Find the index of the last 10 digits of the phone number
+        last_10_digits_index = len(full_phone_number) - 10
+
+        # Extract the last 10 digits of the phone number
+        self.phone_number_after_code = full_phone_number[last_10_digits_index:]
+
+        # Extract the country code from the beginning of the phone number
+        self.country_code = full_phone_number[:last_10_digits_index]
+
+    def get_full_phone_number(self):
+        return f"{self.country_code}{self.phone_number_after_code}"
