@@ -63,7 +63,10 @@ def create_recipient(data):
         'phone': recipient.recipient_phone_number
     })
 
-    return jsonify({'recipient_id': recipient.id, 'status_code': 201}), 201
+    return jsonify({ 
+        'recipient'{
+            'id': recipient.id,
+        }, 'status_code': 201}), 201
 
 
 def update_recipient(data):
