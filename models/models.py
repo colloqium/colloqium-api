@@ -107,8 +107,13 @@ class Interaction(BaseModel):
     #overwrite to_dict method to include the sender and recipient and the conversation object
     def to_dict(self):
         interaction_dict = super().to_dict()
-        interaction_dict["sender"] = self.sender.to_dict()
-        interaction_dict["recipient"] = self.recipient.to_dict()
+        #lookup the sender from the id
+        sender = Sender.query.get(self.sender_id)
+        interaction_dict["sender"] = sender.to_dict()
+
+        #lookup the recipient from the id
+        recipient = Recipient.query.get(self.recipient_id)
+        interaction_dict["recipient"] = recipient.to_dict()
         
         # Assign conversation list directly
         interaction_dict["conversation"] = self.conversation if self.conversation else []
