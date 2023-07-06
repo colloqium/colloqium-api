@@ -64,7 +64,7 @@ def create_recipient(data):
     })
 
     return jsonify({ 
-        'recipient'{
+        'recipient': {
             'id': recipient.id,
         }, 'status_code': 201}), 201
 
