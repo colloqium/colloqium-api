@@ -20,16 +20,18 @@ sender_bp = Blueprint('sender', __name__)
 def sender():
 
     # check if the content type of the request is json
-    if not request.is_json:
+    if request.method != 'GET' and not request.is_json:
         return jsonify({'error': 'Request body must be JSON', 'status_code': 400}), 400
 
-    data = request.json
     # check the type of request
     if request.method == 'POST':
+        data = request.json
         return create_sender(data)
     elif request.method == 'PUT':
+        data = request.json
         return update_sender(data)
     elif request.method == 'GET':
+        data = request.args
         return get_sender(data)
 
 

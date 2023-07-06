@@ -151,6 +151,14 @@ class Campaign(BaseModel):
     interactions = relationship('Interaction',
                                   backref='campaign',
                                   lazy=True)
+    
+    # modify the to_dict method to include the sender
+    def to_dict(self):
+        campaign_dict = super().to_dict()
+        # get the sender from the sender_id
+        sender = Sender.query.get(self.sender_id)
+        campaign_dict["sender"] = sender.to_dict()
+        return campaign_dict
 
 class PhoneNumber(BaseModel):
     id = db.Column(db.Integer, primary_key=True)

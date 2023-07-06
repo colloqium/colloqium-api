@@ -9,18 +9,21 @@ campaign_bp = Blueprint('campaign', __name__)
 @campaign_bp.route('/campaign', methods=['GET', 'POST', 'PUT', 'DELETE'])
 def campaign():
 
-    if not request.is_json:
+    # check if the content type of the request is json
+    if request.method != 'GET' and not request.is_json:
         return jsonify({'error': 'Request body must be JSON', 'status_code': 400}), 400
 
-    data = request.json
-
     if request.method == 'POST':
+        data = request.json
         return create_campaign(data)
     elif request.method == 'PUT':
+        data = request.json
         return update_campaign(data)
     elif request.method == 'GET':
+        data = request.args
         return get_campaign(data)
     elif request.method == 'DELETE':
+        data = request.args
         return delete_campaign(data)
 
 def create_campaign(data):
@@ -104,15 +107,21 @@ def get_campaign(data):
 
         return jsonify({'campaigns': [campaign.to_dict() for campaign in campaigns], 'status_code': 200}), 200
     
-    try:
-        campaign = Campaign.query.filter_by(id=data['campaign_id']).first()
-    except KeyError:
-        return jsonify({'error': 'If \'sender_id\' not given, \'campaign_id\' is required', 'status_code': 400}), 400
+    # look for a campaign based on the campaign id
+    if 'campaign_id' in data.keys():
+        try:
+            campaign = Campaign.query.filter_by(id=data['campaign_id']).first()
+        except KeyError:
+            return jsonify({'error': 'If \'sender_id\' not given, \'campaign_id\' is required', 'status_code': 400}), 400
 
-    if not campaign:
-        return jsonify({'error': 'Campaign does not exist', 'status_code': 404}), 404
+        if not campaign:
+            return jsonify({'error': 'Campaign does not exist', 'status_code': 404}), 404
 
-    return jsonify({'campaign': campaign.to_dict(), 'status_code': 200}), 200
+        return jsonify({'campaign': campaign.to_dict(), 'status_code': 200}), 200
+    
+    #return a list of all campaigns
+    campaigns = Campaign.query.all()
+    return jsonify({'campaigns': [campaign.to_dict() for campaign in campaigns], 'status_code': 200}), 200
 
 def delete_campaign(data):
     campaign = Campaign.query.filter_by(id=data['campaign_id']).first()
