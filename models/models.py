@@ -68,6 +68,16 @@ class SendingPhoneNumber:
     def validate(self):
         return self.country_code_validator(self.country_code)
 
+# association table
+audience_recipient = db.Table('audience_recipient',
+    db.Column('audience_id', db.Integer, db.ForeignKey('audience.id')),
+    db.Column('recipient_id', db.Integer, db.ForeignKey('recipient.id'))
+)
+
+campaign_audience = db.Table('campaign_audience',
+    db.Column('campaign_id', db.Integer, db.ForeignKey('campaign.id'), primary_key=True),
+    db.Column('audience_id', db.Integer, db.ForeignKey('audience.id'), primary_key=True)
+)
 
 class BaseModel(db.Model):
     __abstract__ = True
@@ -82,10 +92,12 @@ class Recipient(BaseModel):
     recipient_phone_number = db.Column(db.String(100))
     recipient_profile = db.Column(db.JSON())
     recipient_engagement_history = db.Column(db.JSON())
-    # Add relationship
-    interactions = relationship('Interaction',
+    interactions = db.relationship('Interaction',
                                   backref='recipient',
                                   lazy=True)
+    audiences = db.relationship('Audience',
+                           secondary=audience_recipient,
+                           back_populates='recipients')
 
 
 class Interaction(BaseModel):
@@ -145,6 +157,27 @@ class Sender(BaseModel):
         return sender_dict
 
 
+#Audience which is a group of recipients. Recipients can be in multiple audiences
+
+class Audience(BaseModel):
+    id = db.Column(db.Integer, primary_key=True)
+    audience_name = db.Column(db.String(50))
+    audience_information = db.Column(db.Text)
+    sender_id = db.Column(db.Integer, db.ForeignKey('sender.id'), name="sender_id")
+    recipients = relationship('Recipient', secondary=audience_recipient, back_populates='audiences')
+    campaigns = relationship('Campaign', secondary=campaign_audience, back_populates='audiences')
+
+    # modify the to_dict method to include the sender and the ids of the recipients
+    def to_dict(self):
+        audience_dict = super().to_dict()
+        # get the sender from the sender_id
+        sender = Sender.query.get(self.sender_id)
+        audience_dict["sender"] = sender.to_dict()
+        # get the recipients object from the recipient ids
+        audience_dict["recipients"] = [recipient.to_dict() for recipient in self.recipients]
+        return audience_dict
+
+
 class Campaign(BaseModel):
     id = db.Column(db.Integer, primary_key=True)
     campaign_name = db.Column(db.String(50))
@@ -156,6 +189,8 @@ class Campaign(BaseModel):
     interactions = relationship('Interaction',
                                   backref='campaign',
                                   lazy=True)
+
+    audiences = relationship('Audience', secondary=campaign_audience, back_populates='campaigns')
     
     # modify the to_dict method to include the sender
     def to_dict(self):
@@ -163,6 +198,9 @@ class Campaign(BaseModel):
         # get the sender from the sender_id
         sender = Sender.query.get(self.sender_id)
         campaign_dict["sender"] = sender.to_dict()
+
+        #audiences can belong to multiple campaigns
+        campaign_dict["audiences"] = [audience.to_dict() for audience in self.audiences]
         return campaign_dict
 
 class PhoneNumber(BaseModel):

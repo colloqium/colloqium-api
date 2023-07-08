@@ -1,5 +1,5 @@
 from flask import Blueprint, jsonify, request
-from models.models import Campaign, Sender
+from models.models import Campaign, Sender, Audience
 from context.database import db
 from datetime import datetime
 
@@ -47,6 +47,7 @@ def create_campaign(data):
     # Get optional attributes or set to None if they are not present
     campaign_information = data.get('campaign_information', None)
     campaign_end_date = data.get('campaign_end_date', None)
+    audiences = data.get('audiences', None)
     if campaign_end_date:
         campaign_end_date = datetime.strptime(campaign_end_date, '%Y-%m-%d').date()
 
@@ -89,10 +90,20 @@ def update_campaign(data):
     if 'campaign_end_date' in data.keys():
         campaign.campaign_end_date = datetime.strptime(data['campaign_end_date'], '%Y-%m-%d').date()
 
+    if 'audiences' in data.keys():
+        #get audiences from the ids in the array
+        audiences = Audience.query.filter(Audience.id.in_(data['audiences'])).all()
+
+        # add audiences to the campaign
+        for audience in audiences:
+            if audience not in campaign.audiences:
+                campaign.audiences.append(audience)
+        print(campaign.audiences)
+
     db.session.add(campaign)
     db.session.commit()
 
-    return jsonify({'status': 'success', 'campaign_id': campaign.id, 'status_code': 200}), 200
+    return jsonify({'status': 'success', 'campaign': {'id': campaign.id}, 'status_code': 200}), 200
 
 def get_campaign(data):
     
