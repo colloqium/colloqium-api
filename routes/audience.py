@@ -1,7 +1,7 @@
 # Route that handles audience related requests. Can create a new audience, add a recipient to an audience, or get all audiences assiciated with a sener
 
 from flask import Blueprint, jsonify, request, Response
-from models.models import Audience, Recipient
+from models.models import Audience, Recipient, Campaign
 from context.database import db
 
 # Create a new blueprint
@@ -50,12 +50,18 @@ def create_audience(data):
         print(recipient_ids)
         recipients = Recipient.query.filter(Recipient.id.in_(recipient_ids)).all()
 
+
+    campaigns = []
+    if 'campaigns' in data.keys():
+        campaign_ids = data['campaigns']
+        campaigns = Campaign.query.filter(Campaign.id.in_(campaign_ids)).all()
+
     
     audience_information = None
     if 'audience_information' in data.keys():
         audience_information = data['audience_information']
 
-    audience = Audience(audience_name=audience_name, audience_information=audience_information, sender_id=sender_id, recipients=recipients)
+    audience = Audience(audience_name=audience_name, audience_information=audience_information, sender_id=sender_id, recipients=recipients, campaigns=campaigns)
     db.session.add(audience)
     db.session.commit()
     return jsonify({'status': 'success', 'audience':{ 'id': audience.id}, 'status_code': 201}), 201
@@ -88,6 +94,13 @@ def update_audience(data):
         if new_recipients:
             # Create a new list merging the existing recipients and the new ones
             audience.recipients = list(set(audience.recipients + new_recipients))
+
+    campaign_ids = data.get('campaigns')
+    if campaign_ids:
+        new_campaigns = Campaign.query.filter(Campaign.id.in_(campaign_ids)).all()
+        if new_campaigns:
+            # Create a new list merging the existing campaigns and the new ones
+            audience.campaigns = list(set(audience.campaigns + new_campaigns))
 
     db.session.commit()
 

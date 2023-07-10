@@ -1,6 +1,6 @@
 # URL to handle twilio status callbacks
 from flask import Blueprint, request, jsonify
-from models.models import Recipient, Interaction, Sender, PhoneNumber
+from models.models import Recipient, Interaction, InteractionStatus
 from models.model_utility import get_phone_number_from_db
 from context.analytics import analytics, EVENT_OPTIONS
 
@@ -32,11 +32,17 @@ def twilio_message_callback():
     if not recipient:
         return jsonify({'status': 'error', 'message': 'No recipient found'}), 400
 
-    # get the interaction
-    interaction = Interaction.query.filter_by(sender=sender, recipient=recipient, interaction_type="text_message").first()
+    # Use SqlAlchemy to query the database for the interaction that was created most recently
+    interaction = Interaction.query.filter_by(recipient_id=recipient.id).order_by(Interaction.created_at.desc()).first()
 
     if not interaction:
         return jsonify({'status': 'error', 'message': 'No interaction found'}), 400
+    
+    # update the interaction status
+    if status == 'sent':
+        interaction.status = InteractionStatus.SENT
+    if status == 'delivered':
+        interaction.status = InteractionStatus.DELEIVERED
 
     analytics.track(recipient.id, EVENT_OPTIONS.interaction_call_back, {
                 'status': status,

@@ -1,7 +1,7 @@
 from flask import Blueprint
 # import Flask and other libraries
 from flask import request, jsonify
-from models.models import Recipient, Interaction
+from models.models import Recipient, Interaction, InteractionStatus
 from models.model_utility import get_phone_number_from_db
 from tools.utility import add_message_to_conversation, add_llm_response_to_conversation
 # from logs.logger import logging
@@ -58,6 +58,7 @@ def inbound_message():
                 'status': 'error',
                 'last_action': 'no_interaction_found'
             }), 200
+        interaction.status = InteractionStatus.RESPONDED
 
     
     
