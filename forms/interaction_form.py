@@ -19,7 +19,7 @@ class PhoneNumberValidator(Regexp):
 
 class InteractionForm(FlaskForm):
     campaign_name = StringField('Campaign Name', validators=[DataRequired()])
-    campaign_information = TextAreaField('Campaign Information',
+    campaign_prompt = TextAreaField('Campaign Information',
                                      validators=[DataRequired()])
     sender_name = StringField('Sender Name', validators=[DataRequired()])
     sender_information = TextAreaField('Sender Information',

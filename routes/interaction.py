@@ -21,49 +21,43 @@ def interaction():
         return get_interaction(data)
     else:
         data = request.json
+        print(data)
         return create_interaction(data)
 
 
 
 def create_interaction(data):
-    recipient_id = data['recipient_id']
     campaign_id = data['campaign_id']
     interaction_type = data['interaction_type']
 
     # Check if required fields are missing
-    if not recipient_id or not campaign_id or not interaction_type:
-        return jsonify({'error': 'recipient_id, campaign_id, and interaction_type are all required', 'status_code': 400}), 400
-
-    # Check if recipient and campaign exist
-    recipient = Recipient.query.get(recipient_id)
-    campaign = Campaign.query.get(campaign_id)
-
-    if not recipient:
-        return jsonify({'error': 'Recipient does not exist', 'status_code': 404}), 404
-
-    if not campaign:
-        return jsonify({'error': 'Campaign does not exist', 'status_code': 404}), 404
+    if not campaign_id or not interaction_type:
+        return jsonify({'error': 'campaign_id, and interaction_type are all required', 'status_code': 400}), 400
     
-    # check if the interaction types is in the keys of INTERACTION_TYPES
-    if interaction_type not in INTERACTION_TYPES.keys():
-        return jsonify({'error': 'Invalid interaction type', 'status_code': 400}), 400
+    #check if an audience is provided, if so, create an interaction for each recipient in the audience
 
-    # Create new interaction
-    interaction = Interaction(
-        recipient_id=recipient.id,
-        sender_id=campaign.sender_id,
-        campaign_id=campaign.id,
-        interaction_type=interaction_type,
-        interaction_status=InteractionStatus.INITIALIZED
-    )
+    campaign = Campaign.query.get(campaign_id)
+    audiences = campaign.audiences
+    if audiences:
+        interactions = []
+        for audience in audiences:
+            audience_id = audience.id
+            recipients = audience.recipients
+            for recipient in recipients:
+                interaction = build_interaction(recipient, campaign, interaction_type) 
 
-    db.session.add(interaction)
-    db.session.commit()
+                db.session.add(interaction)
+                db.session.commit()
+                # Initialize interaction
+                initialize_interaction(interaction)
+                interactions.append(interaction)
 
-    # Initialize interaction
-    initialize_interaction(interaction)
+        return jsonify({
+            "status_code": 201,
+            "interactions": {'interaction': {'id': interaction.id} for interaction in interactions}
+            }), 201
 
-    return jsonify({'interaction_id': interaction.id, 'status_code': 201}), 201
+    return jsonify({'error': 'Campaign does not have an audience', 'status_code': 404}), 404
 
 # Creates a new interaction with a recipient and the first system message in the conversation. Does not send the message.
 def initialize_interaction(interaction):
@@ -133,3 +127,23 @@ def get_interaction(data):
         return jsonify(interaction.to_dict()), 200
 
     return jsonify({'error': 'No valid query parameters', 'status_code': 400}), 400
+
+def build_interaction(recipient: Recipient, campaign: Campaign, interaction_type: str) -> Interaction:
+    if not recipient:
+        return jsonify({'error': 'Recipient does not exist', 'status_code': 404}), 404
+
+    if not campaign:
+        return jsonify({'error': 'Campaign does not exist', 'status_code': 404}), 404
+    
+    # check if the interaction types is in the keys of INTERACTION_TYPES
+    if interaction_type not in INTERACTION_TYPES.keys():
+        return jsonify({'error': 'Invalid interaction type', 'status_code': 400}), 400
+
+    # Create new interaction
+    return Interaction(
+        recipient_id=recipient.id,
+        sender_id=campaign.sender_id,
+        campaign_id=campaign.id,
+        interaction_type=interaction_type,
+        interaction_status=InteractionStatus.CREATED
+    )

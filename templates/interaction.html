@@ -56,9 +56,9 @@
                             {% endfor %}
                           </div>
                           <div class="form-group">
-                            {{ form.campaign_information.label(class="form-control-label") }}
-                            {{ form.campaign_information(class="form-control") }} {% for error
-                            in form.campaign_information.errors %}
+                            {{ form.campaign_prompt.label(class="form-control-label") }}
+                            {{ form.campaign_prompt(class="form-control") }} {% for error
+                            in form.campaign_prompt.errors %}
                             <span class="text-danger">{{ error }}</span>
                             {% endfor %}
                           </div>

@@ -1,4 +1,4 @@
-# Campaigns
+# Senders
 
 {
         "sender_name": "GOTV for All",
@@ -12,17 +12,67 @@
         "phone_numbers": ["+13468182973"]
 }
 
+# Recipient
+
+{
+    "recipient_name": "Adrian Obleton",
+    "recipient_information": "Adrian is a tech enthusist",
+    "recipient_phone_number": "(706)664-1258"
+}
+
+{
+        "recipient_name": "Harshita Rathore",
+        "recipient_information": "Harshita is a recent US immigrant who just got her Green Card",
+        "recipient_phone_number": "5618895021"
+}
+
+# Audience
+
+{
+        "audience_name": "Test Audience",
+        "sender_id": 1,
+        "recipients": [1],
+        "audience_information": "This is a test audience"
+}
+
+{
+        "audience_name": "Test Audience 2",
+        "sender_id": 1,
+        "recipients": [2],
+        "audience_information": "This is a second test audience"
+}
+
+{
+        "audience_name": "Test Audience",
+        "sender_id": 2,
+        "recipients": [1],
+        "audience_information": "This is a test audience"
+}
+
+{
+        "audience_name": "Test Audience 2",
+        "sender_id": 2,
+        "recipients": [2],
+        "audience_information": "This is a second test audience"
+}
+
 # Campaign
 {
         "campaign_name": "GOTV for All",
-        "campaign_information": "Your goal is to get the recipient to register to vote. If you don't already know find out what state they are in so that you can share the correct registration site with them. Be brief and friendly in your communications. Mirror back their texting style and try to build rapport.",
+        "campaign_prompt": "Your goal is to get the recipient to register to vote. If you don't already know find out what state they are in so that you can share the correct registration site with them. Be brief and friendly in your communications. Mirror back their texting style and try to build rapport.",
         "sender_id": 1,
-        "campaign_end_date": "2023-11-07"
+        "campaign_goal": "Get the recipient to register to vote",
+        "campaign_fallback": "Refer the recipient to the campaign website, gotv.com",
+        "campaign_end_date": "2023-11-07",
+        "audiences": [1,2]
 }
 
 {
     "sender_id": 2,
     "campaign_name": "2023 Houston Mayoral Race - Volunteer Recruitment",
-    "campaign_information": "Your name is Sarah. You are a volunteer for John Whitmire's Mayoral race. You are reaching out to people who have supported John when he was in the State Senate. Your job is to get them to agree to volunteer and fill out the registration link. If they do agree, send them this link to register: https://forms.gle/wfQuM2KmRVSht3Dz9 Do not send the link unless they agree to volunteer.Be brief. Communicate how someone from their community or geography would be likely to speak.",
-    "campaign_end_date": "2023-11-07"
+    "campaign_prompt": "Your name is Sarah. You are a volunteer for John Whitmire's Mayoral race. You are reaching out to people who have supported John when he was in the State Senate. Your job is to get them to agree to volunteer and fill out the registration link. If they do agree, send them this link to register: https://forms.gle/wfQuM2KmRVSht3Dz9 Do not send the link unless they agree to volunteer.Be brief. Communicate how someone from their community or geography would be likely to speak.",
+    "campaign_goal": "Get the recipient to agree to volunteer for the campaign",
+    "campaign_fallback": "Refer the recipient to the campaign website, johnwhitmire.com",
+    "campaign_end_date": "2023-11-07",
+    "audiences": [3,4]
 }

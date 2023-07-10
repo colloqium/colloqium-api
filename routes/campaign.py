@@ -33,8 +33,8 @@ def create_campaign(data):
     # Check if required fields are missing
     if not campaign_name or not sender_id:
         return jsonify({'error': 'Both campaign_name and sender_id are required', 'status_code': 400}), 400
-    
-    #check if the sender exists
+
+    # Check if the sender exists
     sender = Sender.query.filter_by(id=sender_id).first()
 
     if not sender:
@@ -45,20 +45,46 @@ def create_campaign(data):
         return jsonify({'error': 'Campaign already exists for this sender', 'status_code': 409}), 409
 
     # Get optional attributes or set to None if they are not present
-    campaign_information = data.get('campaign_information', None)
+    campaign_prompt = data.get('campaign_prompt', None)
+    campaign_goal = data.get('campaign_goal', None)
+    campaign_fallback = data.get('campaign_fallback', None)
+    example_interactions = data.get('example_interactions', None)
+    campaign_manager_summary = data.get('campaign_manager_summary', None)
+    communications_director_summary = data.get('communications_director_summary', None)
+    field_director_summary = data.get('field_director_summary', None)
     campaign_end_date = data.get('campaign_end_date', None)
-    audiences = data.get('audiences', None)
+    audience_ids = data.get('audiences', None)
+
+    # Parse campaign end date if provided
     if campaign_end_date:
         campaign_end_date = datetime.strptime(campaign_end_date, '%Y-%m-%d').date()
 
-    campaign = Campaign(campaign_name=campaign_name, campaign_information=campaign_information, sender_id=sender_id, campaign_end_date=campaign_end_date)
+    # Get Audience objects from provided IDs
+    audiences = None
+    if audience_ids:
+        audiences = Audience.query.filter(Audience.id.in_(audience_ids)).all()
+
+    campaign = Campaign(
+        campaign_name=campaign_name, 
+        campaign_prompt=campaign_prompt, 
+        campaign_goal=campaign_goal, 
+        campaign_fallback=campaign_fallback,
+        example_interactions=example_interactions,
+        campaign_manager_summary=campaign_manager_summary,
+        communications_director_summary=communications_director_summary,
+        field_director_summary=field_director_summary,
+        sender_id=sender_id, 
+        campaign_end_date=campaign_end_date, 
+        audiences=audiences
+    )
 
     db.session.add(campaign)
     db.session.commit()
 
     campaign = Campaign.query.filter_by(campaign_name=campaign_name).first()
 
-    return jsonify({'campaign_id': campaign.id, 'status_code': 201}), 201
+    return jsonify({'campaign': { 'id': campaign.id}, 'status_code': 201}), 201
+
 
 def update_campaign(data):
     campaign_id = data['campaign_id']
@@ -80,8 +106,8 @@ def update_campaign(data):
 
         campaign.campaign_name = data['campaign_name']
 
-    if 'campaign_information' in data.keys():
-        campaign.campaign_information = data['campaign_information']
+    if 'campaign_prompt' in data.keys():
+        campaign.campaign_prompt = data['campaign_prompt']
 
     if 'sender_id' in data.keys():
         # sender name should not be changed
@@ -89,6 +115,19 @@ def update_campaign(data):
 
     if 'campaign_end_date' in data.keys():
         campaign.campaign_end_date = datetime.strptime(data['campaign_end_date'], '%Y-%m-%d').date()
+
+    if 'campaign_goal' in data.keys():
+        campaign.campaign_goal = data['campaign_goal']
+
+    if 'campaign_fallback' in data.keys():
+        campaign.campaign_fallback = data['campaign_fallback']
+    
+    if 'example_interactions' in data.keys():
+        #aappend examples to the current examples if any
+        if campaign.example_interactions:
+            campaign.example_interactions = campaign.example_interactions + " " + data['example_interactions']
+        else:
+            campaign.example_interactions = data['example_interactions']
 
     if 'audiences' in data.keys():
         #get audiences from the ids in the array
@@ -99,6 +138,27 @@ def update_campaign(data):
             if audience not in campaign.audiences:
                 campaign.audiences.append(audience)
         print(campaign.audiences)
+
+    if 'campaign_manager_summary' in data.keys():
+        campaign.campaign_manager_summary = data['campaign_manager_summary']
+
+    if 'communications_director_summary' in data.keys():
+        campaign.communications_director_summary = data['communications_director_summary']
+
+    if 'field_director_summary' in data.keys():
+        campaign.field_director_summary = data['field_director_summary']
+
+    if 'interactions_sent' in data.keys():
+        campaign.interactions_sent = data['interactions_sent']
+
+    if 'interactions_delivered' in data.keys():
+        campaign.interactions_delivered = data['interactions_delivered']
+
+    if 'interactions_responded' in data.keys():
+        campaign.interactions_responded = data['interactions_responded']
+
+    if 'interactions_converted' in data.keys():
+        campaign.interactions_converted = data['interactions_converted']
 
     db.session.add(campaign)
     db.session.commit()

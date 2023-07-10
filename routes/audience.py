@@ -43,8 +43,19 @@ def create_audience(data):
     audience = Audience.query.filter_by(audience_name=audience_name, sender_id=sender_id).first()
     if audience:
         return jsonify({'error': 'Audience already exists', 'status_code': 409}), 409
+    
+    recipients = []
+    if 'recipients' in data.keys():
+        recipient_ids = data['recipients']
+        print(recipient_ids)
+        recipients = Recipient.query.filter(Recipient.id.in_(recipient_ids)).all()
 
-    audience = Audience(audience_name=audience_name, sender_id=sender_id)
+    
+    audience_information = None
+    if 'audience_information' in data.keys():
+        audience_information = data['audience_information']
+
+    audience = Audience(audience_name=audience_name, audience_information=audience_information, sender_id=sender_id, recipients=recipients)
     db.session.add(audience)
     db.session.commit()
     return jsonify({'status': 'success', 'audience':{ 'id': audience.id}, 'status_code': 201}), 201

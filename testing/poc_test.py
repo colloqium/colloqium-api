@@ -27,7 +27,7 @@ class TestBlueprint(unittest.TestCase):
             response = client.post('/interaction/last_action?last_action=some_value', data={
                 'recipient_csv': (csv_data, 'test.csv'),
                 'campaign_name': 'GOTV for All',
-                'campaign_information': 'Encourage the recipient to register to vote. Find out what state they are in so that you can point them to the right website.',
+                'campaign_prompt': 'Encourage the recipient to register to vote. Find out what state they are in so that you can point them to the right website.',
                 'campaign_end_date': '2023-11-09',
                 'interaction_type': 'text',
                 'sender_name': 'GOTV for All',

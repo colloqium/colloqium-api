@@ -13,6 +13,7 @@ from routes.twilio_message_callback import twilio_message_callback
 from routes.sender import sender
 from routes.recipient import recipient
 from routes.campaign import campaign
+from routes.campaign_insights import campaign_insights
 from routes.audience import audience
 from routes.static import static
 
@@ -33,4 +34,5 @@ bp.add_url_rule('/static_files/<path:path>', view_func=static, methods=['GET'])
 bp.add_url_rule("/sender", view_func=sender, methods=['GET', 'POST', 'PUT'])
 bp.add_url_rule("/recipient", view_func=recipient, methods=['GET', 'POST', 'PUT', 'OPTIONS'])
 bp.add_url_rule("/campaign", view_func=campaign, methods=['GET', 'POST', 'PUT', 'DELETE'])
+bp.add_url_rule("/campaign/insights", view_func=campaign_insights, methods=['POST'])
 bp.add_url_rule("/audience", view_func=audience, methods=['GET', 'POST', 'PUT', 'DELETE'])

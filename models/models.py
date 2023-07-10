@@ -43,9 +43,13 @@ class InteractionType:
 
 @dataclass
 class InteractionStatus:
+    CREATED = "created"
     INITIALIZED = "initialized"
     HUMAN_CONFIRMED = "human_confirmed"
     SENT = "sent"
+    DELIVERED = "delivered"
+    RESPONDED = "responded"
+    CONVERTED = "converted"
 
 @dataclass
 class SendingPhoneNumber:
@@ -110,9 +114,21 @@ class Interaction(BaseModel):
     sender_id = db.Column(db.Integer, db.ForeignKey('sender.id'), name="sender_id")
     campaign_id = db.Column(db.Integer, db.ForeignKey('campaign.id'))
     recipient_outreach_schedule = db.Column(db.JSON())
-    interaction_status = db.Column(db.String(50)) #initialized, human_confirmed, sent
+    interaction_status = db.Column(db.String(50)) #initialized, human_confirmed, sent, delivered, responded, converted
     time_created = db.Column(DateTime(timezone=True), server_default=func.now())
     time_updated = db.Column(DateTime(timezone=True), onupdate=func.now())
+
+    # Evaluation of the interaction
+    goal_achieved = db.Column(db.Boolean())
+    rating_explanation = db.Column(db.Text())
+    rating = db.Column(db.Integer())
+    campaign_relevance_score = db.Column(db.Integer()) # how interesting this interaction would be for the sender to know about
+    campaign_relevance_explanation = db.Column(db.Text())
+    campaign_relevance_summary = db.Column(db.Text())
+
+    #Summary of interaction to aggregate useful takeaways
+    insights_about_issues = db.Column(db.Text())
+    insights_about_recipient = db.Column(db.Text())
 
     # Relationships are set up in Recipient, Sender, and CampaignContext models
 
@@ -181,9 +197,23 @@ class Audience(BaseModel):
 class Campaign(BaseModel):
     id = db.Column(db.Integer, primary_key=True)
     campaign_name = db.Column(db.String(50))
-    campaign_information = db.Column(db.Text)
+    campaign_prompt = db.Column(db.Text)
+    campaign_goal = db.Column(db.Text)
+    campaign_fallback = db.Column(db.Text)
+    example_interactions = db.Column(db.Text) # "Message bible" of example texts for the campaign
     sender_id = db.Column(db.Integer, db.ForeignKey('sender.id'), name="sender_id")
     campaign_end_date = db.Column(db.Date)
+
+    #Fields for sharing insights on campaign
+    campaign_manager_summary = db.Column(db.Text)
+    communications_director_summary = db.Column(db.Text)
+    field_director_summary = db.Column(db.Text)
+
+    #Fields for measuring outcomes of campaign
+    interactions_sent = db.Column(db.Integer)
+    interactions_delivered = db.Column(db.Integer)
+    interactions_responded = db.Column(db.Integer)
+    interactions_converted = db.Column(db.Integer)
 
     # Add relationship
     interactions = relationship('Interaction',
