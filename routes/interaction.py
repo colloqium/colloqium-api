@@ -41,10 +41,16 @@ def create_interaction(data):
     if audiences:
         interactions = []
         for audience in audiences:
-            audience_id = audience.id
             recipients = audience.recipients
             for recipient in recipients:
-                interaction = build_interaction(recipient, campaign, interaction_type) 
+                interaction = build_interaction(recipient, campaign, interaction_type)
+
+                #check if an interaction already exists for this recipient and campaign
+                #if so, do not create a new interaction
+                existing_interaction = Interaction.query.filter_by(recipient_id=recipient.id, campaign_id=campaign.id).first()
+                if existing_interaction:
+                    print("Interaction already exists for this recipient and campaign")
+                    continue 
 
                 db.session.add(interaction)
                 db.session.commit()
