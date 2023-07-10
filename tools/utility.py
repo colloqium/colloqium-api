@@ -22,7 +22,7 @@ def add_llm_response_to_conversation(
     response_content = ""
     retry_count = 0
     max_retries = 5  # maximum number of retries
-    wait_time = 2  # wait time in seconds
+    wait_time = 1  # wait time in seconds
 
     while retry_count < max_retries:
         try:
@@ -46,6 +46,13 @@ def add_llm_response_to_conversation(
             break
         except openai.error.RateLimitError:
             # sleep for a while before retrying
+            (
+                f"Model overloaded, waiting for {wait_time} seconds before retry..."
+            )
+            time.sleep(wait_time)
+            retry_count += 1
+            continue
+        except openai.error.ServiceUnavailableError:
             (
                 f"Model overloaded, waiting for {wait_time} seconds before retry..."
             )
