@@ -1,5 +1,3 @@
-from apscheduler.schedulers.background import BackgroundScheduler
-from pytz import timezone
+from flask_apscheduler import APScheduler
 
-us_eastern_tz = timezone('US/Eastern')
-scheduler = BackgroundScheduler(time_zone=us_eastern_tz)
+scheduler = APScheduler()

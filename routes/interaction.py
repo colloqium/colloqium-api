@@ -1,4 +1,4 @@
-from flask import Blueprint, request, jsonify
+from flask import Blueprint, request, jsonify, current_app
 # import Flask and other libraries
 from models.models import Recipient, Campaign, Interaction, InteractionStatus
 from context.constants import INTERACTION_TYPES
@@ -6,6 +6,8 @@ from tools.utility import add_llm_response_to_conversation, initialize_conversat
 from context.database import db
 # Import the functions from the other files
 from context.analytics import analytics, EVENT_OPTIONS
+from tools.scheduler import scheduler
+from datetime import datetime, timedelta
 
 
 interaction_bp = Blueprint('interaction', __name__)
@@ -39,6 +41,8 @@ def create_interaction(data):
     campaign = Campaign.query.get(campaign_id)
     audiences = campaign.audiences
     if audiences:
+        with current_app.app_context():
+            scheduler.start()
         interactions = []
         for audience in audiences:
             recipients = audience.recipients
@@ -54,8 +58,15 @@ def create_interaction(data):
 
                 db.session.add(interaction)
                 db.session.commit()
+
+
+                # Schedule the interaction initialization for .1 seconds from now
+                scheduler.add_job(
+                    func=initialize_interaction,
+                    args=[interaction.id, current_app._get_current_object()],
+                    id=f'initialize-interaction-{interaction.id}'
+                )
                 # Initialize interaction
-                initialize_interaction(interaction)
                 interactions.append(interaction)
 
         return jsonify({
@@ -66,37 +77,48 @@ def create_interaction(data):
     return jsonify({'error': 'Campaign does not have an audience', 'status_code': 404}), 404
 
 # Creates a new interaction with a recipient and the first system message in the conversation. Does not send the message.
-def initialize_interaction(interaction):
-    interaction_type = interaction.interaction_type
+def initialize_interaction(interaction_id, app):
+    
+    with app.app_context():
+        interaction = Interaction.query.get(interaction_id)
 
-    system_prompt = INTERACTION_TYPES[interaction_type].system_initialization_method(interaction)
+        if not interaction:
+            print("Interaction does not exist")
+            return
+        
+        print("Initializing interaction from scheduler")
+        interaction_type = interaction.interaction_type
 
-    user_number = interaction.recipient.recipient_phone_number
-    sender_number = interaction.sender.select_phone_number_for_interaction(interaction)
+        system_prompt = INTERACTION_TYPES[interaction_type].system_initialization_method(interaction)
 
-    # Pre-create the first response
-    conversation = initialize_conversation(system_prompt)
-    interaction.conversation = conversation
-    initial_statement = add_llm_response_to_conversation(interaction)
-    print("Interaction created successfully")
-    interaction.interaction_status = InteractionStatus.INITIALIZED
+        user_number = interaction.recipient.recipient_phone_number
+        sender_number = interaction.sender.select_phone_number_for_interaction(interaction)
 
-    db.session.commit()
+        # Pre-create the first response
+        conversation = initialize_conversation(system_prompt)
+        interaction.conversation = conversation
+        initial_statement = add_llm_response_to_conversation(interaction)
+        print("Interaction created successfully")
+        interaction.interaction_status = InteractionStatus.INITIALIZED
 
-    analytics.track(interaction.recipient.id, EVENT_OPTIONS.initialized, {
-        'sender_id': interaction.sender.id,
-        'sender_phone_number': sender_number,
-        'interaction_type': interaction.interaction_type,
-        'interaction_id': interaction.id
-    })
 
-    # Log the system prompt and user number
-    print("Interaction Type: %s", interaction_type)
-    print(f"System prompt: {system_prompt}")
-    print(f"User number: {user_number}")
-    print(f"Sender number: {sender_number}")
-    print(f"Initial Statement: {initial_statement}")
-    print(f"Conversation: {conversation}")
+        db.session.add(interaction)
+        db.session.commit()
+
+        analytics.track(interaction.recipient.id, EVENT_OPTIONS.initialized, {
+            'sender_id': interaction.sender.id,
+            'sender_phone_number': sender_number,
+            'interaction_type': interaction.interaction_type,
+            'interaction_id': interaction.id
+        })
+
+        # Log the system prompt and user number
+        print("Interaction Type: %s", interaction_type)
+        print(f"System prompt: {system_prompt}")
+        print(f"User number: {user_number}")
+        print(f"Sender number: {sender_number}")
+        print(f"Initial Statement: {initial_statement}")
+        print(f"Conversation: {conversation}")
 
 def get_interaction(data):
     #Check if there is a sender id. If there is return all interactions for that sender

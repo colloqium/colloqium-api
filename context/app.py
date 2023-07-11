@@ -6,6 +6,7 @@ from context.database import db
 import secrets
 from dotenv import load_dotenv
 from routes.blueprint import bp
+from tools.scheduler import scheduler
 
 def create_app():
     load_dotenv()
@@ -36,6 +37,8 @@ def create_app():
     with app.app_context():
         #if tables don't match migration, create them
         db.create_all()
+
+    scheduler.init_app(app)
 
     return app
 

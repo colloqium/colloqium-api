@@ -29,28 +29,28 @@
 # Audience
 
 {
-        "audience_name": "Test Audience",
+        "audience_name": "Test Audience for sender 1",
         "sender_id": 1,
         "recipients": [1],
         "audience_information": "This is a test audience"
 }
 
 {
-        "audience_name": "Test Audience 2",
+        "audience_name": "Test Audience 2 for sender 1",
         "sender_id": 1,
         "recipients": [2],
         "audience_information": "This is a second test audience"
 }
 
 {
-        "audience_name": "Test Audience",
+        "audience_name": "Test Audience for sender 2",
         "sender_id": 2,
         "recipients": [1],
         "audience_information": "This is a test audience"
 }
 
 {
-        "audience_name": "Test Audience 2",
+        "audience_name": "Test Audience 2 for sender 2",
         "sender_id": 2,
         "recipients": [2],
         "audience_information": "This is a second test audience"
