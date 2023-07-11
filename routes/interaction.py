@@ -6,8 +6,7 @@ from tools.utility import add_llm_response_to_conversation, initialize_conversat
 from context.database import db
 # Import the functions from the other files
 from context.analytics import analytics, EVENT_OPTIONS
-from tools.scheduler import scheduler
-from datetime import datetime, timedelta
+import threading
 
 
 interaction_bp = Blueprint('interaction', __name__)
@@ -41,8 +40,6 @@ def create_interaction(data):
     campaign = Campaign.query.get(campaign_id)
     audiences = campaign.audiences
     if audiences:
-        with current_app.app_context():
-            scheduler.start()
         interactions = []
         for audience in audiences:
             recipients = audience.recipients
@@ -59,13 +56,9 @@ def create_interaction(data):
                 db.session.add(interaction)
                 db.session.commit()
 
+                thread = threading.Thread(target=initialize_interaction, args=[interaction.id, current_app._get_current_object()])
+                thread.start()
 
-                # Schedule the interaction initialization for .1 seconds from now
-                scheduler.add_job(
-                    func=initialize_interaction,
-                    args=[interaction.id, current_app._get_current_object()],
-                    id=f'initialize-interaction-{interaction.id}'
-                )
                 # Initialize interaction
                 interactions.append(interaction)
 
