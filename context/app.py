@@ -38,7 +38,7 @@ def create_app():
         #check if any tables exist, if so drop them
         if db.engine.table_names():
             db.drop_all()
-        db.create_all()
+            db.create_all()
 
     scheduler.init_app(app)
 
