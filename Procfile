@@ -1,1 +1,1 @@
-web: gunicorn --log-level=DEBUG -w 4 main:app
+web: python tools/init_db.py && gunicorn --log-level=DEBUG -w 4 main:app
