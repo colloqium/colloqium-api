@@ -36,6 +36,7 @@ def create_app():
     Migrate(app, db)
     with app.app_context():
         #if tables don't match migration, create them
+        db.drop_all()
         db.create_all()
 
     scheduler.init_app(app)
