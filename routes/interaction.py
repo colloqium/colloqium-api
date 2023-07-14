@@ -6,7 +6,9 @@ from tools.utility import add_llm_response_to_conversation, initialize_conversat
 from context.database import db
 # Import the functions from the other files
 from context.analytics import analytics, EVENT_OPTIONS
+from context.sockets import socketio
 import threading
+import json
 
 
 interaction_bp = Blueprint('interaction', __name__)
@@ -98,6 +100,11 @@ def initialize_interaction(interaction_id, app):
         db.session.add(interaction)
         db.session.commit()
 
+        # Send a message to all open WebSocket connections with a matching campaign_id
+        socketio.emit('interaction_initialized', {'interaction_id': interaction.id, 'campaign_id': interaction.campaign_id}, room=f'subscribe_campaign_initialization_{interaction.campaign_id}')
+        socketio.emit('interaction_initialized', {'interaction_id': interaction.id, 'sender_id': interaction.sender_id}, room=f'subscribe_sender_confirmation_{interaction.sender_id}')
+
+
         analytics.track(interaction.recipient.id, EVENT_OPTIONS.initialized, {
             'sender_id': interaction.sender.id,
             'sender_phone_number': sender_number,
@@ -107,11 +114,9 @@ def initialize_interaction(interaction_id, app):
 
         # Log the system prompt and user number
         print("Interaction Type: %s", interaction_type)
-        print(f"System prompt: {system_prompt}")
         print(f"User number: {user_number}")
         print(f"Sender number: {sender_number}")
         print(f"Initial Statement: {initial_statement}")
-        print(f"Conversation: {conversation}")
 
 def get_interaction(data):
     #Check if there is a sender id. If there is return all interactions for that sender

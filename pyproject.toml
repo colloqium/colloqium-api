@@ -27,6 +27,9 @@ flask-sslify = "^0.1.5"
 flask-cors = "^4.0.0"
 flask-apscheduler = "^1.12.4"
 requests = "^2.31.0"
+flask-sockets = "^0.2.1"
+flask-socketio = "^5.3.4"
+gevent-websocket = "^0.10.1"
 
 [tool.poetry.dev-dependencies]
 debugpy = "^1.6.2"

@@ -1,9 +1,9 @@
 import requests
 import json
 
-# Base URL
-#base_url = "https://thawing-sierra-51587.herokuapp.com/"
-# Senders
+# ## Base URL
+# base_url = "https://thawing-sierra-51587.herokuapp.com/"
+# ## Senders
 # senders_data = [
 #     {
 #         "sender_name": "GOTV for All",

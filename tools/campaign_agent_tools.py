@@ -4,7 +4,7 @@ from flask_sqlalchemy import SQLAlchemy
 from logs.logger import logging
 import re
 import datetime
-from tools.scheduler import scheduler
+from context.scheduler import scheduler
 from tools.campaign_worker_tools import CampaignWorker, outreach_functions
 from tools.utility import remove_trailing_commas
 

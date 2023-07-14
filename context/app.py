@@ -1,12 +1,14 @@
 import os
 from flask import Flask
 from flask_cors import CORS
-from flask_migrate import Migrate, upgrade
+from flask_migrate import Migrate
 from context.database import db
 import secrets
 from dotenv import load_dotenv
 from routes.blueprint import bp
-from tools.scheduler import scheduler
+from context.sockets import socketio
+from routes.socket_handlers import initialize_socket_handlers
+from context.scheduler import scheduler
 
 def create_app():
     load_dotenv()
@@ -28,6 +30,9 @@ def create_app():
     app.register_blueprint(bp)
     app.config['SECRET_KEY'] = secrets.token_hex(nbytes=8)
     app.config['SQLALCHEMY_DATABASE_URI'] = os.environ['DATABASE_URL']
+
+    socketio.init_app(app)
+    initialize_socket_handlers()
 
     CORS(app, resources={r"/*": {"origins": "*"}})
     app.config['CORS_HEADERS'] = 'Content-Type'
