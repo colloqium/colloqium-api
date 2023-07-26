@@ -16,9 +16,9 @@ def init_db():
 
 
     with app.app_context():
-        if db.inspect(db.engine).get_table_names():
+        if not db.inspect(db.engine).get_table_names():
             db.drop_all()
-        db.create_all()
+            db.create_all()
 
 if __name__ == "__main__":
     init_db()

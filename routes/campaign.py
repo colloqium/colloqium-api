@@ -75,8 +75,10 @@ def create_campaign(data):
         field_director_summary=field_director_summary,
         sender_id=sender_id, 
         campaign_end_date=campaign_end_date, 
-        audiences=audiences
     )
+
+    if audiences:
+        campaign.audiences = audiences
 
     db.session.add(campaign)
     db.session.commit()
