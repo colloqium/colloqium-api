@@ -70,7 +70,7 @@ def create_sender(data):
         db.session.commit()
 
     # return a success code and the created sender id
-    return jsonify({'sender_id': sender.id, 'status_code': 201}), 201
+    return jsonify({'sender':{'id': sender.id}, 'status_code': 201}), 201
 
 
 
@@ -120,7 +120,9 @@ def update_sender(data):
     db.session.commit()
 
     # return success is true, the sender id and a success code
-    return jsonify({'status': 'success', 'sender_id': sender.id, 'status_code': 200}), 200
+    return jsonify({'status': 'success',
+    'sender': {'id': sender.id},
+    'status_code': 200}), 200
 
 def get_sender(data):
     

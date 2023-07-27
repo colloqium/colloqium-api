@@ -126,7 +126,7 @@ def get_interaction(data):
         interactions = Interaction.query.filter_by(sender_id=sender_id).all()
         if not interactions:
             return jsonify({'error': 'Sender does not have any interactions', 'status_code': 404}), 404
-        return jsonify([interaction.to_dict() for interaction in interactions]), 200
+        return jsonify({'interactions': [interaction.to_dict() for interaction in interactions], 'status_code': 200}), 200
 
     #Check if there is a recipient id. If there is return all interactions for that recipient
     if 'recipient_id' in data.keys():
@@ -134,7 +134,7 @@ def get_interaction(data):
         interactions = Interaction.query.filter_by(recipient_id=recipient_id).all()
         if not interactions:
             return jsonify({'error': 'Recipient does not have any interactions', 'status_code': 404}), 404
-        return jsonify([interaction.to_dict() for interaction in interactions]), 200
+        return jsonify({'interactions': [interaction.to_dict() for interaction in interactions], 'status_code': 200}), 200
     
     #Check if there is a campaign id. If there is return all interactions for that campaign
     if 'campaign_id' in data.keys():
@@ -142,7 +142,7 @@ def get_interaction(data):
         interactions = Interaction.query.filter_by(campaign_id=campaign_id).all()
         if not interactions:
             return jsonify({'error': 'Campaign does not have any interactions', 'status_code': 404}), 404
-        return jsonify([interaction.to_dict() for interaction in interactions]), 200
+        return jsonify({'interactions': [interaction.to_dict() for interaction in interactions], 'status_code': 200}), 200
     
     #Check if there is an interaction id. If there is return that interaction
     if 'interaction_id' in data.keys():
@@ -150,7 +150,7 @@ def get_interaction(data):
         interaction = Interaction.query.get(interaction_id)
         if not interaction:
             return jsonify({'error': 'Interaction does not exist', 'status_code': 404}), 404
-        return jsonify(interaction.to_dict()), 200
+        return jsonify({'interaction': interaction.to_dict(), 'status_code': 200}), 200
 
     return jsonify({'error': 'No valid query parameters', 'status_code': 400}), 400
 
