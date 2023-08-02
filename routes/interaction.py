@@ -2,7 +2,7 @@ from flask import Blueprint, request, jsonify, current_app
 # import Flask and other libraries
 from models.models import Recipient, Campaign, Interaction, InteractionStatus
 from context.constants import INTERACTION_TYPES
-from tools.utility import add_llm_response_to_conversation, initialize_conversation
+from tools.utility import get_llm_response_to_conversation, initialize_conversation
 from context.database import db
 # Import the functions from the other files
 from context.analytics import analytics, EVENT_OPTIONS
@@ -92,7 +92,8 @@ def initialize_interaction(interaction_id, app):
         # Pre-create the first response
         conversation = initialize_conversation(system_prompt)
         interaction.conversation = conversation
-        initial_statement = add_llm_response_to_conversation(interaction)
+        initial_statement = get_llm_response_to_conversation(conversation)
+        interaction.conversation.append(initial_statement)
         print("Interaction created successfully")
         interaction.interaction_status = InteractionStatus.INITIALIZED
 

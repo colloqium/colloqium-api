@@ -40,8 +40,6 @@ def create_app():
     db.init_app(app)
     Migrate(app, db)
 
-    scheduler.init_app(app)
-
     return app
 
 # def setup_migrations(app, db):

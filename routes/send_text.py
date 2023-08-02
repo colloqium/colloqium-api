@@ -7,14 +7,14 @@ from context.database import db
 from context.apis import client
 from tools.utility import format_phone_number
 from context.analytics import analytics, EVENT_OPTIONS
-from context.apis import base_url
+from context.apis import twilio_messaging_service_sid, message_webhook_url
+from twilio.twiml.messaging_response import MessagingResponse
 
 send_text_bp = Blueprint('send_text', __name__)
 
 
 @send_text_bp.route("/send_text", methods=['POST', 'OPTIONS'])
 def send_text():
-
     print("send_text route called")
 
     if request.method == 'OPTIONS':
@@ -28,15 +28,20 @@ def send_text():
     
     #check if the request includes the required confirmations
 
-    request_erros = get_request_errors(request)
-    if len(request_erros) > 0:
+    request_errors = get_request_errors(request)
+    if len(request_errors) > 0:
         print("missing required fields  in request")
-        return jsonify({'status': 'error', 'last_action': 'missing_required_fields', 'errors': request_erros})
+        print(f"Errors: , {request_errors}")
+        return jsonify({'status': 'error', 'last_action': 'missing_required_fields', 'errors': request_errors})
     
     interaction_id = request.json.get('interaction_id')
 
+
+    response = Response(str(MessagingResponse()), mimetype='application/xml')
+
     try:
         text_thread = db.session.query(Interaction).get(interaction_id)
+        
         #set the interaction_status to InteractionStatus.HUMAN_CONFIRMED
         text_thread.interaction_status = InteractionStatus.HUMAN_CONFIRMED
 
@@ -45,30 +50,25 @@ def send_text():
             sender = Sender.query.get(text_thread.sender_id)
             conversation = text_thread.conversation
 
-            print(
-                f"Texting route recieved Conversation: {conversation}")
+            # print( f"Texting route recieved Conversation: {conversation}")
 
+            # Depends on the fact that this is the first message in the conversation. Should move to a more robust solution
             body = conversation[-1].get('content')
 
-            print(
-                f"Starting text message with body'{body}' and user number '{recipient.recipient_phone_number}'"
-            )
-
-            callback_route = base_url + "twilio_message_callback"
-            print(f"Sending callback to '{callback_route}'")
+            # print(f"Starting text message with body'{body}' and user number '{recipient.recipient_phone_number}'")
 
 
             sender_phone_number = sender.phone_numbers[0].get_full_phone_number()
+            
             # Start a new text message thread
-            text_message = client.messages.create(
+            client.messages.create(
                 body=body,
                 from_=format_phone_number(sender_phone_number),
                 to=format_phone_number(recipient.recipient_phone_number),
-                status_callback=callback_route)
+                status_callback=message_webhook_url,
+                messaging_service_sid=twilio_messaging_service_sid)
 
-            print(
-                f"Started text Conversation with recipient '{recipient.recipient_name}' on text SID '{text_message.sid}'"
-            )
+            # print(f"Started text Conversation with recipient '{recipient.recipient_name}' on text SID '{text_message.sid}'")
             analytics.track(recipient.id, EVENT_OPTIONS.sent, {
                 'interaction_id': interaction_id,
                 'interaction_type': text_thread.interaction_type,
@@ -79,26 +79,17 @@ def send_text():
                 'message': body,
             })
 
+            text_thread.interaction_status = InteractionStatus.SENT
+
+            db.session.add(text_thread)
             db.session.commit()
 
-            return jsonify({
-                'status': 'success',
-                'last_action':
-                f"Sending text to {recipient.recipient_name} at {recipient.recipient_phone_number}",
-                'First Message': body,
-                'conversation': text_thread.conversation
-            }), 200
+            return response, 200
         else:
-            return jsonify({ 'status': 'error', 'message': f"Interaction with id {interaction_id} not found" }), 400
+            return response, 400
 
     except Exception as e:
-        print(f"Exception occurred: {e}", exc_info=True)
-        return jsonify({
-            'status':
-            'error',
-            'message':
-            f"Error Sending text. Exception: {e}"
-        }), 400
+        response, 400
     
 
 

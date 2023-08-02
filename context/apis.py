@@ -7,17 +7,16 @@ load_dotenv()
 # Your Twilio account credentials
 account_sid = os.environ['twilio_account_sid']
 auth_token = os.environ['twilio_auth_token']
-twilio_number = os.environ['twilio_number']
-second_twilio_number = os.environ['second_twilio_number']
-third_twilio_number = os.environ['third_twilio_number']
 segment_write_key = os.environ['WRITE_KEY']
-
-twilio_numbers = [twilio_number, second_twilio_number, third_twilio_number]
+twilio_messaging_service_sid = os.environ['TWILIO_MESSAGING_SERVICE_SID']
 
 base_url = os.environ['BASE_URL']
 
 # The webhook URL for handling the call events
 call_webhook_url = base_url+"/twilio_call"
+
+# The webhook URL for handling the message events
+message_webhook_url = base_url+"/twilio_message_callback"
 
 # Create a Twilio client object
 client = Client(account_sid, auth_token)

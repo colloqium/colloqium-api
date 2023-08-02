@@ -17,7 +17,6 @@ import json
 #     }
 # ]
 
-
 base_url = "https://colloqium.ngrok.dev/"
 senders_data = [
     

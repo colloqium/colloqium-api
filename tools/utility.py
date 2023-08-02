@@ -5,20 +5,18 @@ from context.database import db
 import re
 import time
 
-def add_message_to_conversation(recipient_communication: Interaction,
-                                message) -> []:
+def add_message_to_conversation(conversation: [{}],message: {}) -> []:
     """
     This function should append the new message to the recipient_communication conversation.
     """
     (f"Updating conversation with new message: {message}")
-    conversation = recipient_communication.conversation.copy()
+    conversation = conversation.copy()
     conversation.append({"role": "user", "content": message})
     return conversation
 
 
-def add_llm_response_to_conversation(
-        recipient_communication: Interaction) -> str:
-    conversation = recipient_communication.conversation.copy()
+def get_llm_response_to_conversation(conversation: [{}]) -> {}:
+    conversation = conversation.copy()
     response_content = ""
     retry_count = 0
     max_retries = 5  # maximum number of retries
@@ -40,9 +38,7 @@ def add_llm_response_to_conversation(
             (
                 f"Adding OpenAI response to conversation: {response_content}")
 
-            recipient_communication.conversation = conversation
-            db.session.add(recipient_communication)
-            db.session.commit()
+            conversation = conversation
             break
         except openai.error.RateLimitError:
             # sleep for a while before retrying
@@ -63,7 +59,7 @@ def add_llm_response_to_conversation(
     if retry_count == max_retries:
         print("Max retries reached, OpenAI model still overloaded.")
 
-    return response_content
+    return conversation[-1]
 
 
 def initialize_conversation(system_prompt: str) -> [{}]:

@@ -1,3 +1,3 @@
-from flask_apscheduler import APScheduler
+from apscheduler.schedulers.gevent import GeventScheduler
 
-scheduler = APScheduler()
+scheduler = GeventScheduler()

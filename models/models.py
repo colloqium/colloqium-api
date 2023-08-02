@@ -43,13 +43,13 @@ class InteractionType:
 
 @dataclass
 class InteractionStatus:
-    CREATED = "created"
-    INITIALIZED = "initialized"
-    HUMAN_CONFIRMED = "human_confirmed"
-    SENT = "sent"
-    DELIVERED = "delivered"
-    RESPONDED = "responded"
-    CONVERTED = "converted"
+    CREATED = 1
+    INITIALIZED = 2
+    HUMAN_CONFIRMED = 3
+    SENT = 4
+    DELIVERED = 5
+    RESPONDED = 6
+    CONVERTED = 7
 
 @dataclass
 class SendingPhoneNumber:
@@ -114,7 +114,7 @@ class Interaction(BaseModel):
     sender_id = db.Column(db.Integer, db.ForeignKey('sender.id'), name="sender_id")
     campaign_id = db.Column(db.Integer, db.ForeignKey('campaign.id'))
     recipient_outreach_schedule = db.Column(db.JSON())
-    interaction_status = db.Column(db.String(50)) #initialized, human_confirmed, sent, delivered, responded, converted
+    interaction_status = db.Column(db.Integer) #initialized, human_confirmed, sent, delivered, responded, converted
     time_created = db.Column(DateTime(timezone=True), server_default=func.now())
     time_updated = db.Column(DateTime(timezone=True), onupdate=func.now())
 

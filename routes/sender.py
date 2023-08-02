@@ -16,6 +16,66 @@ from context.database import db
 
 sender_bp = Blueprint('sender', __name__)
 
+
+'''
+API endroute for Sender
+
+This API endpoint can be used to create, update and get senders.
+
+The following parameters are required for each request type:
+Create: A POST request that includes in the body: sender_name, sender_information, phone_numbers Where phone_numbers is an array of phone numbers from twilio
+Returns a json object with the full sender object and a success code if successful:
+{
+    "sender": {
+        "id": 1,
+        "sender_name": "GOTV for All",
+        "sender_information": "GOTV for all is a non partisan organization that is dedicated to getting out the vote for all people.",
+        "phone_numbers": [+17706924459, +17706924458]
+        //the rest of the sender fields
+    },
+    "status_code": 201
+}
+
+An example json object for a create request is:
+{
+    "sender_name": "GOTV for All",
+    "sender_information": "GOTV for all is a non partisan organization that is dedicated to getting out the vote for all people.",
+    "phone_numbers": ["+17706924459"]
+}
+
+Update: A PUT request that must include a  sender_id. If included sender_name, sender_information, phone_numbers will be updated if provided. Phone numbers will be added if provided. Other variables will be replaced if provided.
+Returns a json object with the sender id and a success code if successful:
+{
+    "sender": {
+        "id": 1
+    },
+    "status_code": 200
+}
+
+An example json object for an update request is:
+{
+    "sender_id": 1,
+    "sender_name": "Edited GOTV for All",
+    "sender_information": "Edited information",
+    "phone_numbers": ["+17706924459", "+17706924458"]
+}
+
+Get: A GET request with the parameters passed in the query string. The following parameters are supported:
+sender_id: The id of the sender to get
+sender_name: The name of the sender to get
+Returns a json object with the sender information and a success code if successful:
+{
+    "sender": {
+        "id": 1,
+    }
+    "status_code": 200
+}
+
+An example query string for a get request is:
+/sender?sender_id=1
+/sender?sender_name=GOTV for All
+
+'''
 @sender_bp.route('/sender', methods=['GET', 'POST', 'PUT'])
 def sender():
 

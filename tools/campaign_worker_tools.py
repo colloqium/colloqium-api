@@ -3,7 +3,7 @@ from logs.logger import logging
 from context.database import db
 from flask import current_app
 from prompts.campaign_volunteer_agent import get_campaign_phone_call_system_prompt, get_campaign_text_message_system_prompt
-from tools.utility import initialize_conversation, add_llm_response_to_conversation, add_message_to_conversation
+from tools.utility import initialize_conversation, get_llm_response_to_conversation, add_message_to_conversation
 import requests
 import os
 
@@ -24,9 +24,9 @@ class CampaignWorker:
             self.communication, goal, "text")
         print(f"Starting a text thread with recipient: {recipient.recipient_name}")
 
-        first_message = add_llm_response_to_conversation(new_texting_thread)
+        first_message = get_llm_response_to_conversation(new_texting_thread.conversation)
 
-        updated_conversation = add_message_to_conversation(new_texting_thread, first_message)
+        updated_conversation = add_message_to_conversation(new_texting_thread.conversation, first_message)
 
         new_texting_thread.conversation = updated_conversation
 

@@ -4,7 +4,7 @@ from flask import Blueprint
 from flask import session, jsonify
 from models.models import Interaction
 from tools.campaign_agent_tools import CampaignTools, extract_action, execute_action
-from tools.utility import add_message_to_conversation, add_llm_response_to_conversation
+from tools.utility import add_message_to_conversation, get_llm_response_to_conversation
 # from logs.logger import logger, logging
 from context.database import db
 
@@ -40,12 +40,12 @@ def plan(recipient_id):
                 action_result = execute_action(campaign_tools, action_name,
                                                action_params)
                 most_recent_message = f"Observation: {action_result}"
-                add_message_to_conversation(interaction, most_recent_message)
+                add_message_to_conversation(interaction.conversation, most_recent_message)
 
-            most_recent_message = add_llm_response_to_conversation(interaction)
+            most_recent_message = get_llm_response_to_conversation(interaction.conversation)
 
             # Update conversation with the latest response
-            add_message_to_conversation(interaction, most_recent_message)
+            add_message_to_conversation(interaction.conversation, most_recent_message)
 
             # flush the logs
             for handler in logging.getLogger().handlers:
@@ -55,7 +55,7 @@ def plan(recipient_id):
                                                            max_iterations):
                 if iteration >= max_iterations:
                     most_recent_message = "Observation: The conversation exceeded the maximum number of iterations without reaching a 'WAIT' state. The conversation will be paused here, and will need to be reviewed."
-                    add_message_to_conversation(interaction,
+                    add_message_to_conversation(interaction.conversation,
                                                 most_recent_message)
                 break
 
