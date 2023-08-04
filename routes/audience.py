@@ -1,7 +1,8 @@
-# Route that handles audience related requests. Can create a new audience, add a recipient to an audience, or get all audiences assiciated with a sener
+# Route that handles audience related requests. Can create a new audience, add a voter to an audience, or get all audiences assiciated with a sener
 
 from flask import Blueprint, jsonify, request, Response
-from models.models import Audience, Recipient, Campaign
+from models.sender import Audience, Campaign
+from models.voter import Voter
 from context.database import db
 
 # Create a new blueprint
@@ -44,11 +45,11 @@ def create_audience(data):
     if audience:
         return jsonify({'error': 'Audience already exists', 'status_code': 409}), 409
     
-    recipients = []
-    if 'recipients' in data.keys():
-        recipient_ids = data['recipients']
-        print(recipient_ids)
-        recipients = Recipient.query.filter(Recipient.id.in_(recipient_ids)).all()
+    voters = []
+    if 'voters' in data.keys():
+        voter_ids = data['voters']
+        print(voter_ids)
+        voters = Voter.query.filter(Voter.id.in_(voter_ids)).all()
 
 
     campaigns = []
@@ -61,7 +62,7 @@ def create_audience(data):
     if 'audience_information' in data.keys():
         audience_information = data['audience_information']
 
-    audience = Audience(audience_name=audience_name, audience_information=audience_information, sender_id=sender_id, recipients=recipients, campaigns=campaigns)
+    audience = Audience(audience_name=audience_name, audience_information=audience_information, sender_id=sender_id, voters=voters, campaigns=campaigns)
     db.session.add(audience)
     db.session.commit()
     return jsonify({'status': 'success', 'audience':{ 'id': audience.id}, 'status_code': 201}), 201
@@ -87,13 +88,13 @@ def update_audience(data):
     if audience_information:
         audience.audience_information = audience_information
 
-    # Check and update recipients
-    recipient_ids = data.get('recipients')
-    if recipient_ids:
-        new_recipients = Recipient.query.filter(Recipient.id.in_(recipient_ids)).all()
-        if new_recipients:
-            # Create a new list merging the existing recipients and the new ones
-            audience.recipients = list(set(audience.recipients + new_recipients))
+    # Check and update voter
+    voter_ids = data.get('voter')
+    if voter_ids:
+        new_voter = Voter.query.filter(Voter.id.in_(voter_ids)).all()
+        if new_voter:
+            # Create a new list merging the existing voter and the new ones
+            audience.voter = list(set(audience.voter + new_voter))
 
     campaign_ids = data.get('campaigns')
     if campaign_ids:
@@ -112,12 +113,12 @@ def get_audience(data):
         sender_id = data['sender_id']
         audiences = Audience.query.filter_by(sender_id=sender_id).all()
         return jsonify({'audiences': [audience.to_dict() for audience in audiences], 'status_code': 200}), 200
-    elif 'recipient_id' in data.keys():
-        recipient_id = data['recipient_id']
-        recipient = Recipient.query.get(recipient_id)
-        if not recipient:
-            return jsonify({'error': 'Recipient does not exist', 'status_code': 404}), 404
-        audiences = recipient.audiences
+    elif 'voter_id' in data.keys():
+        voter_id = data['voter_id']
+        voter = Voter.query.get(voter_id)
+        if not voter:
+            return jsonify({'error': 'voter does not exist', 'status_code': 404}), 404
+        audiences = voter.audiences
         return jsonify({'audiences': [audience.to_dict() for audience in audiences], 'status_code': 200}), 200
     elif 'audience_id' in data.keys():
         audience_id = data['audience_id']

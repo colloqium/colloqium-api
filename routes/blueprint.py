@@ -9,7 +9,7 @@ from routes.plan import plan
 from routes.confirm_messages import confirm_messages
 from routes.twilio_message_callback import twilio_message_callback
 from routes.sender import sender
-from routes.recipient import recipient
+from routes.voter import voter
 from routes.campaign import campaign
 from routes.campaign_insights import campaign_insights
 from routes.audience import audience
@@ -28,7 +28,7 @@ bp.add_url_rule("/<int:sender_id>/confirm_messages", view_func=confirm_messages,
 bp.add_url_rule("/twilio_message_callback", view_func=twilio_message_callback, methods=['POST'])
 bp.add_url_rule('/static_files/<path:path>', view_func=static, methods=['GET'])
 bp.add_url_rule("/sender", view_func=sender, methods=['GET', 'POST', 'PUT'])
-bp.add_url_rule("/recipient", view_func=recipient, methods=['GET', 'POST', 'PUT', 'OPTIONS'])
+bp.add_url_rule("/voter", view_func=voter, methods=['GET', 'POST', 'PUT', 'OPTIONS'])
 bp.add_url_rule("/campaign", view_func=campaign, methods=['GET', 'POST', 'PUT', 'DELETE'])
 bp.add_url_rule("/campaign/insights", view_func=campaign_insights, methods=['PUT'])
 bp.add_url_rule("/audience", view_func=audience, methods=['GET', 'POST', 'PUT', 'DELETE'])

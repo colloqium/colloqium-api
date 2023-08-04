@@ -1,5 +1,8 @@
 from context.database import db
-from models.models import Recipient, Sender, Interaction, Audience, Campaign, PhoneNumber
+from models.voter import Voter, VoterProfile
+from models.sender import Sender, Audience, Campaign, PhoneNumber
+from models.interaction import Interaction, SenderVoterRelationship
+from models.association_tables import audience_voter, campaign_audience
 from flask import Flask
 from dotenv import load_dotenv
 import secrets

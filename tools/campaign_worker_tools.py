@@ -1,4 +1,4 @@
-from models.models import Interaction
+from models.interaction import Interaction
 from logs.logger import logging
 from context.database import db
 from flask import current_app
@@ -14,15 +14,15 @@ class CampaignWorker:
         self.communication = communication
 
     def make_phone_call(self, goal):
-        recipient = self.communication.recipient
-        print(f"Starting a phone call with recipient: {recipient.recipient_name}")
+        votert = self.communication.voter
+        print(f"Starting a phone call with votert: {votert.votert_name}")
         return f"Dummy Phone Call with Goal: {goal}"
 
     def start_a_text_thread(self, goal):
-        recipient = self.communication.recipient
-        new_texting_thread = initialize_recipient_outreach_thread(
+        votert = self.communication.votert
+        new_texting_thread = initialize_votert_outreach_thread(
             self.communication, goal, "text")
-        print(f"Starting a text thread with recipient: {recipient.recipient_name}")
+        print(f"Starting a text thread with votert: {votert.votert_name}")
 
         first_message = get_llm_response_to_conversation(new_texting_thread.conversation)
 
@@ -38,7 +38,7 @@ class CampaignWorker:
 
         new_texting_thread = db.session.query(Interaction).filter(
             Interaction.id == new_texting_thread.id).first()     
-        # Include recipient_communication_id in the URL
+        # Include votert_communication_id in the URL
 
         print(f"Texting with id: {new_texting_thread.id}")
         print(f"Texting with conversation: {new_texting_thread.conversation}")
@@ -48,8 +48,8 @@ class CampaignWorker:
         return f"Attempted text and got re: {response.text}"
 
     def send_email(self, goal):
-        recipient = self.communication.recipient
-        print(f"Starting an email with recipient: {recipient.recipient_name}")
+        votert = self.communication.votert
+        print(f"Starting an email with votert: {votert.votert_name}")
         return f"Dummy email sent with goal: {goal}"
 
 
@@ -102,16 +102,16 @@ outreach_functions = {
 }
 
 
-def initialize_recipient_outreach_thread(
-        recipient_communication: Interaction, goal: str,
+def initialize_votert_outreach_thread(
+        votert_communication: Interaction, goal: str,
         communication_type: str) -> Interaction:
     if communication_type == "call":
-        # Add information from recipientCallForm to the system prompt
+        # Add information from votertCallForm to the system prompt
         system_prompt = get_campaign_phone_call_system_prompt(
-            recipient_communication)
+            votert_communication)
     elif communication_type == "text":
         system_prompt = get_campaign_text_message_system_prompt(
-            recipient_communication)
+            votert_communication)
     else:
         logging.error(f"Invalid communication type: {communication_type}")
         raise Exception(f"Invalid communication type: {communication_type}")
@@ -119,19 +119,19 @@ def initialize_recipient_outreach_thread(
     #Pre create the first response
     conversation = initialize_conversation(system_prompt)
 
-    # Create the recipientCommunication
+    # Create the votertCommunication
     outreach_communication_thread = Interaction(
         twilio_conversation_sid='',  # You will need to update this later
         conversation=conversation,
-        recipient=recipient_communication.recipient,  # The ID of the recipient
-        candidate=recipient_communication.candidate,
-        race=recipient_communication.race,
+        votert=votert_communication.votert,  # The ID of the votert
+        candidate=votert_communication.candidate,
+        race=votert_communication.race,
         communication_type=communication_type)
 
     db.session.add(outreach_communication_thread)
     db.session.commit()
 
-    #retrieve filled out recipientCommunication from database
+    #retrieve filled out votertCommunication from database
     outreach_communication_thread = db.session.query(Interaction).get(
         outreach_communication_thread.id)
     print(

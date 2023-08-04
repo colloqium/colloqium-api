@@ -1,7 +1,9 @@
 from flask import Blueprint, request, jsonify, current_app
 # import Flask and other libraries
-from models.models import Recipient, Campaign, Interaction, InteractionStatus
-from context.constants import INTERACTION_TYPES
+from models.voter import Voter
+from models.sender import Campaign
+from models.interaction import Interaction, InteractionStatus
+from models.interaction_types import INTERACTION_TYPES
 from tools.utility import get_llm_response_to_conversation, initialize_conversation
 from context.database import db
 # Import the functions from the other files
@@ -30,51 +32,88 @@ def interaction():
 
 
 def create_interaction(data):
-    campaign_id = data['campaign_id']
+
+    print("Creating interaction")
+
+    campaign_id = None
+    voter_id = None
+
+    if 'campaign_id' in data.keys():
+        campaign_id = data['campaign_id']
+
+    if 'voter_id' in data.keys():
+        voter_id = data['voter_id']
+    
     interaction_type = data['interaction_type']
 
     # Check if required fields are missing
-    if not campaign_id or not interaction_type:
-        return jsonify({'error': 'campaign_id, and interaction_type are all required', 'status_code': 400}), 400
+    if not interaction_type:
+        return jsonify({'error': 'interaction_type is required', 'status_code': 400}), 400
     
-    #check if an audience is provided, if so, create an interaction for each recipient in the audience
+    #check if an audience is provided, if so, create an interaction for each voter in the audience
 
-    campaign = Campaign.query.get(campaign_id)
-    audiences = campaign.audiences
-    if audiences:
-        interactions = []
-        for audience in audiences:
-            recipients = audience.recipients
-            for recipient in recipients:
-                interaction = build_interaction(recipient, campaign, interaction_type)
+    if campaign_id:
+        print("Creating interaction for campaign")
+        campaign = Campaign.query.get(campaign_id)
+        audiences = campaign.audiences
+        if audiences:
+            print("Campaign has an audience")
+            interactions = []
+            for audience in audiences:
+                voters = audience.voters
+                for voter in voters:
+                    print(f"Creating interaction for voter {voter.id}")
+                    #check if an interaction already exists for this voter and campaign
+                    #if so, do not create a new interaction
+                    existing_interaction = Interaction.query.filter_by(voter_id=voter.id, campaign_id=campaign.id).first()
+                    if existing_interaction:
+                        print("Interaction already exists for this voter and campaign")
+                        continue 
 
-                #check if an interaction already exists for this recipient and campaign
-                #if so, do not create a new interaction
-                existing_interaction = Interaction.query.filter_by(recipient_id=recipient.id, campaign_id=campaign.id).first()
-                if existing_interaction:
-                    print("Interaction already exists for this recipient and campaign")
-                    continue 
+                    interaction = build_interaction(voter=voter, interaction_type=interaction_type, campaign=campaign)
 
-                db.session.add(interaction)
-                db.session.commit()
+                    #check if interaction is an Interaction object, if not there was an error
+                    if not isinstance(interaction, Interaction):
+                        return interaction
 
-                thread = threading.Thread(target=initialize_interaction, args=[interaction.id, current_app._get_current_object()])
-                thread.start()
+                    db.session.add(interaction)
+                    db.session.commit()
 
-                # Initialize interaction
-                interactions.append(interaction)
+                    thread = threading.Thread(target=initialize_interaction, args=[interaction.id, current_app._get_current_object()])
+                    thread.start()
+                    print("Interaction created successfully and thread started")
+
+                    # Initialize interaction
+                    interactions.append(interaction)
+
+            return jsonify({
+                "status_code": 201,
+                "interactions": {'interaction': {'id': interaction.id} for interaction in interactions}
+                }), 201
+        else:
+            return jsonify({'error': 'Campaign does not have an audience', 'status_code': 404}), 404
+    
+    if voter_id:
+        voter = Voter.query.get(voter_id)
+        if not voter:
+            return jsonify({'error': 'Voter does not exist', 'status_code': 404}), 404
+        interaction = build_interaction(voter=voter, interaction_type=interaction_type)
+        db.session.add(interaction)
+        db.session.commit()
+
+        thread = threading.Thread(target=initialize_interaction, args=[interaction.id, current_app._get_current_object()])
+        thread.start()
 
         return jsonify({
             "status_code": 201,
-            "interactions": {'interaction': {'id': interaction.id} for interaction in interactions}
+            "interaction": {'id': interaction.id}
             }), 201
 
-    return jsonify({'error': 'Campaign does not have an audience', 'status_code': 404}), 404
-
-# Creates a new interaction with a recipient and the first system message in the conversation. Does not send the message.
+# Creates a new interaction with a voter and the first system message in the conversation. Does not send the message.
 def initialize_interaction(interaction_id, app):
     
     with app.app_context():
+        print(f"Initializing interaction {interaction_id}")
         interaction = Interaction.query.get(interaction_id)
 
         if not interaction:
@@ -86,8 +125,8 @@ def initialize_interaction(interaction_id, app):
 
         system_prompt = INTERACTION_TYPES[interaction_type].system_initialization_method(interaction)
 
-        user_number = interaction.recipient.recipient_phone_number
-        sender_number = interaction.sender.select_phone_number_for_interaction(interaction)
+        user_number = interaction.voter.voter_phone_number
+        sender_number = interaction.select_phone_number_for_interaction()
 
         # Pre-create the first response
         conversation = initialize_conversation(system_prompt)
@@ -106,7 +145,7 @@ def initialize_interaction(interaction_id, app):
         socketio.emit('interaction_initialized', {'interaction_id': interaction.id, 'sender_id': interaction.sender_id}, room=f'subscribe_sender_confirmation_{interaction.sender_id}')
 
 
-        analytics.track(interaction.recipient.id, EVENT_OPTIONS.initialized, {
+        analytics.track(interaction.voter.id, EVENT_OPTIONS.initialized, {
             'sender_id': interaction.sender.id,
             'sender_phone_number': sender_number,
             'interaction_type': interaction.interaction_type,
@@ -129,12 +168,12 @@ def get_interaction(data):
             return jsonify({'error': 'Sender does not have any interactions', 'status_code': 404}), 404
         return jsonify({'interactions': [interaction.to_dict() for interaction in interactions], 'status_code': 200}), 200
 
-    #Check if there is a recipient id. If there is return all interactions for that recipient
-    if 'recipient_id' in data.keys():
-        recipient_id = data['recipient_id']
-        interactions = Interaction.query.filter_by(recipient_id=recipient_id).all()
+    #Check if there is a voter id. If there is return all interactions for that voter
+    if 'voter_id' in data.keys():
+        voter_id = data['voter_id']
+        interactions = Interaction.query.filter_by(voter_id=voter_id).all()
         if not interactions:
-            return jsonify({'error': 'Recipient does not have any interactions', 'status_code': 404}), 404
+            return jsonify({'error': 'voter does not have any interactions', 'status_code': 404}), 404
         return jsonify({'interactions': [interaction.to_dict() for interaction in interactions], 'status_code': 200}), 200
     
     #Check if there is a campaign id. If there is return all interactions for that campaign
@@ -155,22 +194,28 @@ def get_interaction(data):
 
     return jsonify({'error': 'No valid query parameters', 'status_code': 400}), 400
 
-def build_interaction(recipient: Recipient, campaign: Campaign, interaction_type: str) -> Interaction:
-    if not recipient:
-        return jsonify({'error': 'Recipient does not exist', 'status_code': 404}), 404
-
-    if not campaign:
-        return jsonify({'error': 'Campaign does not exist', 'status_code': 404}), 404
+def build_interaction(voter: Voter, interaction_type: str, campaign: Campaign = None) -> Interaction:
+    if not voter:
+        print("Voter does not exist for interaction")
+        return jsonify({'error': 'voter does not exist', 'status_code': 404}), 404
     
     # check if the interaction types is in the keys of INTERACTION_TYPES
     if interaction_type not in INTERACTION_TYPES.keys():
+        print("Invalid interaction type")
+        print(f"Interaction type keys: {INTERACTION_TYPES.keys()}")
+        print(f"Interaction type: {interaction_type}")
         return jsonify({'error': 'Invalid interaction type', 'status_code': 400}), 400
 
     # Create new interaction
-    return Interaction(
-        recipient_id=recipient.id,
-        sender_id=campaign.sender_id,
-        campaign_id=campaign.id,
+    interaction = Interaction(
+        voter_id=voter.id,
         interaction_type=interaction_type,
         interaction_status=InteractionStatus.CREATED
     )
+
+    # If a campaign is provided, add it to the interaction
+    if campaign:
+        interaction.campaign_id = campaign.id
+        interaction.sender_id = campaign.sender_id
+
+    return interaction

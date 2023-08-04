@@ -1,5 +1,5 @@
 from flask import Blueprint, jsonify, request
-from models.models import Campaign, Sender, Audience
+from models.sender import Campaign, Sender, Audience
 from context.database import db
 from datetime import datetime
 

@@ -1,4 +1,4 @@
-from models.models import PhoneNumber
+from models.sender import PhoneNumber
 from tools.utility import format_phone_number
 
 

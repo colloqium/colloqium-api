@@ -1,6 +1,7 @@
 # URL to handle twilio status callbacks
 from flask import Blueprint, request, jsonify, Response
-from models.models import Recipient, Interaction, InteractionStatus
+from models.voter import Voter
+from models.interaction import Interaction, InteractionStatus
 from models.model_utility import get_phone_number_from_db
 from context.analytics import analytics, EVENT_OPTIONS
 from context.database import db
@@ -44,18 +45,18 @@ def twilio_message_callback():
     sender = phone_number.sender
 
 
-    # get recipient with to number
-    recipient = Recipient.query.filter_by(recipient_phone_number=to_number).first()
+    # get voter with to number
+    voter = Voter.query.filter_by(voter_phone_number=to_number).first()
 
-    if not recipient:
-        logger.error(f"Recipient not found for phone number {to_number}")
+    if not voter:
+        logger.error(f"voter not found for phone number {to_number}")
         return response, 400
 
     # Use SqlAlchemy to query the database for the interaction that was created most recently
-    interaction = Interaction.query.filter_by(recipient_id=recipient.id).order_by(Interaction.time_created.desc()).first()
+    interaction = Interaction.query.filter_by(voter_id=voter.id).order_by(Interaction.time_created.desc()).first()
 
     if not interaction:
-        logger.error(f"No interaction found for recipient {recipient.recipient_name} and sender {sender.sender_name}")
+        logger.error(f"No interaction found for voter {voter.voter_name} and sender {sender.sender_name}")
         return response, 400
     
     # update the interaction status
@@ -68,12 +69,12 @@ def twilio_message_callback():
         if interaction.interaction_status < InteractionStatus.DELIVERED:
             interaction.interaction_status = InteractionStatus.DELIVERED
 
-    analytics.track(recipient.id, EVENT_OPTIONS.interaction_call_back, {
+    analytics.track(voter.id, EVENT_OPTIONS.interaction_call_back, {
                 'status': status,
                 'interaction_id': interaction.id,
                 'interaction_type': interaction.interaction_type,
-                'recipient_name': recipient.recipient_name,
-                'recipient_phone_number': recipient.recipient_phone_number,
+                'voter_name': voter.voter_name,
+                'voter_phone_number': voter.voter_phone_number,
                 'sender_name': sender.sender_name,
                 'sender_phone_number': phone_number.get_full_phone_number(),
             })

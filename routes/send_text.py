@@ -1,8 +1,9 @@
 from flask import Blueprint, request, Response
 # import Flask and other libraries
 from flask import jsonify
-from models.models import Recipient, Interaction, Sender, InteractionStatus
-# from logs.logger import logger, logging
+from models.sender import Sender
+from models.interaction import Interaction, InteractionStatus
+from models.voter import Voter
 from context.database import db
 from context.apis import client
 from tools.utility import format_phone_number
@@ -46,7 +47,7 @@ def send_text():
         text_thread.interaction_status = InteractionStatus.HUMAN_CONFIRMED
 
         if text_thread:
-            recipient = Recipient.query.get(text_thread.recipient_id)
+            voter = Voter.query.get(text_thread.voter_id)
             sender = Sender.query.get(text_thread.sender_id)
             conversation = text_thread.conversation
 
@@ -55,7 +56,7 @@ def send_text():
             # Depends on the fact that this is the first message in the conversation. Should move to a more robust solution
             body = conversation[-1].get('content')
 
-            # print(f"Starting text message with body'{body}' and user number '{recipient.recipient_phone_number}'")
+            # print(f"Starting text message with body'{body}' and user number '{voter.voter_phone_number}'")
 
 
             sender_phone_number = sender.phone_numbers[0].get_full_phone_number()
@@ -64,16 +65,16 @@ def send_text():
             client.messages.create(
                 body=body,
                 from_=format_phone_number(sender_phone_number),
-                to=format_phone_number(recipient.recipient_phone_number),
+                to=format_phone_number(voter.voter_phone_number),
                 status_callback=message_webhook_url,
                 messaging_service_sid=twilio_messaging_service_sid)
 
-            # print(f"Started text Conversation with recipient '{recipient.recipient_name}' on text SID '{text_message.sid}'")
-            analytics.track(recipient.id, EVENT_OPTIONS.sent, {
+            # print(f"Started text Conversation with voter '{voter.voter_name}' on text SID '{text_message.sid}'")
+            analytics.track(voter.id, EVENT_OPTIONS.sent, {
                 'interaction_id': interaction_id,
                 'interaction_type': text_thread.interaction_type,
-                'recipient_name': recipient.recipient_name,
-                'recipient_phone_number': recipient.recipient_phone_number,
+                'voter_name': voter.voter_name,
+                'voter_phone_number': voter.voter_phone_number,
                 'sender_name': sender.sender_name,
                 'sender_phone_number': sender_phone_number,
                 'message': body,

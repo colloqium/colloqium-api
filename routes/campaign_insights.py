@@ -1,6 +1,7 @@
 import json
 from flask import Blueprint, jsonify, request, current_app
-from models.models import Campaign, InteractionStatus, Interaction
+from models.sender import Campaign
+from models.interaction import Interaction, InteractionStatus
 from prompts.interaction_evaluation_agent import get_conversation_evaluation_system_prompt
 from tools.utility import get_llm_response_to_conversation
 from context.database import db
@@ -69,19 +70,26 @@ def evaluate_interaction(interaction: Interaction, app):
 
         # get the json object at llm_response['content']
         json_evaluation = json.loads(llm_response['content'])
-        # print(f"Evaluation: {json_evaluation}")
+        print(f"Evaluation: {json_evaluation}")
 
         # set the interaction fields from the json object
 
         # check if the goal achieved contains the text "True" then convert to boolean
-        interaction.goal_achieved = "True" in json_evaluation['goal_achieved']
+
+        goal_achieved = json_evaluation['goal_achieved']
+
+        #check if goal achieved is a boolean
+        if isinstance(goal_achieved, bool):
+            interaction.goal_achieved = goal_achieved
+        else:
+            interaction.goal_achieved = "True" in json_evaluation['goal_achieved']
         interaction.rating_explanation = json_evaluation['rating_explanation']
         interaction.rating = json_evaluation['rating']
         interaction.campaign_relevance_score = json_evaluation['campaign_relevance_score']
         interaction.campaign_relevance_explanation = json_evaluation['campaign_relevance_explanation']
         interaction.campaign_relevance_summary = json_evaluation['campaign_relevance_summary']
         interaction.insights_about_issues = json_evaluation['insights_about_issues']
-        interaction.insights_about_recipient = json_evaluation['insights_about_recipient']
+        interaction.insights_about_voter = json_evaluation['insights_about_voter']
 
         if interaction.goal_achieved:
             interaction.interaction_status = InteractionStatus.CONVERTED

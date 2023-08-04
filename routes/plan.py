@@ -2,7 +2,7 @@
 from flask import Blueprint
 # import Flask and other libraries
 from flask import session, jsonify
-from models.models import Interaction
+from models.interaction import Interaction
 from tools.campaign_agent_tools import CampaignTools, extract_action, execute_action
 from tools.utility import add_message_to_conversation, get_llm_response_to_conversation
 # from logs.logger import logger, logging
@@ -11,15 +11,15 @@ from context.database import db
 plan_bp = Blueprint('plan', __name__)
 
 
-@plan_bp.route("/plan/<int:recipient_id>", methods=['GET', 'POST'])
-def plan(recipient_id):
+@plan_bp.route("/plan/<int:voter_id>", methods=['GET', 'POST'])
+def plan(voter_id):
     try:
         interaction = Interaction.query.get(session['interaction_id'])
-        recipient = interaction.recipient
+        voter = interaction.voter
 
         most_recent_message = interaction.conversation[-1].get('content')
 
-        print(f"Creating plan for {recipient.recipient_name}")
+        print(f"Creating plan for {voter.voter_name}")
         print(f"Conversation so far: {interaction.conversation}")
         print(f"Most Recent Message {most_recent_message}")
 
@@ -62,7 +62,7 @@ def plan(recipient_id):
         db.session.commit()
         return jsonify({
             'status': 'success',
-            'last_action': 'Planning for ' + recipient.recipient_name,
+            'last_action': 'Planning for ' + voter.voter_name,
             'conversation': interaction.conversation
         }), 200
 

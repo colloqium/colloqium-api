@@ -7,7 +7,7 @@ They should also be able to modify the sender with the post request if they have
 from flask import Blueprint, json, request
 # import Flask and other libraries
 from flask import jsonify
-from models.models import Sender, PhoneNumber
+from models.sender import Sender, PhoneNumber
 from models.model_utility import get_phone_number_from_db
 from tools.utility import format_phone_number
 from context.database import db

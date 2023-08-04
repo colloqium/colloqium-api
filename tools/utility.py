@@ -1,7 +1,5 @@
-from models.models import Interaction
 # from logs.logger import logger
 import openai
-from context.database import db
 import re
 import time
 

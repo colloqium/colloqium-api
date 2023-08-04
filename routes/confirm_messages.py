@@ -1,8 +1,9 @@
 from flask import redirect, request, Blueprint, url_for
 # import Flask and other libraries
 from flask import render_template
-from models.models import Interaction, InteractionStatus, Sender
-from context.constants import INTERACTION_TYPES
+from models.sender import Sender
+from models.interaction import Interaction, InteractionStatus
+from models.interaction_types import INTERACTION_TYPES
 # from logs.logger import logger
 # Import the functions from the other files
 

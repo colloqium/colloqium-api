@@ -1,7 +1,8 @@
 from flask import Blueprint
 # import Flask and other libraries
 from flask import request, Response
-from models.models import Recipient, Interaction, InteractionStatus
+from models.interaction import Interaction, InteractionStatus
+from models.voter import Voter
 from models.model_utility import get_phone_number_from_db
 from tools.utility import add_message_to_conversation, get_llm_response_to_conversation
 # from logs.logger import logging
@@ -27,19 +28,19 @@ def inbound_message():
 
     print(f"From: {from_number} To: {sender_phone_number}")
 
-    # Use the 'From' number to look up the recipient in your database
-    recipient = Recipient.query.filter_by(
-        recipient_phone_number=from_number).first()
+    # Use the 'From' number to look up the voter in your database
+    voter = Voter.query.filter_by(
+        voter_phone_number=from_number).first()
 
-    # If the recipient doesn't exist, create a new one and a new Interaction
-    if not recipient:
+    # If the voter doesn't exist, create a new one and a new Interaction
+    if not voter:
         
-        logger.error(f"Recipient not found for phone number {from_number}")
-        print("No recipient found")
+        logger.error(f"voter not found for phone number {from_number}")
+        print("No voter found")
         return response, 400
     
     
-    print(f"Recipient: {recipient.recipient_name}")
+    print(f"voter: {voter.voter_name}")
 
     # get the phone number object for this number from the database
     phone_number = get_phone_number_from_db(sender_phone_number)
@@ -53,12 +54,12 @@ def inbound_message():
     sender = phone_number.sender
     print(f"Sender: {sender.sender_name}")
     
-    # If the recipient exists, find the Interaction for this recipient with type 'text'
+    # If the voter exists, find the Interaction for this voter with type 'text'
     interaction = Interaction.query.filter_by(
-        recipient_id=recipient.id, sender_id=sender.id, interaction_type='text_message').first()
+        voter_id=voter.id, sender_id=sender.id, interaction_type="text_message").first()
     if interaction is None:
         print("No interaction found")
-        logger.error(f"No interaction found for recipient {recipient.recipient_name} and sender {sender.sender_name}")
+        logger.error(f"No interaction found for voter {voter.voter_name} and sender {sender.sender_name}")
         return response, 400
     
     interaction.interaction_status = InteractionStatus.RESPONDED
@@ -70,10 +71,10 @@ def inbound_message():
     # Now you can add the new message to the conversation
     logger.info(f"Recieved message message body: {message_body}")
     # print(f"Recieved message body: {message_body}")
-    analytics.track(recipient.id, EVENT_OPTIONS.recieved, {
+    analytics.track(voter.id, EVENT_OPTIONS.recieved, {
                 'interaction_id': interaction.id,
-                'recipient_name': recipient.recipient_name,
-                'recipient_phone_number': recipient.recipient_phone_number,
+                'voter_name': voter.voter_name,
+                'voter_phone_number': voter.voter_phone_number,
                 'sender_name': sender.sender_name,
                 'sender_phone_number': sender_phone_number,
                 'interaction_type': interaction.interaction_type,
@@ -102,13 +103,13 @@ def inbound_message():
                 body=message_body['content'],
                 from_=sender_phone_number,
                 status_callback=message_webhook_url,
-                to=recipient.recipient_phone_number,
+                to=voter.voter_phone_number,
                 messaging_service_sid=twilio_messaging_service_sid)
     
-    analytics.track(recipient.id, EVENT_OPTIONS.sent, {
+    analytics.track(voter.id, EVENT_OPTIONS.sent, {
                 'interaction_id': interaction.id,
-                'recipient_name': recipient.recipient_name,
-                'recipient_phone_number': recipient.recipient_phone_number,
+                'voter_name': voter.voter_name,
+                'voter_phone_number': voter.voter_phone_number,
                 'sender_name': sender.sender_name,
                 'sender_phone_number': sender_phone_number,
                 'message': message_body,
