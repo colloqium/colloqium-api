@@ -51,7 +51,7 @@ def create_voter(data):
     db.session.add(voter)
     db.session.commit()
 
-    voter = voter.query.filter_by(voter_name=voter_name).first()
+    voter = Voter.query.filter_by(voter_name=voter_name).first()
 
     voter_profile = data['voter_profile']
     
@@ -84,14 +84,14 @@ def update_voter(data):
     if not voter_id:
         return jsonify({'error': 'voter id is required', 'status_code': 400}), 400
 
-    voter = voter.query.filter_by(id=voter_id).first()
+    voter = Voter.query.filter_by(id=voter_id).first()
 
     if not voter:
         return jsonify({'error': 'voter does not exist', 'status_code': 404}), 404
 
     if 'voter_phone_number' in data.keys():
         voter_phone_number = data['voter_phone_number']
-        existing_voter = voter.query.filter_by(voter_phone_number=voter_phone_number).first()
+        existing_voter = Voter.query.filter_by(voter_phone_number=voter_phone_number).first()
         if existing_voter and existing_voter.id != voter_id:
             return jsonify({'error': 'voter with this phone number already exists', 'status_code': 409}), 409
         voter.voter_phone_number = voter_phone_number
@@ -123,7 +123,7 @@ def get_voter(data):
     # Attempt to look up by voter id
     if 'voter_id' in data.keys():
         voter_id = data['voter_id']
-        voter = voter.query.filter_by(id=voter_id).first()
+        voter = Voter.query.filter_by(id=voter_id).first()
         if not voter:
             return jsonify({'error': 'voter does not exist', 'status_code': 404}), 404
         return jsonify({'voter': voter.to_dict(), 'status_code': 200}), 200
@@ -131,7 +131,7 @@ def get_voter(data):
     # Attempt to look up by voter phone number
     if 'voter_phone_number' in data.keys():
         voter_phone_number = format_phone_number(data['voter_phone_number'])
-        voter = voter.query.filter_by(voter_phone_number=voter_phone_number).first()
+        voter = Voter.query.filter_by(voter_phone_number=voter_phone_number).first()
         if not voter:
             return jsonify({'error': 'voter with this phone number does not exist', 'status_code': 404}), 404
         return jsonify({'voter': voter.to_dict(), 'status_code': 200}), 200
