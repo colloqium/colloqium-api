@@ -88,13 +88,13 @@ def update_audience(data):
     if audience_information:
         audience.audience_information = audience_information
 
-    # Check and update voter
-    voter_ids = data.get('voter')
+    # Check and update voters
+    voter_ids = data.get('voters')
     if voter_ids:
-        new_voter = Voter.query.filter(Voter.id.in_(voter_ids)).all()
-        if new_voter:
+        new_voters = Voter.query.filter(Voter.id.in_(voter_ids)).all()
+        if new_voters:
             # Create a new list merging the existing voter and the new ones
-            audience.voter = list(set(audience.voter + new_voter))
+            audience.voters = list(set(audience.voters + new_voters))
 
     campaign_ids = data.get('campaigns')
     if campaign_ids:
