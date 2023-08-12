@@ -3,6 +3,7 @@ from flask import Blueprint, jsonify, request, current_app
 from models.sender import Campaign
 from models.interaction import Interaction, InteractionStatus
 from prompts.interaction_evaluation_agent import get_conversation_evaluation_system_prompt
+from prompts.campaign_insights_agent import get_campaign_summary_system_prompt
 from tools.utility import get_llm_response_to_conversation
 from context.database import db
 import threading
@@ -36,22 +37,56 @@ def campaign_insights():
         campaign.interactions_converted = Interaction.query.filter(Interaction.campaign_id == campaign_id, Interaction.interaction_status >= InteractionStatus.CONVERTED).count()
 
     if 'refresh_campaign_insights' in json.keys():
-        campaign.campaign_manager_summary = 'This is a summary of the campaign for a campaign manager'
-        campaign.communications_director_summary = 'This is a summary of the campaign for a communications director'
-        campaign.field_director_summary = 'This is a summary of the campaign for a field director'
+        print("Starting campaign summary")
+        thread = threading.Thread(target=summarize_campaign, args=[campaign, current_app._get_current_object()])
+        thread.start()
 
     if 'refresh_interaction_evaluations' in json.keys():
-        for interaction in campaign.interactions:
-            print("Checking interaction for update")
-            if interaction.interaction_status >= InteractionStatus.SENT:
-                print("Interaction needs to be updated")
-                thread = threading.Thread(target=evaluate_interaction, args=[interaction, current_app._get_current_object()])
-                thread.start()
+        if 'interaction_id' in json.keys():
+            # Get the interaction
+            interaction_id = json['interaction_id']
+            interaction = Interaction.query.filter_by(id=interaction_id).first()
+            if not interaction:
+                return jsonify({'error': 'Interaction does not exist', 'status_code': 404}), 404
+            thread = threading.Thread(target=evaluate_interaction, args=[interaction, current_app._get_current_object()])
+            thread.start()
+        else:
+            for interaction in campaign.interactions:
+                print("Checking interaction for update")
+                if interaction.interaction_status >= InteractionStatus.SENT:
+                    print("Interaction needs to be updated")
+                    thread = threading.Thread(target=evaluate_interaction, args=[interaction, current_app._get_current_object()])
+                    thread.start()
 
     db.session.add(campaign)
     db.session.commit()
 
     return jsonify({'status': 'success', 'status_code': 200}), 200
+
+
+def summarize_campaign(campaign: Campaign, app):
+    with app.app_context():
+        print(f"Starting summary for campaign {campaign.id}")
+        system_prompt = get_campaign_summary_system_prompt(campaign)
+
+        summary = [{
+            "role": "system",
+            "content": system_prompt
+        }]
+
+        llm_response = get_llm_response_to_conversation(summary)
+
+        json_summary = json.loads(llm_response['content'])
+
+        print(f"Summary: {json_summary}")
+
+        campaign.campaign_manager_summary = json_summary['campaign_manager_summary']
+        campaign.communications_director_summary = json_summary['communications_director_summary']
+        campaign.field_director_summary = json_summary['field_director_summary']
+        campaign.policy_insights = json_summary['policy_insights']
+
+        db.session.add(campaign)
+        db.session.commit()
 
 def evaluate_interaction(interaction: Interaction, app):
     print(f"Starting evaluation for interaction {interaction.id}")

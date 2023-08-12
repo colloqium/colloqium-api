@@ -49,9 +49,6 @@ def create_campaign(data):
     campaign_goal = data.get('campaign_goal', None)
     campaign_fallback = data.get('campaign_fallback', None)
     example_interactions = data.get('example_interactions', None)
-    campaign_manager_summary = data.get('campaign_manager_summary', None)
-    communications_director_summary = data.get('communications_director_summary', None)
-    field_director_summary = data.get('field_director_summary', None)
     campaign_end_date = data.get('campaign_end_date', None)
     audience_ids = data.get('audiences', None)
 
@@ -70,9 +67,6 @@ def create_campaign(data):
         campaign_goal=campaign_goal, 
         campaign_fallback=campaign_fallback,
         example_interactions=example_interactions,
-        campaign_manager_summary=campaign_manager_summary,
-        communications_director_summary=communications_director_summary,
-        field_director_summary=field_director_summary,
         sender_id=sender_id, 
         campaign_end_date=campaign_end_date, 
     )
@@ -137,6 +131,9 @@ def update_campaign(data):
 
         # add audiences to the campaign
         for audience in audiences:
+            # check if the audience is owned by the same sender
+            if audience.sender_id != campaign.sender_id:
+                return jsonify({'error': 'Audience does not belong to this sender', 'status_code': 409}), 409
             if audience not in campaign.audiences:
                 campaign.audiences.append(audience)
         print(campaign.audiences)

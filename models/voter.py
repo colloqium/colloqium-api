@@ -20,6 +20,7 @@ class Voter(BaseDbModel):
     def to_dict(self):
         voter_dict = super().to_dict()
         voter_dict["sender_relationships"] = [relationship.to_dict() for relationship in self.sender_relationships]
+        voter_dict["voter_profile"] = self.voter_profile.to_dict() if self.voter_profile else None
         return voter_dict
 
 

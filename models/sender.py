@@ -64,6 +64,7 @@ class Campaign(BaseDbModel):
     campaign_manager_summary = db.Column(db.Text)
     communications_director_summary = db.Column(db.Text)
     field_director_summary = db.Column(db.Text)
+    policy_insights = db.Column(db.JSON)
 
     #Fields for measuring outcomes of campaign
     interactions_sent = db.Column(db.Integer)

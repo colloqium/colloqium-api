@@ -13,6 +13,17 @@ from twilio.twiml.messaging_response import MessagingResponse
 
 send_text_bp = Blueprint('send_text', __name__)
 
+"""Route to send text messages. Requires a json body with the following fields:
+interaction_status: InteractionStatus.HUMAN_CONFIRMED
+interaction_id: the id of the interaction to send a text message for
+
+The message needs to have been generated before this is called. This route will not generate a message.
+TODO: Check if the message has been generated before sending it
+
+Keyword arguments:
+argument -- description
+Return: return_description
+"""
 
 @send_text_bp.route("/send_text", methods=['POST', 'OPTIONS'])
 def send_text():
@@ -53,13 +64,13 @@ def send_text():
 
             # print( f"Texting route recieved Conversation: {conversation}")
 
-            # Depends on the fact that this is the first message in the conversation. Should move to a more robust solution
+            # Get the last message in the conversation
             body = conversation[-1].get('content')
 
             # print(f"Starting text message with body'{body}' and user number '{voter.voter_phone_number}'")
 
 
-            sender_phone_number = sender.phone_numbers[0].get_full_phone_number()
+            sender_phone_number = text_thread.select_phone_number_for_interaction()
             
             # Start a new text message thread
             client.messages.create(

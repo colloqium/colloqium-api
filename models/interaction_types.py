@@ -6,12 +6,15 @@ from models.voter import Voter
 from models.sender import Sender
 
 #enum with the different types of interactions. Call, Text, Email, and Plan
-dataclass
+@dataclass
 class InteractionType:
     name: str
     method: callable
     system_initialization_method: callable
     callback_route: str
+
+    # should define two methods for all children initialize, update, send
+    
 
     def __init__(self, name: str, method: callable, system_initialization_method: callable, callback_route: str):
         self.name = name

@@ -15,19 +15,24 @@ import json
 
 interaction_bp = Blueprint('interaction', __name__)
 
-@interaction_bp.route('/interaction', methods=['POST', 'GET'])
+@interaction_bp.route('/interaction', methods=['POST', 'PUT', 'GET'])
 def interaction():
     
-    if request.method != 'GET' and not request.is_json:
-        return jsonify({'error': 'Request body must be JSON', 'status_code': 400}), 400
+    data = None
+    if request.method != 'GET':
+        if not request.is_json:
+            return jsonify({'error': 'Request body must be JSON', 'status_code': 400}), 400
+        data = request.json
+    else:
+        data = request.args
 
     if request.method == 'GET':
-        data = request.args
         return get_interaction(data)
-    else:
-        data = request.json
+    elif request.method == 'POST':
         print(data)
         return create_interaction(data)
+    elif request.method == 'PUT':
+        return update_interaction(data)
 
 
 
@@ -219,3 +224,18 @@ def build_interaction(voter: Voter, interaction_type: str, campaign: Campaign = 
         interaction.sender_id = campaign.sender_id
 
     return interaction
+
+def update_interaction(data):
+    print("Updating interaction")
+    interaction_id = data['interaction_id']
+    interaction = Interaction.query.get(interaction_id)
+    if not interaction:
+        return jsonify({'error': 'Interaction does not exist', 'status_code': 404}), 404
+
+    interaction_status = data['interaction_status']
+    interaction.interaction_status = interaction_status
+
+    db.session.add(interaction)
+    db.session.commit()
+
+    return jsonify({'interaction': interaction.to_dict(), 'status_code': 200}), 200

@@ -181,7 +181,7 @@ def update_sender(data):
 
     # return success is true, the sender id and a success code
     return jsonify({'status': 'success',
-    'sender': {'id': sender.id},
+    'sender': sender.to_dict(),
     'status_code': 200}), 200
 
 def get_sender(data):

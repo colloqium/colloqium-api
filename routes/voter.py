@@ -42,11 +42,13 @@ def create_voter(data):
     if not voter_name or not voter_phone_number:
         return jsonify({'error': 'Both voter_name and voter_phone_number are required', 'status_code': 400}), 400
 
-    voter = Voter.query.filter_by(voter_name=voter_name).first()
+    cleaned_phone_number = format_phone_number(voter_phone_number)
+
+    voter = Voter.query.filter_by(voter_name=voter_name, voter_phone_number=cleaned_phone_number).first()
     if voter:
         return jsonify({'error': 'voter already exists', 'status_code': 409}), 409
 
-    voter = Voter(voter_name=voter_name, voter_phone_number=format_phone_number(voter_phone_number))
+    voter = Voter(voter_name=voter_name, voter_phone_number=cleaned_phone_number)
 
     db.session.add(voter)
     db.session.commit()
@@ -117,7 +119,7 @@ def update_voter(data):
     db.session.add(voter)
     db.session.commit()
 
-    return jsonify({'status': 'success', 'voter_id': voter.id, 'status_code': 200}), 200
+    return jsonify({'status': 'success', 'voter': voter.to_dict(), 'status_code': 200}), 200
 
 def get_voter(data):
     # Attempt to look up by voter id

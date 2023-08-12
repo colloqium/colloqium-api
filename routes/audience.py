@@ -81,6 +81,9 @@ def update_audience(data):
     # Check and update audience_name
     audience_name = data.get('audience_name')
     if audience_name:
+        existing_audience = Audience.query.filter_by(audience_name=audience_name, sender_id=audience.sender_id).first()
+        if existing_audience and existing_audience.id != audience_id:
+            return jsonify({'error': 'Audience name already exists for this sender', 'status_code': 409}), 409
         audience.audience_name = audience_name
 
     # Check and update audience_information
@@ -99,13 +102,17 @@ def update_audience(data):
     campaign_ids = data.get('campaigns')
     if campaign_ids:
         new_campaigns = Campaign.query.filter(Campaign.id.in_(campaign_ids)).all()
+        # make sure campaigns belong to the same sender
+        for campaign in new_campaigns:
+            if campaign.sender_id != audience.sender_id:
+                return jsonify({'error': 'Campaign does not belong to this sender', 'status_code': 409}), 409
         if new_campaigns:
             # Create a new list merging the existing campaigns and the new ones
             audience.campaigns = list(set(audience.campaigns + new_campaigns))
 
     db.session.commit()
 
-    return jsonify({'status': 'success', 'audience': {'id': audience.id}, 'status_code': 200}), 200
+    return jsonify({'status': 'success', 'audience': audience.to_dict(), 'status_code': 200}), 200
 
 
 def get_audience(data):
