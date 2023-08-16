@@ -63,6 +63,8 @@ class Interaction(BaseDbModel):
         # Assign conversation list directly
         interaction_dict["conversation"] = self.conversation if self.conversation else []
 
+        interaction_dict['insights_about_issues'] = self.insights_about_issues
+
         return interaction_dict
 
 
