@@ -45,9 +45,10 @@ def campaign_insights():
         if 'interaction_id' in json.keys():
             # Get the interaction
             interaction_id = json['interaction_id']
-            interaction = Interaction.query.filter_by(id=interaction_id).first()
+            # get the interaction with the correct ID and the campaign_id from the request
+            interaction = Interaction.query.filter_by(id=interaction_id, campaign_id=campaign_id).first()
             if not interaction:
-                return jsonify({'error': 'Interaction does not exist', 'status_code': 404}), 404
+                return jsonify({'error': 'Interaction does not exist in this campaign', 'status_code': 404}), 404
             thread = threading.Thread(target=evaluate_interaction, args=[interaction, current_app._get_current_object()])
             thread.start()
         else:

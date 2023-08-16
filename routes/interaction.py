@@ -134,9 +134,15 @@ def initialize_interaction(interaction_id, app):
         sender_number = interaction.select_phone_number_for_interaction()
 
         # Pre-create the first response
-        conversation = initialize_conversation(system_prompt)
-        interaction.conversation = conversation
-        initial_statement = get_llm_response_to_conversation(conversation)
+        interaction.conversation = initialize_conversation(system_prompt)
+        initial_statement = get_llm_response_to_conversation(interaction.conversation)
+
+        # check if the initial statement is the same as the system prompt, if so, try again to get a different response
+        while initial_statement['content'] == system_prompt:
+            print("Initial statement is the same as the system prompt, trying again")
+            interaction.conversation = initialize_conversation(system_prompt)
+            initial_statement = get_llm_response_to_conversation(interaction.conversation)
+
         interaction.conversation.append(initial_statement)
         print("Interaction created successfully")
         interaction.interaction_status = InteractionStatus.INITIALIZED
@@ -159,9 +165,10 @@ def initialize_interaction(interaction_id, app):
 
         # Log the system prompt and user number
         print("Interaction Type: %s", interaction_type)
+        print(f"User name: {interaction.voter.voter_name}")
         print(f"User number: {user_number}")
         print(f"Sender number: {sender_number}")
-        print(f"Initial Statement: {initial_statement}")
+        # print(f"Initial Statement: {initial_statement}")
 
 def get_interaction(data):
     #Check if there is a sender id. If there is return all interactions for that sender

@@ -17,8 +17,8 @@ def get_llm_response_to_conversation(conversation: [{}]) -> {}:
     conversation = conversation.copy()
     response_content = ""
     retry_count = 0
-    max_retries = 5  # maximum number of retries
-    wait_time = 1  # wait time in seconds
+    max_retries = 20  # maximum number of retries
+    wait_time = 5  # wait time in seconds
 
     while retry_count < max_retries:
         try:
