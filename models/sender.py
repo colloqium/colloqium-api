@@ -88,6 +88,10 @@ class Campaign(BaseDbModel):
 
         #audiences can belong to multiple campaigns
         campaign_dict["audiences"] = [audience.to_dict() for audience in self.audiences]
+
+        #make sure policy_insights is turned to a dict
+        campaign_dict["policy_insights"] = self.policy_insights if self.policy_insights else {}
+
         return campaign_dict
 
 class PhoneNumber(BaseDbModel):

@@ -12,7 +12,7 @@ def get_conversation_evaluation_system_prompt(conversation: [{}]):
                 
                 {{
                     "insights_about_voter": new information about the voter,
-                    "insights_about_issues": What policiy issue areas were discussed in this conversation? What was the sentiment of the voter on these issues? Assume this will later be aggregated across many conversations.,
+                    "insights_about_issues": What policiy issue areas were discussed in this conversation? What was the sentiment of the voter on these issues? Assume this will later be aggregated across many conversations. If there are no insights about issues return an empty object {{}}.
                     "campaign_insights": What information from this would be helpful for the sender to know? What might this suggest for follow up questions or trends in voter sentiment? Assume this will later be aggregated across many conversations.,
                     "campaign_goal": what was the objective of this conversation
                     "goal_achieved": "True or False depending on if the goal was achived",
