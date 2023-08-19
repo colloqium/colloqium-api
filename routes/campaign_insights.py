@@ -4,7 +4,7 @@ from models.sender import Campaign
 from models.interaction import Interaction, InteractionStatus
 from prompts.interaction_evaluation_agent import get_conversation_evaluation_system_prompt
 from prompts.campaign_insights_agent import get_campaign_summary_system_prompt
-from tools.utility import get_llm_response_to_conversation
+from tools.utility import get_llm_response_to_conversation , initialize_conversation
 from context.database import db
 import threading
 
@@ -95,10 +95,7 @@ def evaluate_interaction(interaction: Interaction, app):
         # Get the system prompt for evaluating this interaction
         system_prompt = get_conversation_evaluation_system_prompt(interaction.conversation)
 
-        evaluation = [{
-            "role": "system",
-            "content": system_prompt
-        }]
+        evaluation = initialize_conversation(system_prompt)
 
         llm_response = get_llm_response_to_conversation(evaluation)
 

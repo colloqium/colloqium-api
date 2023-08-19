@@ -16,11 +16,9 @@ def add_message_to_conversation(conversation: [{}],message: {}) -> []:
 def get_llm_response_to_conversation(conversation: [{}]) -> {}:
     conversation = conversation.copy()
     response_content = ""
-    retry_count = 0
-    max_retries = 20  # maximum number of retries
     wait_time = 5  # wait time in seconds
 
-    while retry_count < max_retries:
+    while response_content == "":
         try:
             # generate a new response from OpenAI to continue the conversation
             ("Starting OpenAI Completion")
@@ -53,9 +51,6 @@ def get_llm_response_to_conversation(conversation: [{}]) -> {}:
             time.sleep(wait_time)
             retry_count += 1
             continue
-
-    if retry_count == max_retries:
-        print("Max retries reached, OpenAI model still overloaded.")
 
     return conversation[-1]
 

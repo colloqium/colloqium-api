@@ -98,7 +98,8 @@ def update_campaign(data):
         sender_id = campaign.sender_id
         existing_campaign = Campaign.query.filter_by(campaign_name=campaign_name, sender_id=sender_id).first()
         if existing_campaign:
-            return jsonify({'error': 'Campaign with this name already exists for this sender', 'status_code': 409}), 409
+            if existing_campaign.id != campaign.id:
+                return jsonify({'error': 'Campaign with this name already exists for this sender', 'status_code': 409}), 409
 
         campaign.campaign_name = data['campaign_name']
 

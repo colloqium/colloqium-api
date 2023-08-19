@@ -52,7 +52,7 @@ class Audience(BaseDbModel):
 
 class Campaign(BaseDbModel):
     id = db.Column(db.Integer, primary_key=True)
-    campaign_name = db.Column(db.String(50))
+    campaign_name = db.Column(db.Text)
     campaign_prompt = db.Column(db.Text)
     campaign_goal = db.Column(db.Text)
     campaign_fallback = db.Column(db.Text)

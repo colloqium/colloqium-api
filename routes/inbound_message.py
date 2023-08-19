@@ -127,6 +127,10 @@ def inbound_message():
 
     print(f"Message scheduled at {datetime.datetime.now()}")
     scheduler.add_job(func=send_message, kwargs={"message_body": message_body, "sender_phone_number": sender_phone_number, "voter_id": voter.id, "sender_id": sender.id, "interaction_id": interaction.id, "app": current_app._get_current_object()}, trigger='date', run_date=datetime.datetime.now() + datetime.timedelta(seconds=15))
-    scheduler.start()
+    
+    # Check if scheduler is running
+    if not scheduler.running:
+        print("Starting scheduler")
+        scheduler.start()
  
     return response, 200
