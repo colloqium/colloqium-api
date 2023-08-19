@@ -1,4 +1,5 @@
 # from logs.logger import logger
+import random
 import openai
 import re
 import time
@@ -16,7 +17,9 @@ def add_message_to_conversation(conversation: [{}],message: {}) -> []:
 def get_llm_response_to_conversation(conversation: [{}]) -> {}:
     conversation = conversation.copy()
     response_content = ""
-    wait_time = 5  # wait time in seconds
+
+    # have a random wait time between 20 and 30 seconds to avoid hitting the rate limit
+    wait_time =  50 + 10 * random.random()
 
     while response_content == "":
         try:
@@ -31,23 +34,17 @@ def get_llm_response_to_conversation(conversation: [{}]) -> {}:
                 "role": "assistant",
                 "content": response_content
             })
-            (
-                f"Adding OpenAI response to conversation: {response_content}")
-
+            # print(f"Adding OpenAI response to conversation: {response_content}")
             conversation = conversation
             break
         except openai.error.RateLimitError:
             # sleep for a while before retrying
-            (
-                f"Model overloaded, waiting for {wait_time} seconds before retry..."
-            )
+            print(f"Model hit rate limit, waiting for {wait_time} seconds before retry...")
             time.sleep(wait_time)
             retry_count += 1
             continue
         except openai.error.ServiceUnavailableError:
-            (
-                f"Model overloaded, waiting for {wait_time} seconds before retry..."
-            )
+            print(f"Model overloaded, waiting for {wait_time} seconds before retry...")
             time.sleep(wait_time)
             retry_count += 1
             continue
