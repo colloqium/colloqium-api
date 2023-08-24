@@ -1,8 +1,8 @@
 import requests
 import json
 
-## Base URL
-base_url = "https://thawing-sierra-51587.herokuapp.com/"
+# ## Base URL
+# base_url = "https://thawing-sierra-51587.herokuapp.com/"
 ## Senders
 senders_data = [
     {
@@ -17,7 +17,7 @@ senders_data = [
     }
 ]
 
-# base_url = "https://colloqium.ngrok.dev/"
+base_url = "https://colloqium.ngrok.dev/"
 # senders_data = [
     
 #     {

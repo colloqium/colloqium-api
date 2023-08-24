@@ -13,7 +13,7 @@ def get_campaign_summary_system_prompt(campaign: Campaign):
     interaction_summaries = ""
 
     for interaction in interactions:
-        interaction_string = "Interaction for voter {interaction.voter.voter_name} - "
+        interaction_string = f"Interaction for voter {interaction.voter.voter_name} - "
         interaction_string += f"Goal achieved: {interaction.goal_achieved} "
         interaction_string += f"Rating explanation: {interaction.rating_explanation} "
         interaction_string += f"Rating: {interaction.rating} "

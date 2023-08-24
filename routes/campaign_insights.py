@@ -6,6 +6,7 @@ from prompts.interaction_evaluation_agent import get_conversation_evaluation_sys
 from prompts.campaign_insights_agent import get_campaign_summary_system_prompt
 from tools.utility import get_llm_response_to_conversation , initialize_conversation
 from context.database import db
+from context.sockets import socketio
 import threading
 
 # blueprint definition
@@ -31,10 +32,12 @@ def campaign_insights():
     
     if 'refresh_funnel' in json.keys():
         # Get a count of all interactions in this campaign with a status of InteractionStatus.SENT or greater
+        socketio.emit('message', {'campaign_id': campaign_id, 'message': 'Refreshing funnel'}, room=f'subscribe_funnel_refresh_{campaign_id}')
         campaign.interactions_sent = Interaction.query.filter(Interaction.campaign_id == campaign_id, Interaction.interaction_status >= InteractionStatus.SENT).count()
         campaign.interactions_delivered = Interaction.query.filter(Interaction.campaign_id == campaign_id, Interaction.interaction_status >= InteractionStatus.DELIVERED).count()
         campaign.interactions_responded = Interaction.query.filter(Interaction.campaign_id == campaign_id, Interaction.interaction_status >= InteractionStatus.RESPONDED).count()
         campaign.interactions_converted = Interaction.query.filter(Interaction.campaign_id == campaign_id, Interaction.interaction_status >= InteractionStatus.CONVERTED).count()
+        socketio.emit('funnel_refreshed', {'campaign_id': campaign_id}, room=f'subscribe_funnel_refresh_{campaign_id}')
 
     if 'refresh_campaign_insights' in json.keys():
         print("Starting campaign summary")
@@ -64,20 +67,34 @@ def campaign_insights():
 
     return jsonify({'status': 'success', 'status_code': 200}), 200
 
-
 def summarize_campaign(campaign: Campaign, app):
     with app.app_context():
         print(f"Starting summary for campaign {campaign.id}")
         system_prompt = get_campaign_summary_system_prompt(campaign)
 
-        summary = [{
-            "role": "system",
-            "content": system_prompt
-        }]
+        summary = initialize_conversation(system_prompt)
 
-        llm_response = get_llm_response_to_conversation(summary)
+        json_summary = {}
 
-        json_summary = json.loads(llm_response['content'])
+        retry_count = 0
+
+        max_retries = 50
+
+        while not json_summary and retry_count <= max_retries:
+
+            llm_response = get_llm_response_to_conversation(summary)
+
+            try:
+                json_summary = json.loads(llm_response['content'])
+            except json.decoder.JSONDecodeError as error:
+                print(f"Error decoding JSON from LLM response: {error}")
+                # try again
+                retry_count += 1
+                continue
+
+        if not json_summary:
+            socketio.emit('campaign_insight_error', {'campaign_id': campaign.id, 'error': 'Error decoding JSON from LLM response'}, room=f'subscribe_campaign_insight_refresh_{campaign.id}')
+            return
 
         print(f"Summary: {json_summary}")
 
@@ -89,20 +106,51 @@ def summarize_campaign(campaign: Campaign, app):
         db.session.add(campaign)
         db.session.commit()
 
+        socketio.emit('campaign_insight_refreshed', {'campaign_id': campaign.id}, room=f'subscribe_campaign_insight_refresh_{campaign.id}')
+
 def evaluate_interaction(interaction: Interaction, app):
     print(f"Starting evaluation for interaction {interaction.id}")
     with app.app_context():
+
+        interaction = Interaction.query.get(interaction.id)
+
+        # emit a socket event to the campaign insights page to update the UI
+        socketio.emit('beginning_evaluation', {'interaction_id': interaction.id}, room=f'subscribe_interaction_evaluation_{interaction.id}')
+
         # Get the system prompt for evaluating this interaction
         system_prompt = get_conversation_evaluation_system_prompt(interaction.conversation)
 
         evaluation = initialize_conversation(system_prompt)
 
-        llm_response = get_llm_response_to_conversation(evaluation)
 
-        # print(f"LLM response for evaluation: {llm_response}")
+        json_evaluation = {}
 
-        # get the json object at llm_response['content']
-        json_evaluation = json.loads(llm_response['content'])
+
+        retry_count = 0
+        max_retries = 50
+
+        while not json_evaluation and retry_count <= max_retries:
+            try:
+                socketio.emit('message', {'interaction_id': interaction.id, 'message': f"Calling LLM with conversation: {evaluation}"}, room=f'subscribe_interaction_evaluation_{interaction.id}')
+                llm_response = get_llm_response_to_conversation(evaluation)
+                socketio.emit('message', {'interaction_id': interaction.id, 'message': f"LLM response for evaluation: {llm_response}"}, room=f'subscribe_interaction_evaluation_{interaction.id}')
+
+                # print(f"LLM response for evaluation: {llm_response}")
+
+                # get the json object at llm_response['content']
+
+                json_evaluation = json.loads(llm_response['content'])
+            except json.decoder.JSONDecodeError as error:
+                print(f"Error decoding JSON from LLM response: {error}")
+                # try again
+                retry_count += 1
+                continue
+
+        if not json_evaluation:
+
+            socketio.emit('interaction_evaluation_error', {'interaction_id': interaction.id, 'error': 'Error decoding JSON from LLM response'}, room=f'subscribe_interaction_evaluation_{interaction.id}')
+            return
+        
         print(f"Evaluation: {json_evaluation}")
 
         # set the interaction fields from the json object
@@ -129,6 +177,9 @@ def evaluate_interaction(interaction: Interaction, app):
 
         db.session.add(interaction)
         db.session.commit()
+
+        # emit a socket event to the campaign insights page to update the UI
+        socketio.emit('interaction_evaluated', {'interaction_id': interaction.id}, room=f'subscribe_interaction_evaluation_{interaction.id}')
 
 
         
