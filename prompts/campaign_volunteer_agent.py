@@ -4,12 +4,15 @@ from models.interaction import Interaction
 def get_campaign_phone_call_system_prompt(interaction: Interaction):
 
     # GPT API System Prompts
-    system_prompt = '''You are a helpful agent reaching out to {voter_name} on behalf of {sender_name} Keep your comments short, but welcoming. Please respond with 1 or 2 sentences and be brief. Your responses should be concise, informative, and engaging. If the voter is losing interest in the conversation or has no more questions, include "goodbye" in your response to mark the end of the communication.
+    system_prompt = '''You are a helpful agent reaching out to {voter_name} on behalf of {sender_name} Keep your comments short, casual, and welcoming. Please respond with 1 or 2 sentences and be brief. Your responses should be concise, informative, and engaging. Communicate how someone from the voters community or geography would be likely to text. If the voter is losing interest in the conversation or has no more questions, include "goodbye" in your response to mark the end of the communication.
 
-The sender wants you to reach out to the voter for the following reason:
+Your goal for this outreach is:
+{campaign_goal}
+
+The sender wants you to follow these directions when reaching out to the voter:
 {campaign_prompt}
 
-Election day is on {campaign_end_date}.
+This campaign will end on {campaign_end_date}.
 
 You know the following about the sender of the message:
 {sender_information}
@@ -33,7 +36,8 @@ Begin by with an engaging message that helps you accomplish your goal. Do not re
         sender_name=interaction.sender.sender_name,
         voter_information=interaction.voter.voter_information,
         campaign_prompt=interaction.campaign.campaign_prompt,
-        sender_information=interaction.sender.sender_information)
+        sender_information=interaction.sender.sender_information,
+        campaign_goal=interaction.campaign.campaign_goal,)
 
     return output
 
@@ -83,8 +87,8 @@ Begin by with an engaging message that helps you accomplish your goal. Do not re
         campaign_prompt=interaction.campaign.campaign_prompt,
         sender_information=interaction.sender.sender_information,
         campaign_goal=interaction.campaign.campaign_goal,
-        campaign_fallback=interaction.campaign.campaign_fallback,
-        example_interactions=interaction.campaign.example_interactions,
+        campaign_fallback=interaction.sender.fallback_url,
+        example_interactions=interaction.sender.example_interactions,
         interaction_type=interaction.interaction_type)
 
     return output

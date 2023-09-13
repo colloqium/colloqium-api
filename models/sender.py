@@ -10,7 +10,7 @@ from models.association_tables import audience_voter, campaign_audience
 
 class Sender(BaseDbModel):
     id = db.Column(db.Integer, primary_key=True)
-    sender_name = db.Column(db.String(50))
+    sender_name = db.Column(db.Text)
     sender_information = db.Column(db.Text)
     sender_schedule = db.Column(db.JSON())
     # Add relationship
@@ -18,6 +18,8 @@ class Sender(BaseDbModel):
                                   backref='sender',
                                   lazy=True)
     voter_relationships = relationship('SenderVoterRelationship',backref='sender',lazy=True)
+    fallback_url = db.Column(db.String(1000))
+    example_interactions = db.Column(db.Text) # "Message bible" of example texts for the sender
     phone_numbers = relationship('PhoneNumber',
                                   backref='sender',
                                   lazy=True)
@@ -33,7 +35,7 @@ class Sender(BaseDbModel):
 
 class Audience(BaseDbModel):
     id = db.Column(db.Integer, primary_key=True)
-    audience_name = db.Column(db.String(50))
+    audience_name = db.Column(db.Text)
     audience_information = db.Column(db.Text)
     sender_id = db.Column(db.Integer, db.ForeignKey('sender.id'), name="sender_id")
     voters = relationship('Voter', secondary=audience_voter, back_populates='audiences')
@@ -55,8 +57,6 @@ class Campaign(BaseDbModel):
     campaign_name = db.Column(db.Text)
     campaign_prompt = db.Column(db.Text)
     campaign_goal = db.Column(db.Text)
-    campaign_fallback = db.Column(db.Text)
-    example_interactions = db.Column(db.Text) # "Message bible" of example texts for the campaign
     sender_id = db.Column(db.Integer, db.ForeignKey('sender.id'), name="sender_id")
     campaign_end_date = db.Column(db.Date)
 

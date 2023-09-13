@@ -83,9 +83,8 @@ def inbound_message():
     sender = phone_number.sender
     print(f"Sender: {sender.sender_name}")
     
-    # If the voter exists, find the Interaction for this voter with type 'text'
-    interaction = Interaction.query.filter_by(
-        voter_id=voter.id, sender_id=sender.id, interaction_type="text_message").first()
+    # If the voter exists, find the Interaction for this voter with type 'text' that was created most recently
+    interaction = Interaction.query.filter_by(sender_id=sender.id, voter_id=voter.id, interaction_type='text_message').order_by(Interaction.time_created.desc()).first()
     if interaction is None:
         print("No interaction found")
         logger.error(f"No interaction found for voter {voter.voter_name} and sender {sender.sender_name}")

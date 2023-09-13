@@ -98,9 +98,8 @@ def sender():
 def create_sender(data):
 
     sender_name = data['sender_name']
-    sender_information = data['sender_information']
-    #phone numbers is expected to be an array of phone numbers
-    phone_numbers = data['phone_numbers']
+    if not sender_name:
+        return jsonify({'error': 'Sender name is required', 'status_code': 400}), 400
     
     # check if sender already exists with the same name
     sender = Sender.query.filter_by(sender_name=sender_name).first()
@@ -109,12 +108,9 @@ def create_sender(data):
         # return an http error code since the sender already exists
         return jsonify({'error': 'Sender already exists', 'status_code': 409}), 409
     
-    #create PhoneNumber objects from the list of numbers shared
-    processed_phone_numbers = [PhoneNumber(format_phone_number(phone_number)) for phone_number in phone_numbers]
-    
     
     # create the sender
-    sender = Sender(sender_name=sender_name,sender_information=sender_information)
+    sender = Sender(sender_name=sender_name)
 
     # add the sender to the database
     db.session.add(sender)
@@ -123,11 +119,36 @@ def create_sender(data):
     #retrieve the instantiated sender from the database
     sender = Sender.query.filter_by(sender_name=sender_name).first()
 
-    #add the sender id to the phone numbers as a reference
-    for phone_number in processed_phone_numbers:
-        phone_number.sender_id = sender.id
-        db.session.add(phone_number)
-        db.session.commit()
+    sender_information = data.get('sender_information', None)
+    #phone numbers is expected to be an array of phone numbers
+    phone_numbers = data.get('phone_numbers', None)
+    example_interactions = data.get('example_interactions', None)
+    fallback_url = data.get('fallback_url', None)
+    
+    
+    if phone_numbers:
+        #create PhoneNumber objects from the list of numbers shared
+        processed_phone_numbers = [PhoneNumber(format_phone_number(phone_number)) for phone_number in phone_numbers]
+
+        #add the sender id to the phone numbers as a reference
+        for phone_number in processed_phone_numbers:
+            phone_number.sender_id = sender.id
+            db.session.add(phone_number)
+            db.session.commit()
+
+    # add the sender information if it is provided
+    if sender_information:
+        sender.sender_information = sender_information
+
+    if example_interactions:
+        sender.example_interactions = example_interactions
+
+    if fallback_url:
+        sender.fallback_url = fallback_url
+
+    # add the sender to the database
+    db.session.add(sender)
+    db.session.commit()    
 
     # return a success code and the created sender id
     return jsonify({'sender':{'id': sender.id}, 'status_code': 201}), 201
@@ -175,6 +196,13 @@ def update_sender(data):
             
             phone_number.sender_id = sender.id
             db.session.add(phone_number)
+    
+    #update the example interactions if they are provided
+    if 'example_interactions' in data.keys():
+        sender.example_interactions = data['example_interactions']
+
+    if 'fallback_url' in data.keys():
+        sender.fallback_url = data['fallback_url']
     
     db.session.add(sender)
     db.session.commit()

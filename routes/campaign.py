@@ -47,13 +47,12 @@ def create_campaign(data):
     # Get optional attributes or set to None if they are not present
     campaign_prompt = data.get('campaign_prompt', None)
     campaign_goal = data.get('campaign_goal', None)
-    campaign_fallback = data.get('campaign_fallback', None)
-    example_interactions = data.get('example_interactions', None)
     campaign_end_date = data.get('campaign_end_date', None)
     audience_ids = data.get('audiences', None)
 
     # Parse campaign end date if provided
     if campaign_end_date:
+        campaign_end_date = campaign_end_date.split('T')[0]
         campaign_end_date = datetime.strptime(campaign_end_date, '%Y-%m-%d').date()
 
     # Get Audience objects from provided IDs
@@ -65,8 +64,6 @@ def create_campaign(data):
         campaign_name=campaign_name, 
         campaign_prompt=campaign_prompt, 
         campaign_goal=campaign_goal, 
-        campaign_fallback=campaign_fallback,
-        example_interactions=example_interactions,
         sender_id=sender_id, 
         campaign_end_date=campaign_end_date, 
     )
@@ -115,16 +112,6 @@ def update_campaign(data):
 
     if 'campaign_goal' in data.keys():
         campaign.campaign_goal = data['campaign_goal']
-
-    if 'campaign_fallback' in data.keys():
-        campaign.campaign_fallback = data['campaign_fallback']
-    
-    if 'example_interactions' in data.keys():
-        #aappend examples to the current examples if any
-        if campaign.example_interactions:
-            campaign.example_interactions = campaign.example_interactions + " " + data['example_interactions']
-        else:
-            campaign.example_interactions = data['example_interactions']
 
     if 'audiences' in data.keys():
         #get audiences from the ids in the array
