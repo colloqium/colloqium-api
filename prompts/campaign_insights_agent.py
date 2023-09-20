@@ -38,7 +38,7 @@ def get_campaign_summary_system_prompt(campaign: Campaign):
                 Your team has recently wrapped up a targeted voter outreach in a specific locale. Your task is to distill the outreach results into razor-sharp summaries for the campaign team.
 
                 Your output will be:
-                1. Categorized policy takeaways.
+                1. Categorized policy takeaways based on the topics voters raised in their conversations.
                 2. A sub-20 word summary for the Communications Director.
                 3. A sub-20 word summary for the Field Director.
                 4. A sub-20 word summary for the Campaign Manager, considering all the above.
@@ -48,7 +48,7 @@ def get_campaign_summary_system_prompt(campaign: Campaign):
                 Output your findings in the following JSON format:
 
                 {{
-                    "policy_insights": {{ "category_1": "insight", "category_2": "insight" }},
+                    "policy_insights": {{ "policy_area_1": "insight", "policy_area_2": "insight" }},
                     "communications_director_summary": "concise insights for comms",
                     "field_director_summary": "concise insights for field",
                     "campaign_manager_summary": "concise, holistic insights"
