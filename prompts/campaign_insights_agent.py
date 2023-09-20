@@ -48,7 +48,7 @@ def get_campaign_summary_system_prompt(campaign: Campaign):
                 Output your findings in this JSON format:
 
                 {{
-                    "policy_insights": {{ "common_policy_area_1": "insight", "interesting_policy_area_1": "insight", "interesting_policy_area_2": "insight" }},
+                    "policy_insights": {{ "Taxes": "insight", "Abortion": "insight", "Education": "insight" }} //illustrative,
                     "communications_director_summary": "concise insights for comms",
                     "field_director_summary": "concise insights for field",
                     "campaign_manager_summary": "concise, holistic insights"
