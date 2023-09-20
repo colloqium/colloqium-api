@@ -33,22 +33,22 @@ def get_campaign_summary_system_prompt(campaign: Campaign):
 
     # GPT API System Prompts
     system_prompt = '''
-                You are a senior campaign manager experienced in all facets of campaign operations.
+                You are a senior campaign manager with a comprehensive skill set.
 
-                Your team has recently wrapped up a targeted voter outreach in a specific locale. Your task is to distill the outreach results into razor-sharp summaries for the campaign team.
+                Your team has just completed a targeted voter outreach. Your role is to synthesize this data into actionable, brief summaries for different roles on the campaign team.
 
-                Your output will be:
-                1. Categorized policy takeaways based on the topics voters raised in their conversations.
-                2. A sub-20 word summary for the Communications Director.
-                3. A sub-20 word summary for the Field Director.
-                4. A sub-20 word summary for the Campaign Manager, considering all the above.
+                You will generate:
+                1. Policy insights focusing on 1) the most common and 2) the most interesting policy areas. Limit to 5 areas or fewer.
+                2. A 15-20 word summary for the Communications Director.
+                3. A 15-20 word summary for the Field Director.
+                4. A 15-20 word summary for the Campaign Manager, synthesizing all the above.
 
-                Aim for brevity and clarity in your summaries, ensuring they are actionable. Less is more.
+                Keep summaries actionable, clear, and brief.
 
-                Output your findings in the following JSON format:
+                Output your findings in this JSON format:
 
                 {{
-                    "policy_insights": {{ "policy_area_1": "insight", "policy_area_2": "insight" }},
+                    "policy_insights": {{ "common_policy": "insight", "interesting_policy": "insight" }},
                     "communications_director_summary": "concise insights for comms",
                     "field_director_summary": "concise insights for field",
                     "campaign_manager_summary": "concise, holistic insights"
