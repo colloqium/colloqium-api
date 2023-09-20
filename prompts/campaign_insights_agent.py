@@ -32,33 +32,34 @@ def get_campaign_summary_system_prompt(campaign: Campaign):
         
 
     # GPT API System Prompts
-    system_prompt = ''' 
-                You are a senior campaign manager with experience in field organizing, communications, fundraising and everything else a campaign might need.
+    system_prompt = '''
+                You are a senior campaign manager experienced in all facets of campaign operations.
 
-                Your team has just finished a specific outreach effort to voters in a specific area. You are reviewing the results of the outreach effort and preparing a summary of the results for the campaign manager.
+                Your team has recently wrapped up a targeted voter outreach in a specific locale. Your task is to distill the outreach results into razor-sharp summaries for the campaign team.
 
-                You will generate:
-                1. An overview of policy insights from the campaign by category
-                1. A summary of key insights and takeaways for the communications director
-                2. A summary of key insights and takeaways for the field director
-                3. A summary of the key insights and takeaways for the campaign manager
+                Your output will be:
+                1. Categorized policy takeaways.
+                2. A sub-20 word summary for the Communications Director.
+                3. A sub-20 word summary for the Field Director.
+                4. A sub-20 word summary for the Campaign Manager, considering all the above.
 
-                You should be concise, and make sure the information is actionable for the campaign team. It is better to say less and be clear than to say more and be confusing.
+                Aim for brevity and clarity in your summaries, ensuring they are actionable. Less is more.
 
-                Your output should be a json object in the following format:
+                Output your findings in the following JSON format:
 
                 {{
-                    "policy_insights": {{ "policy_category_1": "policy_insight", "policy_category_2": "policy_insight" }},
-                    "communications_director_summary": "summary of key insights and takeaways for the communications director",
-                    "field_director_summary": "summary of key insights and takeaways for the field director",
-                    "campaign_manager_summary": "summary of key insights and takeaways for the campaign manager taking in to account the hihglights from the policy insights, communications director summary, and field director summary"
+                    "policy_insights": {{ "category_1": "insight", "category_2": "insight" }},
+                    "communications_director_summary": "concise insights for comms",
+                    "field_director_summary": "concise insights for field",
+                    "campaign_manager_summary": "concise, holistic insights"
                 }}
 
-                You know the following about the campaign:
+                Campaign Context:
                 {sender_information}
 
-                Here are the conversations summaries that you should use to generate the insights:
-                {interaction_summaries}         
+                Interaction Data:
+                {interaction_summaries}
+
                 '''
  
 
@@ -67,7 +68,7 @@ def get_campaign_summary_system_prompt(campaign: Campaign):
 
     chat_prompt = ChatPromptTemplate.from_messages([system_message_prompt])
 
-    output = chat_prompt.format(sender_information=sender.sender_information, interaction_summaries=interaction_summaries)
+    output = chat_prompt.format(sender_information=sender.example_interactions, interaction_summaries=interaction_summaries)
 
     print(f"Campaign Summary System prompt: {output}")
 

@@ -63,19 +63,19 @@ voters_data = [
 
 # Audiences
 audiences_data = [
-    # {
-    #     "audience_name": "Test Audience for sender 1",
-    #     "sender_id": 1,
-    #     "voters": [1],
-    #     "audience_information": "This is a test audience"
-    # },
+    {
+        "audience_name": "Test Audience for sender 1",
+        "sender_id": 1,
+        "voters": [1],
+        "audience_information": "This is a test audience"
+    },
 
-    # {
-    #         "audience_name": "Test Audience 2 for sender 1",
-    #         "sender_id": 1,
-    #         "voters": [2],
-    #         "audience_information": "This is a second test audience"
-    # },
+    {
+            "audience_name": "Test Audience 2 for sender 1",
+            "sender_id": 1,
+            "voters": [2],
+            "audience_information": "This is a second test audience"
+    },
 
     # {
     #         "audience_name": "Test Audience for sender 2",
@@ -94,20 +94,20 @@ audiences_data = [
 
 # Campaigns
 campaigns_data = [
-	# {
-	# 	"campaign_name": "GOTV for All",
-	# 	"campaign_prompt": "Your goal is to get the voter to register to vote. If you don't already know find out what state they are in so that you can share the correct registration site with them. Be brief and friendly in your communications. Mirror back their texting style and try to build rapport.",
-	# 	"sender_id": 1,
-	# 	"campaign_goal": "Get the voter to register to vote",
-	# 	"campaign_end_date": "2023-11-07",
-	# },
 	{
-		"sender_id": 2,
-		"campaign_name": "Volunteer Recruitment Team Testing",
-		"campaign_prompt": "Your name is Sarah. You are a volunteer for John Whitmire's Mayoral race. You are reaching out to people who have supported John when he was in the State Senate. Your job is to get them to agree to volunteer and fill out the registration link. If they do agree, send them this link to register: mobilize.us/johnwhitmire/ Do not send the link unless they agree to volunteer. Be concise and friendly. Communicate how someone from their community or geography would be likely to speak.",
-		"campaign_goal": "Get the voter to agree to volunteer for the campaign",
-		"campaign_end_date": "2023-11-07"
-	}
+		"campaign_name": "GOTV for All",
+		"campaign_prompt": "Your goal is to get the voter to register to vote. If you don't already know find out what state they are in so that you can share the correct registration site with them. Be brief and friendly in your communications. Mirror back their texting style and try to build rapport.",
+		"sender_id": 1,
+		"campaign_goal": "Get the voter to register to vote",
+		"campaign_end_date": "2023-11-07",
+	},
+	# {
+	# 	"sender_id": 2,
+	# 	"campaign_name": "Volunteer Recruitment Team Testing",
+	# 	"campaign_prompt": "Your name is Sarah. You are a volunteer for John Whitmire's Mayoral race. You are reaching out to people who have supported John when he was in the State Senate. Your job is to get them to agree to volunteer and fill out the registration link. If they do agree, send them this link to register: mobilize.us/johnwhitmire/ Do not send the link unless they agree to volunteer. Be concise and friendly. Communicate how someone from their community or geography would be likely to speak.",
+	# 	"campaign_goal": "Get the voter to agree to volunteer for the campaign",
+	# 	"campaign_end_date": "2023-11-07"
+	# }
 ]
 
 def send_post_request(url, data):
