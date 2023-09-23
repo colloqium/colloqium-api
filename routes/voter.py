@@ -105,7 +105,15 @@ def update_voter(data):
         voter_profile = VoterProfile.query.filter_by(voter_id=voter_id).first()
 
         if not voter_profile:
-            return jsonify({'error': 'voter does not have a voter profile', 'status_code': 404}), 404
+            # create a voter profile and attach it to the voter
+            voter_profile = VoterProfile(voter_id=voter_id)
+            db.session.add(voter_profile)
+            db.session.commit()
+
+            #check if voter profile was created
+            voter_profile = VoterProfile.query.filter_by(voter_id=voter_id).first()
+            if not voter_profile:
+                return jsonify({'error': 'voter profile could not be created', 'status_code': 500}), 500
         
         if 'interests' in data['voter_profile'].keys():
             voter_profile.interests = data['voter_profile']['interests']
