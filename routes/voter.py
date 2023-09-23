@@ -55,6 +55,9 @@ def create_voter(data):
 
     voter = Voter.query.filter_by(voter_name=voter_name).first()
 
+    if not voter:
+        return jsonify({'error': 'voter could not be created', 'status_code': 500}), 500
+
     voter_profile = data['voter_profile']
     
 
