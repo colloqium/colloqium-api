@@ -23,7 +23,7 @@ def campaign():
         data = request.args
         return get_campaign(data)
     elif request.method == 'DELETE':
-        data = request.args
+        data = request.json
         return delete_campaign(data)
 
 def create_campaign(data):
