@@ -182,6 +182,9 @@ def get_campaign(data):
     return jsonify({'campaigns': [campaign.to_dict() for campaign in campaigns], 'status_code': 200}), 200
 
 def delete_campaign(data):
+    if 'campaign_id' not in data.keys():
+        return jsonify({'error': 'Campaign id is required', 'status_code': 400}), 400
+
     campaign = Campaign.query.filter_by(id=data['campaign_id']).first()
 
     if not campaign:
