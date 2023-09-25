@@ -8,7 +8,7 @@ from context.database import db
 # Create a new blueprint
 audience_bp = Blueprint('audience', __name__)
 
-@audience_bp.route('/audience', methods=['GET', 'POST', 'PUT', 'OPTIONS'])
+@audience_bp.route('/audience', methods=['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'])
 def audience():
     if request.method == 'OPTIONS':
         # Preflight request. Reply successfully:
@@ -32,6 +32,8 @@ def audience():
         return update_audience(data)
     elif request.method == 'GET':
         return get_audience(data)
+    elif request.method == 'DELETE':
+        return delete_audience(data)
 
 def create_audience(data):
     audience_name = data.get('audience_name')
@@ -135,3 +137,19 @@ def get_audience(data):
         return jsonify({'audience': audience.to_dict(), 'status_code': 200}), 200
 
     return jsonify({'error': 'No valid parameter provided', 'status_code': 400}), 400
+
+def delete_audience(data):
+    audience_id = data.get('audience_id')
+
+    # Check if audience_id is missing
+    if not audience_id:
+        return jsonify({'error': 'audience_id is required', 'status_code': 400}), 400
+
+    audience = Audience.query.get(audience_id)
+    if not audience:
+        return jsonify({'error': 'Audience does not exist', 'status_code': 404}), 404
+
+    db.session.delete(audience)
+    db.session.commit()
+
+    return jsonify({'status': 'success', 'status_code': 200}), 200

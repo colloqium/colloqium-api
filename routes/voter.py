@@ -8,7 +8,7 @@ from context.analytics import analytics
 # blueprint definition
 voter_bp = Blueprint('voter', __name__)
 
-@voter_bp.route('/voter', methods=['GET', 'POST', 'PUT', 'OPTIONS'])
+@voter_bp.route('/voter', methods=['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'])
 def voter():
 
     if request.method == 'OPTIONS':
@@ -33,6 +33,8 @@ def voter():
         return update_voter(data)
     elif request.method == 'GET':
         return get_voter(data)
+    elif request.method == 'DELETE':
+        return delete_voter(data)
 
 def create_voter(data):
     voter_name = data['voter_name']
@@ -150,3 +152,17 @@ def get_voter(data):
         return jsonify({'voter': voter.to_dict(), 'status_code': 200}), 200
 
     return jsonify({'error': 'No valid parameter provided', 'status_code': 400}), 400
+
+def delete_voter(data):
+    if 'voter_id' not in data.keys():
+        return jsonify({'error': 'voter id is required', 'status_code': 400}), 400
+
+    voter = Voter.query.filter_by(id=data['voter_id']).first()
+
+    if not voter:
+        return jsonify({'error': 'voter does not exist', 'status_code': 404}), 404
+
+    db.session.delete(voter)
+    db.session.commit()
+
+    return jsonify({'status': 'success', 'status_code': 200}), 200
