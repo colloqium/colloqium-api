@@ -16,6 +16,10 @@ from ai_functions import AIFunction, FunctionProperty
               "type": "string",
               "description": "The ID of the voter this agent is texting"
             },
+            "time_to_send": {
+              "type": "datetime",
+              "description": "The time to send the message"
+            },
             "outbound_message": {
               "type": "string",
               "description": "The message to send to the voter"

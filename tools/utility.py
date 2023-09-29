@@ -17,7 +17,7 @@ def add_message_to_conversation(conversation: List[Dict[str, str]], message: Dic
     return conversation
 
 
-def get_llm_response_to_conversation(conversation: List[Dict[str, str]]) -> Dict[str, str]:
+def get_llm_response_to_conversation(conversation):
     conversation = conversation.copy()
     response_content = ""
 
@@ -35,11 +35,46 @@ def get_llm_response_to_conversation(conversation: List[Dict[str, str]]) -> Dict
                                                       messages=conversation,
                                                       temperature=0.9)
             ("Finished OpenAI Completion")
-            response_content = completion.choices[0].message.content
-            conversation.append({
-                "role": "assistant",
-                "content": response_content
-            })
+
+            '''
+            Response in the following formats:
+
+                    {
+                        "id": "chatcmpl-123",
+                        ...
+                        "choices": [{
+                            "index": 0,
+                            "message": {
+                            "role": "assistant",
+                            "content": null,
+                            "function_call": {
+                                "name": "get_current_weather",
+                                "arguments": "{ \"location\": \"Boston, MA\"}"
+                            }
+                            },
+                            "finish_reason": "function_call"
+                        }]
+                    }
+
+                    or
+
+                    {
+                        "id": "chatcmpl-123",
+                        ...
+                        "choices": [{
+                            "index": 0,
+                            "message": {
+                            "role": "assistant",
+                            "content": "The weather in Boston is currently sunny with a temperature of 22 degrees Celsius.",
+                            },
+                            "finish_reason": "stop"
+                        }]
+                    }
+            '''
+            response_content = completion.choices[0].message
+
+
+            conversation.append(response_content)
             # print(f"Adding OpenAI response to conversation: {response_content}")
             conversation = conversation
             break
