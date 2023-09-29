@@ -74,4 +74,6 @@ class SenderVoterRelationship(BaseDbModel):
     sender_id = db.Column(db.Integer, db.ForeignKey('sender.id'))
     voter_id = db.Column(db.Integer, db.ForeignKey('voter.id'))
     funnel_stage = db.Column(db.String(50))
-    # Relationships are set up in Sender and Voter models
+    
+    # New SQLAlchemy relationship
+    agents = db.relationship('Agent', back_populates='sender_voter_relationship')

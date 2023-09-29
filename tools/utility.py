@@ -3,8 +3,11 @@ import random
 import openai
 import re
 import time
+from typing import List, Dict
 
-def add_message_to_conversation(conversation: [{}],message: {}) -> []:
+from typing import List, Dict
+
+def add_message_to_conversation(conversation: List[Dict[str, str]], message: Dict[str, str]) -> List[Dict[str, str]]:
     """
     This function should append the new message to the recipient_communication conversation.
     """
@@ -14,7 +17,7 @@ def add_message_to_conversation(conversation: [{}],message: {}) -> []:
     return conversation
 
 
-def get_llm_response_to_conversation(conversation: [{}]) -> {}:
+def get_llm_response_to_conversation(conversation: List[Dict[str, str]]) -> Dict[str, str]:
     conversation = conversation.copy()
     response_content = ""
 
@@ -57,7 +60,7 @@ def get_llm_response_to_conversation(conversation: [{}]) -> {}:
     return conversation[-1]
 
 
-def initialize_conversation(system_prompt: str) -> [{}]:
+def initialize_conversation(system_prompt: str) -> List[Dict[str, str]]:
     return [{"role": "system", "content": system_prompt}]
 
 
