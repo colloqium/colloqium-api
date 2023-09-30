@@ -69,7 +69,7 @@ If the voter asks you a question that you do not know the answer to, refer them 
 You are reaching out to the voter in the following format:
 {interaction_type}
 
-Begin by with an engaging message that helps you accomplish your goal. Do not reveal that you are an AI bot.
+Begin by with an engaging message that helps you accomplish your goal. Do not proactively reveal that you are an AI bot, but answer honestly when asked.
 '''
 
 

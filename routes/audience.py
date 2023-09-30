@@ -2,6 +2,7 @@
 
 from flask import Blueprint, jsonify, request, Response
 from models.sender import Audience, Campaign
+from models.interaction import SenderVoterRelationship
 from models.voter import Voter
 from context.database import db
 
@@ -52,6 +53,7 @@ def create_audience(data):
         voter_ids = data['voters']
         print(voter_ids)
         voters = Voter.query.filter(Voter.id.in_(voter_ids)).all()
+        initialize_sender_voter_relationships(sender_id, voters)
 
 
     campaigns = []
@@ -100,6 +102,7 @@ def update_audience(data):
         if new_voters:
             # Create a new list merging the existing voter and the new ones
             audience.voters = list(set(audience.voters + new_voters))
+            initialize_sender_voter_relationships(audience.sender_id, new_voters)
 
     campaign_ids = data.get('campaigns')
     if campaign_ids:
@@ -153,3 +156,11 @@ def delete_audience(data):
     db.session.commit()
 
     return jsonify({'status': 'success', 'status_code': 200}), 200
+
+def initialize_sender_voter_relationships(sender_id, voters):
+    for voter in voters:
+        relationship = SenderVoterRelationship.query.filter_by(sender_id=sender_id, voter_id=voter.id).first()
+        if not relationship:
+            relationship = SenderVoterRelationship(sender_id=sender_id, voter_id=voter.id)
+            db.session.add(relationship)
+    db.session.commit()

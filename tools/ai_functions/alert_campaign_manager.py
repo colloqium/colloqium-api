@@ -1,4 +1,4 @@
-from ai_function import AIFunction, FunctionProperty
+from tools.ai_functions.ai_function import AIFunction, FunctionProperty
 
 '''
 {
@@ -25,9 +25,9 @@ from ai_function import AIFunction, FunctionProperty
     }
 '''
 
-campaign_id = FunctionProperty(name="campaign_id", required=True, description="The ID of the outreach campaign this agent is texting for")
-voter_id = FunctionProperty(name="voter_id", required=True, description="The ID of the voter this agent is texting")
-alert_message = FunctionProperty(name="alert_message", required=True, description="The message to send to the campaign manager")
+campaign_id = FunctionProperty(name="campaign_id", type="int", description="The ID of the outreach campaign this agent is texting for")
+voter_id = FunctionProperty(name="voter_id", type="int", description="The ID of the voter this agent is texting")
+alert_message = FunctionProperty(name="alert_message", type="string", description="The message to send to the campaign manager")
 
 class AlertCampaignManager(AIFunction):
     

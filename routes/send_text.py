@@ -70,7 +70,7 @@ def send_text():
             # print(f"Starting text message with body'{body}' and user number '{voter.voter_phone_number}'")
 
 
-            sender_phone_number = text_thread.select_phone_number_for_interaction()
+            sender_phone_number = text_thread.select_phone_number()
             
             # Start a new text message thread
             client.messages.create(

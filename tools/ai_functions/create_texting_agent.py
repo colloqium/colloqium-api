@@ -1,36 +1,33 @@
-from ai_functions import AIFunction, FunctionProperty
+from tools.ai_functions.ai_function import AIFunction, FunctionProperty
+from models.ai_agents.texting_agent import TextingAgent
+from context.database import db
 
-'''
-{
-      "name": "create_texting_agent",
-      "description": "Spin up an volunteer texting agent to text the voter. Initializes the first message in the conversation. Will send an notification back to the planner when the message is prepared to be sent.",
-      "parameters": {
-        "type": "object",
-        "properties": {
-          "campaign_id": {
-            "type": "string",
-            "description": "The ID of the outreach campaign this agent is texting for"
-          },
-          "voter_id": {
-            "type": "string",
-            "description": "The ID of the voter this agent is texting"
-          }
-        },
-        "required": ["campaign_id", "voter_id"]
-      }
-    }
-'''
-
-campaign_id = FunctionProperty(name="campaign_id", required=True, description="The ID of the outreach campaign this agent is texting for")
-voter_id = FunctionProperty(name="voter_id", required=True, description="The ID of the voter this agent is texting")
+interaction_id = FunctionProperty(name="interaction_id", type="int", description="The ID of the interaction this agent is texting for")
 
 
 class CreateTextingAgent(AIFunction):
 
     def __init__(self):
-        super().__init__(name="create_texting_agent",description="Spin up an volunteer texting agent to text the voter. Initializes the first message in the conversation. Will send an notification back to the planner when the message is prepared to be sent.", parameters=[campaign_id, voter_id])
+        super().__init__(name="create_texting_agent",description="Spin up an volunteer texting agent to text the voter. Initializes the first message in the conversation. Will send an notification back to the planner when the message is prepared to be sent.", parameters=[interaction_id])
 
     def call(self, **kwargs):
         print("Calling CreateTextingAgent")
         print(kwargs)
-        return
+
+        # check if the arguments include interaction_id
+        if "interaction_id" not in kwargs.keys():
+            return "Missing required argument: interaction_id"
+        
+        # create a new texting agent
+        texting_agent = TextingAgent(interaction_id=kwargs["interaction_id"])
+
+        # get the first response from the agent
+        result = texting_agent.last_message().get("content")
+
+        try:
+          db.session.add(texting_agent)
+          db.session.commit()
+        except Exception as e:
+            return "Was not able to create the agent."
+
+        return "Agent created successfully and prepared to send first message: " + result

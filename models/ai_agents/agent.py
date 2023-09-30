@@ -1,8 +1,5 @@
 from models.base_db_model import BaseDbModel
 from context.database import db
-from tools.ai_functions.function_list import ai_function_list
-from prompts.campaign_planner_agent import get_campaign_agent_system_prompt
-from prompts.campaign_volunteer_agent import get_campaign_text_message_system_prompt
 from tools.utility import get_llm_response_to_conversation
 import json
 
@@ -11,13 +8,26 @@ class Agent(BaseDbModel):
     name = db.Column(db.String(50))
     description = db.Column(db.String(200))
     sender_voter_relationship_id = db.Column(db.Integer, db.ForeignKey('sender_voter_relationship.id'))
+    interactions = db.relationship('Interaction', backref='agent', lazy=True)
+    conversation_history = db.Column(db.JSON())
+    available_actions = db.Column(db.JSON())
 
-    def __init__(self, system_prompt: str, name: str, description: str):
+    def __init__(self, system_prompt: str, name: str, description: str, sender_voter_relationship_id: int):
         self.system_prompt = system_prompt
         self.name = name
         self.description = description
+        self.sender_voter_relationship_id = sender_voter_relationship_id
         self.conversation_history = []
         self.available_actions = []
+
+    def last_message(self):
+        """
+        Returns the last message in the conversation history.
+        
+        Returns:
+            last_message (dict): A dictionary containing the last message in the conversation history.
+        """
+        return self.conversation_history[-1]
 
     def send_prompt(self, prompt_data: dict):
       """
@@ -36,14 +46,15 @@ class Agent(BaseDbModel):
           "content": prompt_data['content']
       })
 
+      # Convert available actions to a dictionary for faster lookup
+      available_functions = {function.name: function for function in self.available_actions}
+      function_schema_array = [function.get_schema() for function in self.available_actions]
+
       # Call the get_llm_response_to_conversation function
-      llm_response = get_llm_response_to_conversation(self.conversation_history)
+      llm_response = get_llm_response_to_conversation(self.conversation_history, function_schema_array)
 
       # Update the conversation history with the LLM's response
       self.conversation_history.append(llm_response)
-
-      # Convert available actions to a dictionary for faster lookup
-      available_functions = {function.name: function for function in self.available_actions}
 
       # Check for a function call in the LLM's response
       while 'function_call' in llm_response:
@@ -64,7 +75,7 @@ class Agent(BaseDbModel):
           })
 
           # Call the LLM again to get a new response considering the function's output
-          llm_response = get_llm_response_to_conversation(self.conversation_history)
+          llm_response = get_llm_response_to_conversation(self.conversation_history, function_schema_array)
           self.conversation_history.append(llm_response)
 
       try:
@@ -81,15 +92,3 @@ class Agent(BaseDbModel):
           'message': "Prompt processed and conversation updated.",
           'llm_response': llm_response['content']
       }
-
-
-
-class PlannerAgent(Agent):
-    def __init__(self):
-        super().__init__(get_campaign_agent_system_prompt(), "Planner Agent", "Handles scheduling and high-level decisions")
-        self.available_actions = [function for function in ai_function_list]
-
-
-class TextingAgent(Agent):
-    def __init__(self):
-        super().__init__(get_campaign_text_message_system_prompt(), "Texting Agent", "Handles text message sending")

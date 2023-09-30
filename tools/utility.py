@@ -17,7 +17,7 @@ def add_message_to_conversation(conversation: List[Dict[str, str]], message: Dic
     return conversation
 
 
-def get_llm_response_to_conversation(conversation):
+def get_llm_response_to_conversation(conversation, functions = []):
     conversation = conversation.copy()
     response_content = ""
 
@@ -31,8 +31,10 @@ def get_llm_response_to_conversation(conversation):
         try:
             # generate a new response from OpenAI to continue the conversation
             ("Starting OpenAI Completion")
-            completion = openai.ChatCompletion.create(model="gpt-4",
+            completion = openai.ChatCompletion.create(model="gpt-4-0613",
                                                       messages=conversation,
+                                                      functions=functions,
+                                                      function_call="auto",
                                                       temperature=0.9)
             ("Finished OpenAI Completion")
 

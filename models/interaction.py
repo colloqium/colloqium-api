@@ -3,6 +3,7 @@ from context.database import db
 from models.sender import Sender
 from models.voter import Voter
 from models.base_db_model import BaseDbModel
+from models.ai_agents.agent import Agent
 from sqlalchemy.sql import func
 from dataclasses import dataclass
 
@@ -25,6 +26,7 @@ class Interaction(BaseDbModel):
     voter_id = db.Column(db.Integer, db.ForeignKey('voter.id'))
     sender_id = db.Column(db.Integer, db.ForeignKey('sender.id'), name="sender_id")
     campaign_id = db.Column(db.Integer, db.ForeignKey('campaign.id'))
+    agent_id = db.Column(db.Integer, db.ForeignKey('agent.id'))
     voter_outreach_schedule = db.Column(db.JSON())
     interaction_status = db.Column(db.Integer) #initialized, human_confirmed, sent, delivered, responded, converted
     time_created = db.Column(DateTime(timezone=True), server_default=func.now())
@@ -44,7 +46,7 @@ class Interaction(BaseDbModel):
 
     # Relationships are set up in Recipient, Sender, and CampaignContext models
     
-    def select_phone_number_for_interaction(self):
+    def select_phone_number(self):
         print(f"Selecting phone number for interaction {self.id}")
         sender = Sender.query.get(self.sender_id)
         return sender.phone_numbers[0].get_full_phone_number()

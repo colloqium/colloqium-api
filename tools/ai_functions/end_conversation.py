@@ -1,4 +1,4 @@
-from ai_function import AIFunction, FunctionProperty
+from tools.ai_functions.ai_function import AIFunction, FunctionProperty
 
 
 '''
@@ -26,9 +26,9 @@ from ai_function import AIFunction, FunctionProperty
     }
 '''
 
-campaign_id = FunctionProperty(name="campaign_id", required=True, description="The ID of the outreach campaign this agent is texting for")
-voter_id = FunctionProperty(name="voter_id", required=True, description="The ID of the voter this agent is texting")
-ending_reason = FunctionProperty(name="ending_reason", required=True, description="The reason the conversation is ending")
+campaign_id = FunctionProperty(name="campaign_id", type="int", description="The ID of the outreach campaign this agent is texting for")
+voter_id = FunctionProperty(name="voter_id", type="int", description="The ID of the voter this agent is texting")
+ending_reason = FunctionProperty(name="ending_reason", type="int", description="The reason the conversation is ending")
 
 class EndConversation(AIFunction):
 
