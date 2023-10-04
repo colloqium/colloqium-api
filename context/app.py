@@ -40,6 +40,9 @@ def create_app():
     db.init_app(app)
     Migrate(app, db)
 
+    with app.app_context():
+        db.engine.execution_options(isolation_level="SERIALIZABLE")
+
     return app
 
 # def setup_migrations(app, db):

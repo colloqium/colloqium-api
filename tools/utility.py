@@ -21,6 +21,7 @@ def get_llm_response_to_conversation(conversation, functions = []):
     conversation = conversation.copy()
     response_content = ""
 
+
     # have a random wait time between 30 and 60 seconds to avoid hitting the rate limit
     wait_time =  random.randint(30, 60)
 
@@ -30,13 +31,17 @@ def get_llm_response_to_conversation(conversation, functions = []):
     while retry_count <= max_retries:
         try:
             # generate a new response from OpenAI to continue the conversation
-            ("Starting OpenAI Completion")
-            completion = openai.ChatCompletion.create(model="gpt-4-0613",
+
+            if functions == []:
+                completion = openai.ChatCompletion.create(model="gpt-4",
+                                                      messages=conversation,
+                                                      temperature=0.9)
+            else:
+                completion = openai.ChatCompletion.create(model="gpt-4-0613",
                                                       messages=conversation,
                                                       functions=functions,
                                                       function_call="auto",
                                                       temperature=0.9)
-            ("Finished OpenAI Completion")
 
             '''
             Response in the following formats:

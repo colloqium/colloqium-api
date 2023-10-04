@@ -4,7 +4,7 @@ from models.voter import Voter
 from models.sender import Campaign
 from models.interaction import Interaction, InteractionStatus, SenderVoterRelationship
 from models.interaction_types import INTERACTION_TYPES
-from models.ai_agents.planner_agent import PlannerAgent
+from models.ai_agents.planning_agent import PlanningAgent
 from models.ai_agents.agent import Agent
 from tools.utility import get_llm_response_to_conversation, initialize_conversation
 from context.database import db
@@ -121,19 +121,19 @@ def initialize_interaction(interaction_id, app):
             # get the hydrated sender_voter_relationship
             sender_voter_relationship = SenderVoterRelationship.query.filter_by(sender_id=interaction.sender_id, voter_id=interaction.voter_id).first()
 
-        # look for an agent with the name Planner Agent in the sender_voter_relationship
-        planner_agent = Agent.query.filter_by(sender_voter_relationship_id=sender_voter_relationship.id, name="Planner Agent").first()
+        # look for an agent with the name planning_agent in the sender_voter_relationship
+        planning_agent = Agent.query.filter_by(sender_voter_relationship_id=sender_voter_relationship.id, name="planning_agent").first()
 
         # if planner doesn't exist, create a new one
-        if not planner_agent:
-            planner_agent = PlannerAgent(sender_voter_relationship_id=sender_voter_relationship.id)
-            db.session.add(planner_agent)
+        if not planning_agent:
+            planning_agent = PlanningAgent(sender_voter_relationship_id=sender_voter_relationship.id)
+            db.session.add(planning_agent)
             db.session.commit()
             # get the hydrated planner agent
-            planner_agent = Agent.query.filter_by(sender_voter_relationship_id=sender_voter_relationship.id, name="Planner Agent").first()
+            planning_agent = Agent.query.filter_by(sender_voter_relationship_id=sender_voter_relationship.id, name="planning_agent").first()
 
         planner_prompt = f"Start a text conversation with the voter to accomplish this goal: {interaction.campaign.campaign_goal}. The associated interaction id is {interaction.id}."
-        planner_agent.send_prompt({
+        planning_agent.send_prompt({
             "content": planner_prompt
         })
 

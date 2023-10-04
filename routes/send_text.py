@@ -1,14 +1,8 @@
 from flask import Blueprint, request, Response
 # import Flask and other libraries
 from flask import jsonify
-from models.sender import Sender
-from models.interaction import Interaction, InteractionStatus
-from models.voter import Voter
+from models.interaction import Interaction, InteractionStatus, SenderVoterRelationship
 from context.database import db
-from context.apis import client
-from tools.utility import format_phone_number
-from context.analytics import analytics, EVENT_OPTIONS
-from context.apis import twilio_messaging_service_sid, message_webhook_url
 from twilio.twiml.messaging_response import MessagingResponse
 
 send_text_bp = Blueprint('send_text', __name__)
@@ -52,56 +46,47 @@ def send_text():
     response = Response(str(MessagingResponse()), mimetype='application/xml')
 
     try:
+        print("Inside try block")
         text_thread = db.session.query(Interaction).get(interaction_id)
         
         #set the interaction_status to InteractionStatus.HUMAN_CONFIRMED
         text_thread.interaction_status = InteractionStatus.HUMAN_CONFIRMED
 
         if text_thread:
-            voter = Voter.query.get(text_thread.voter_id)
-            sender = Sender.query.get(text_thread.sender_id)
-            conversation = text_thread.conversation
 
-            # print( f"Texting route recieved Conversation: {conversation}")
+            print("text_thread found")
+            # get the planner for this message
+            # tell the planner that the message has been human confirmed and is ready to be sent
 
-            # Get the last message in the conversation
-            body = conversation[-1].get('content')
+            relationship = SenderVoterRelationship.query.filter_by(voter_id=text_thread.voter_id, sender_id=text_thread.sender_id).first()
+            # filter the relationship.agents for an agent with the name planning_agent
 
-            # print(f"Starting text message with body'{body}' and user number '{voter.voter_phone_number}'")
-
-
-            sender_phone_number = text_thread.select_phone_number()
+            #if no relationship, return an error
+            if not relationship:
+                print("No relationship found for this interaction")
+                return jsonify({'status': 'error', 'last_action': 'send_text', 'errors': ["No relationship found for this interaction"]})
             
-            # Start a new text message thread
-            client.messages.create(
-                body=body,
-                from_=format_phone_number(sender_phone_number),
-                to=format_phone_number(voter.voter_phone_number),
-                status_callback=message_webhook_url,
-                messaging_service_sid=twilio_messaging_service_sid)
+            print("relationship found")
 
-            # print(f"Started text Conversation with voter '{voter.voter_name}' on text SID '{text_message.sid}'")
-            analytics.track(voter.id, EVENT_OPTIONS.sent, {
-                'interaction_id': interaction_id,
-                'interaction_type': text_thread.interaction_type,
-                'voter_name': voter.voter_name,
-                'voter_phone_number': voter.voter_phone_number,
-                'sender_name': sender.sender_name,
-                'sender_phone_number': sender_phone_number,
-                'message': body,
+
+
+            print(f"relationship.agents: {relationship.agents}")
+            planning_agent = list(filter(lambda agent: agent.name == "planning_agent", relationship.agents))[0]
+
+            body = text_thread.conversation[-1].get('content')
+
+            planning_agent.send_prompt({
+                "content": f"The first message for interaction {text_thread.id}. Campaign ID is {text_thread.campaign_id}. Voter ID is {text_thread.voter_id}. Sender ID is {text_thread.sender_id}. A texting agent already exists, just send the message to the voter. The message is: {body}",
             })
-
-            text_thread.interaction_status = InteractionStatus.SENT
-
-            db.session.add(text_thread)
-            db.session.commit()
 
             return response, 200
         else:
             return response, 400
 
     except Exception as e:
-        response, 400
+        print(f"Exception: {e}")
+        # add the error to the response
+        return jsonify({'status': 'error', 'last_action': 'send_text', 'errors': [str(e)]})
     
 
 

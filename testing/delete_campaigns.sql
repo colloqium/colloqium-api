@@ -20,3 +20,11 @@ DELETE FROM interaction WHERE campaign_id IN (
 
 -- Step 5: Re-run the DELETE Query for "campaign" Table
 DELETE FROM campaign WHERE campaign_name NOT LIKE '%Volunteer Recruitment Team Testing%';
+
+DELETE FROM public.audience_voter
+	WHERE NOT audience_id = 1;
+
+DELETE FROM public.audience
+	WHERE NOT id = 1;
+	
+DELETE FROM public.agent

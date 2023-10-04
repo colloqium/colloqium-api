@@ -78,4 +78,4 @@ class SenderVoterRelationship(BaseDbModel):
     funnel_stage = db.Column(db.String(50))
     
     # New SQLAlchemy relationship
-    agents = db.relationship('Agent', back_populates='sender_voter_relationship')
+    agents = db.relationship('Agent', backref='sender_voter_relationship')

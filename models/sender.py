@@ -23,6 +23,7 @@ class Sender(BaseDbModel):
     phone_numbers = relationship('PhoneNumber',
                                   backref='sender',
                                   lazy=True)
+    alert_phone_number = db.Column(db.String(20))
     
     #overwrite the base to_dict method to include the phone numbers
     def to_dict(self):

@@ -124,6 +124,7 @@ def create_sender(data):
     phone_numbers = data.get('phone_numbers', None)
     example_interactions = data.get('example_interactions', None)
     fallback_url = data.get('fallback_url', None)
+    alert_phone_number = data.get('alert_phone_number', None)
     
     
     if phone_numbers:
@@ -145,6 +146,9 @@ def create_sender(data):
 
     if fallback_url:
         sender.fallback_url = fallback_url
+
+    if alert_phone_number:
+        sender.alert_phone_number = alert_phone_number
 
     # add the sender to the database
     db.session.add(sender)
@@ -203,6 +207,9 @@ def update_sender(data):
 
     if 'fallback_url' in data.keys():
         sender.fallback_url = data['fallback_url']
+
+    if 'alert_phone_number' in data.keys():
+        sender.alert_phone_number = data['alert_phone_number']
     
     db.session.add(sender)
     db.session.commit()

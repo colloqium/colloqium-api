@@ -11,3 +11,5 @@ ai_function_list = [
     AlertCampaignManager(),
     EndConversation()
 ]
+
+ai_function_dict = {function.name: function for function in ai_function_list}
