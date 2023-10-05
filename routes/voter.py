@@ -101,7 +101,7 @@ def update_voter(data):
         existing_voter = Voter.query.filter_by(voter_phone_number=voter_phone_number).first()
         if existing_voter and existing_voter.id != voter_id:
             return jsonify({'error': 'voter with this phone number already exists', 'status_code': 409}), 409
-        voter.voter_phone_number = voter_phone_number
+        voter.voter_phone_number = format_phone_number(voter_phone_number)
 
     if 'voter_name' in data.keys():
         voter.voter_name = data['voter_name']
