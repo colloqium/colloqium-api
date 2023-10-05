@@ -100,17 +100,17 @@ class SendMessage(AIFunction):
           print(f"Message called at {datetime.datetime.now()}")
           client.messages.create(
                       body=message_body,
-                      from_=sender_phone_number,
+                      from_=format_phone_number(sender_phone_number),
                       status_callback=message_webhook_url,
-                      to=voter.voter_phone_number,
+                      to=format_phone_number(voter.voter_phone_number),
                       messaging_service_sid=twilio_messaging_service_sid)
           
           analytics.track(voter.id, EVENT_OPTIONS.sent, {
                       'interaction_id': interaction.id,
                       'voter_name': voter.voter_name,
-                      'voter_phone_number': voter.voter_phone_number,
+                      'voter_phone_number': format_phone_number(voter.voter_phone_number),
                       'sender_name': sender.sender_name,
-                      'sender_phone_number': sender_phone_number,
+                      'sender_phone_number': format_phone_number(sender_phone_number),
                       'message': message_body,
                   })
 
