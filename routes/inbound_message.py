@@ -11,6 +11,7 @@ from context.analytics import analytics, EVENT_OPTIONS
 from twilio.twiml.messaging_response import MessagingResponse
 from tools.ai_functions.send_message import SendMessage
 from logs.logger import logger
+from sqlalchemy.orm.attributes import flag_modified
 
 inbound_message_bp = Blueprint('inbound_message', __name__)
 
@@ -81,6 +82,9 @@ def inbound_message():
         "content": f"{message_body}",
     })
 
+    interaction.conversation = texting_agent.conversation_history.copy()
+
+    flag_modified(interaction, "conversation")
     db.session.add(interaction)
     db.session.commit()
 
