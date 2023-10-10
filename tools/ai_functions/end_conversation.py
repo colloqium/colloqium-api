@@ -2,8 +2,8 @@ from tools.ai_functions.ai_function import AIFunction, FunctionProperty
 from context.database import db
 from models.sender import Campaign
 from models.interaction import SenderVoterRelationship, Interaction
-from models.ai_agents.texting_agent import TextingAgent
 from sqlalchemy.orm.attributes import flag_modified
+from models.ai_agents.texting_agent import Agent
 
 campaign_id = FunctionProperty(name="campaign_id", paramater_type="string", description="The ID of the outreach campaign this agent is texting for")
 voter_id = FunctionProperty(name="voter_id", paramater_type="string", description="The ID of the voter this agent is texting")
@@ -43,20 +43,16 @@ class EndConversation(AIFunction):
 
         print(f"Relationship agents available: {relationship.agents}")
 
+        # get the planning agent for this sender voter Relationship. look for an agent with a name "planning_agent"
+        planning_agent = [agent for agent in relationship.agents if agent.name == "planning_agent"][0]
 
 
         # get the interaction associated with this texting agent, campaign, and voter
         print(f"Looking for an interaction with campaign_id {campaign_id} and voter_id {voter_id}")
         interaction = Interaction.query.filter_by(campaign_id=campaign_id, voter_id=voter_id).first()
         
-        # do a query for an agent with the interaction in it's interactions list
-        texting_agent = TextingAgent.query.filter(TextingAgent.interactions.any(id=interaction.id)).first()
-
-        # add the last message to the texting agent's conversation history
-        texting_agent.conversation_history.append({
-            "role": "user",
-            "content": inbound_message
-        })
+        # do a query for an agent with the interaction in it's interactions list and the name "texting_agent"
+        texting_agent = Agent.query.filter(Agent.interactions.any(id=interaction.id), Agent.name == "texting_agent").first()
 
         texting_agent.conversation_history.append({
             "role": "assistant",
@@ -72,5 +68,7 @@ class EndConversation(AIFunction):
         db.session.add(interaction)
         db.session.add(texting_agent)
         db.session.commit()
+
+        planning_agent.send_message(f"Conversation with campaign_id {campaign_id} and voter_id {voter_id} ended because {ending_reason}")
 
         return "Conversation ended"

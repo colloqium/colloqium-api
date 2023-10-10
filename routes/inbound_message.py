@@ -1,18 +1,15 @@
-import datetime
-from flask import Blueprint, current_app
+from flask import Blueprint
 # import Flask and other libraries
 from flask import request, Response
-from models.interaction import Interaction, InteractionStatus, SenderVoterRelationship
+from models.interaction import Interaction, InteractionStatus
 from models.voter import Voter
-from models.sender import Sender
 from models.model_utility import get_phone_number_from_db
-from tools.utility import add_message_to_conversation, get_llm_response_to_conversation
+from models.ai_agents.agent import Agent
 # from logs.logger import logging
 from context.database import db
-from context.apis import client, message_webhook_url, twilio_messaging_service_sid
 from context.analytics import analytics, EVENT_OPTIONS
-from context.scheduler import scheduler
 from twilio.twiml.messaging_response import MessagingResponse
+from tools.ai_functions.send_message import SendMessage
 from logs.logger import logger
 
 inbound_message_bp = Blueprint('inbound_message', __name__)
@@ -75,17 +72,37 @@ def inbound_message():
             })
 
 
-    # get the planning agent for this campaign and voter
-    relationship = SenderVoterRelationship.query.filter_by(voter_id=voter.id, sender_id=sender.id).first()
-    # filter the relationship.agents for an agent with the name planning_agent
-    planning_agent = list(filter(lambda agent: agent.name == "planning_agent", relationship.agents))[0]
-
+    
+    # get the texting agent with the interaction in it's interactions list
+    texting_agent = Agent.query.filter(Agent.interactions.any(id=interaction.id)).first()
+    
     # send the message to the planning agent
-    planning_agent.send_prompt({
-        "content": f"Recieved a reply from the voter, generate a response if appropriate. Campaign ID is {interaction.campaign_id}. Voter ID is {voter.id}. If not, end the conversation.: {message_body}",
+    texting_agent.send_prompt({
+        "content": f"{message_body}",
     })
 
     db.session.add(interaction)
     db.session.commit()
+
+    
+    # check if the last element in the texting agent is a function, if so do not send a message
+    if "function_call" in texting_agent.conversation_history[-1].keys():
+        print("Last message is a function call")
+        return response, 200
+    
+    if "ended because" in texting_agent.conversation_history[-1].get('content'):
+        print("Conversation ended")
+        return response, 200
+
+
+    send_message = SendMessage()
+
+    kwargs = {
+        "campaign_id": interaction.campaign_id,
+        "voter_id": interaction.voter_id,
+        "outbound_message": texting_agent.conversation_history[-1].get('content')
+    }
+
+    send_message.call(**kwargs)
  
     return response, 200

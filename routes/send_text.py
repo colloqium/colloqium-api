@@ -4,6 +4,7 @@ from flask import jsonify
 from models.interaction import Interaction, InteractionStatus, SenderVoterRelationship
 from context.database import db
 from twilio.twiml.messaging_response import MessagingResponse
+from tools.ai_functions.send_message import SendMessage
 
 send_text_bp = Blueprint('send_text', __name__)
 
@@ -71,13 +72,18 @@ def send_text():
 
 
             print(f"relationship.agents: {relationship.agents}")
-            planning_agent = list(filter(lambda agent: agent.name == "planning_agent", relationship.agents))[0]
-
+            texting_agent = [agent for agent in relationship.agents if agent.name == "texting_agent"][0]
             body = text_thread.conversation[-1].get('content')
 
-            planning_agent.send_prompt({
-                "content": f"The first message for interaction {text_thread.id}. Campaign ID is {text_thread.campaign_id}. Voter ID is {text_thread.voter_id}. Sender ID is {text_thread.sender_id}. A texting agent already exists, just send the message to the voter. The message is: {body}",
-            })
+            send_message = SendMessage()
+
+            args = {
+                "campaign_id": text_thread.campaign_id,
+                "voter_id": text_thread.voter_id,
+                "outbound_message": body
+            }
+
+            send_message.call(**args)
 
             return response, 200
         else:

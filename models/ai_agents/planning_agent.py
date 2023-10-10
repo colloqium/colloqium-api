@@ -1,7 +1,7 @@
 from models.ai_agents.agent import Agent
 from models.interaction import SenderVoterRelationship
 from context.database import db
-from tools.ai_functions.function_list import ai_function_list
+from tools.ai_functions.create_texting_agent import CreateTextingAgent
 from tools.utility import get_llm_response_to_conversation, initialize_conversation
 from langchain.prompts import ChatPromptTemplate, SystemMessagePromptTemplate
 import json
@@ -28,7 +28,7 @@ class PlanningAgent(Agent):
 
             You know the following about the voter: {voter_info}
 
-            Never send the first message of a conversation without human confirmation. If you make a mistake calling a function, try to call it again at least once. Respond "Ready" if you are ready to begin and wait for a request from the campaign manager.
+            If you make a mistake calling a function, try to call it again at least once. Respond "Ready" if you are ready to begin and wait for a request from the campaign manager.
         '''
 
         system_prompt_template = SystemMessagePromptTemplate.from_template(prompt_template)
@@ -48,7 +48,8 @@ class PlanningAgent(Agent):
 
         self.conversation_history.append(first_llm_response)
 
-        self.available_actions = json.dumps([function.to_dict() for function in ai_function_list])
+        self.available_actions = json.dumps([CreateTextingAgent().to_dict()])
+
 
         print(f"Created a new PlanningAgent")
         print(f"Initial message: {self.last_message()}")

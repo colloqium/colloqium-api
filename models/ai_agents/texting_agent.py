@@ -1,13 +1,15 @@
 from models.ai_agents.agent import Agent
 from models.interaction import SenderVoterRelationship
-from models.sender import Sender, Campaign
 from models.interaction import Interaction, InteractionStatus
-from models.voter import Voter
 from context.database import db
 from tools.utility import get_llm_response_to_conversation, initialize_conversation
+from tools.ai_functions.alert_campaign_manager import AlertCampaignManager
+from tools.ai_functions.end_conversation import EndConversation
+from tools.ai_functions.send_message import SendMessage
 from langchain.prompts import ChatPromptTemplate, SystemMessagePromptTemplate
 from context.sockets import socketio
 from context.analytics import analytics, EVENT_OPTIONS
+import json
 
 class TextingAgent(Agent):
     __mapper_args__ = {
@@ -60,7 +62,11 @@ class TextingAgent(Agent):
 
                     You are sending the voter a text message.
 
-                    Begin by with an engaging message that helps you accomplish your goal. Do not proactively reveal that you are an AI bot, but answer honestly when asked.
+                    Begin with an engaging message that helps you accomplish your goal. Don't send the first message until it is human confirmed, but follow on messages should be sent. Do not proactively reveal that you are an AI bot, but answer honestly when asked.
+
+                    For some functions you need a campaign ID and voter ID:
+                    Campaign ID: {campaign_id}
+                    Voter ID: {voter_id}
             '''
 
             system_prompt_template = SystemMessagePromptTemplate.from_template(prompt_template)
@@ -77,7 +83,9 @@ class TextingAgent(Agent):
                 sender_information = sender.sender_information,
                 campaign_goal = campaign.campaign_goal,
                 campaign_fallback = sender.fallback_url,
-                example_interactions = sender.example_interactions
+                example_interactions = sender.example_interactions,
+                campaign_id = campaign.id,
+                voter_id = voter.id
             )
 
             super().__init__(self.system_prompt, "texting_agent", "Writes text messages", sender_voter_relationship.id)
@@ -96,9 +104,8 @@ class TextingAgent(Agent):
 
             interaction.conversation = self.conversation_history
             interaction.interaction_status = InteractionStatus.INITIALIZED
-
-            
-            self.available_actions = None
+ 
+            self.available_actions = json.dumps([AlertCampaignManager().to_dict(), EndConversation().to_dict()])
             self.interactions = [interaction]
             
             db.session.add(self)
