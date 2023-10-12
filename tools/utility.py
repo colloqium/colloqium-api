@@ -4,6 +4,8 @@ import openai
 import re
 import time
 from typing import List, Dict
+from langchain.text_splitter import CharacterTextSplitter
+from context.vector_store import get_index_from_context, save_vector_plus_meta, get_top_relevant_messages
 
 from typing import List, Dict
 
@@ -15,6 +17,44 @@ def add_message_to_conversation(conversation: List[Dict[str, str]], message: Dic
     conversation = conversation.copy()
     conversation.append({"role": "user", "content": message})
     return conversation
+
+
+def add_to_vector_store(content: str, metadata: dict) -> None:
+    """
+    This function should add the content and metadata to the vector store.
+    """
+
+    # chunck the content into 1024 token size chuncks that overlap by 512 tokens
+    text_splitter  = CharacterTextSplitter.from_tiktoken_encoder(
+        chunk_size=500,
+        chunk_overlap=100,
+        separator = " ",
+    )
+
+    chuncks = text_splitter.split_text(content)
+
+    print(f"*************************Chuncks**********************************\n{chuncks}")
+
+    index = get_index_from_context(metadata['context'])
+    
+    # for each chunck save the vector and metadata to the vector store
+    for chunck in chuncks:
+        #check if the chunk is already in the vector store
+        # if it is, skip it
+        current_results = get_top_relevant_messages(chunck, index, top_k=1, similarity_threshold=0.9999, metadata=metadata)
+
+        if len(current_results) != 0:
+            continue
+
+        save_vector_plus_meta(chunck, metadata, index)
+
+
+def get_vector_store_results(query: str, metadata: dict, top_k=3, similarity=0.5) -> List[Dict[str, str]]:
+
+    # get the right vector store from pinecone for the metadata. Sender, Voter, or General information
+    index = get_index_from_context(metadata['context'])
+
+    return get_top_relevant_messages(query, index, top_k, similarity, metadata)
 
 
 def get_llm_response_to_conversation(conversation, functions = []):

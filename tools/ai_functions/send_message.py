@@ -42,7 +42,7 @@ from flask import current_app
 
 campaign_id = FunctionProperty(name="campaign_id", paramater_type="string", description="The ID of the outreach campaign this agent is texting for")
 voter_id = FunctionProperty(name="voter_id", paramater_type="string", description="The ID of the voter this agent is texting")
-outbound_message = FunctionProperty(name="outbound_message", paramater_type="string", description="The message to send to the voter")
+outbound_message = FunctionProperty(name="outbound_message", paramater_type="string", description="The message to send to the voter. This should always be a short text message, do not put other function reults in here.")
 
 class SendMessage(AIFunction):
 

@@ -27,4 +27,7 @@ DELETE FROM public.audience_voter
 DELETE FROM public.audience
 	WHERE NOT id = 1;
 	
+-- Delete interactions that reference agents to be deleted
+DELETE FROM interaction WHERE agent_id IN (SELECT id FROM agent);
+	
 DELETE FROM public.agent

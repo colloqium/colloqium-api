@@ -9,7 +9,7 @@ from flask import Blueprint, json, request
 from flask import jsonify
 from models.sender import Sender, PhoneNumber
 from models.model_utility import get_phone_number_from_db
-from tools.utility import format_phone_number
+from tools.utility import format_phone_number, add_to_vector_store
 from context.database import db
 # Import the functions from the other files
 
@@ -137,12 +137,19 @@ def create_sender(data):
             db.session.add(phone_number)
             db.session.commit()
 
+    vector_meta = {
+        'context': 'sender',
+        'id': sender.id
+    }
+
     # add the sender information if it is provided
     if sender_information:
         sender.sender_information = sender_information
+        add_to_vector_store(sender_information, vector_meta)
 
     if example_interactions:
         sender.example_interactions = example_interactions
+        add_to_vector_store(example_interactions, vector_meta)
 
     if fallback_url:
         sender.fallback_url = fallback_url
@@ -184,6 +191,7 @@ def update_sender(data):
     #update the sender information if it is provided
     if 'sender_information' in data.keys():
         sender.sender_information = data['sender_information']
+        add_to_vector_store(sender.sender_information, {'context': 'sender', 'id': sender.id})
     
     #add any new phone numbers if they are provided
     if 'phone_numbers' in data.keys():
@@ -204,6 +212,7 @@ def update_sender(data):
     #update the example interactions if they are provided
     if 'example_interactions' in data.keys():
         sender.example_interactions = data['example_interactions']
+        add_to_vector_store(sender.example_interactions, {'context': 'sender', 'id': sender.id})
 
     if 'fallback_url' in data.keys():
         sender.fallback_url = data['fallback_url']

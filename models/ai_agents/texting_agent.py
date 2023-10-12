@@ -2,10 +2,10 @@ from models.ai_agents.agent import Agent
 from models.interaction import SenderVoterRelationship
 from models.interaction import Interaction, InteractionStatus
 from context.database import db
-from tools.utility import get_llm_response_to_conversation, initialize_conversation
+from tools.utility import get_llm_response_to_conversation, initialize_conversation, get_vector_store_results
 from tools.ai_functions.alert_campaign_manager import AlertCampaignManager
 from tools.ai_functions.end_conversation import EndConversation
-from tools.ai_functions.send_message import SendMessage
+from tools.ai_functions.get_candidate_information import GetCandidateInformation
 from langchain.prompts import ChatPromptTemplate, SystemMessagePromptTemplate
 from context.sockets import socketio
 from context.analytics import analytics, EVENT_OPTIONS
@@ -38,6 +38,9 @@ class TextingAgent(Agent):
 
             sender_voter_relationship = SenderVoterRelationship.query.filter_by(sender_id=sender.id, voter_id=voter.id).first()
 
+            # look in the vector store for a subset of example interactions based on the campaign prompt
+            key_examples = json.dumps(get_vector_store_results(campaign.campaign_prompt, {'context': 'sender', 'id': sender.id}))
+
             prompt_template = '''You are a helpful agent reaching out to {voter_name} on behalf of {sender_name} Keep your comments short, but welcoming. Please respond with 1 or 2 sentences and be brief. Your responses should be concise, informative, and engaging. If the voter is losing interest in the conversation or has no more questions, include "goodbye" in your response to mark the end of the communication.
 
                     Follow these instructions when reaching out to the voter:
@@ -54,7 +57,7 @@ class TextingAgent(Agent):
                     You know the following about the voter of the message:
                     {voter_information}
 
-                    Here are some examples from the sender on how to respond to some questions:
+                    Here are some examples of contextual information about the sender:
                     {example_interactions}
 
                     If the voter asks you a question that you do not know the answer to, refer them to the following:
@@ -64,9 +67,10 @@ class TextingAgent(Agent):
 
                     Begin with an engaging message that helps you accomplish your goal. Don't send the first message until it is human confirmed, but follow on messages should be sent. Do not proactively reveal that you are an AI bot, but answer honestly when asked.
 
-                    For some functions you need a campaign ID and voter ID:
+                    For some functions you need a campaign ID, voter ID, and Sender ID:
                     Campaign ID: {campaign_id}
                     Voter ID: {voter_id}
+                    Sender ID: {sender_id}
             '''
 
             system_prompt_template = SystemMessagePromptTemplate.from_template(prompt_template)
@@ -83,9 +87,10 @@ class TextingAgent(Agent):
                 sender_information = sender.sender_information,
                 campaign_goal = campaign.campaign_goal,
                 campaign_fallback = sender.fallback_url,
-                example_interactions = sender.example_interactions,
+                example_interactions = key_examples,
                 campaign_id = campaign.id,
-                voter_id = voter.id
+                voter_id = voter.id,
+                sender_id = sender.id
             )
 
             super().__init__(self.system_prompt, "texting_agent", "Writes text messages", sender_voter_relationship.id)
@@ -105,7 +110,7 @@ class TextingAgent(Agent):
             interaction.conversation = self.conversation_history
             interaction.interaction_status = InteractionStatus.INITIALIZED
  
-            self.available_actions = json.dumps([AlertCampaignManager().to_dict(), EndConversation().to_dict()])
+            self.available_actions = json.dumps([AlertCampaignManager().to_dict(), EndConversation().to_dict(), GetCandidateInformation().to_dict()])
             self.interactions = [interaction]
             
             db.session.add(self)
