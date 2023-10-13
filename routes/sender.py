@@ -4,12 +4,13 @@ This file contains the routes for the sender. It can take a post request that wi
 They should also be able to modify the sender with the post request if they have an existing sender id.
 '''
 
-from flask import Blueprint, json, request
+from flask import Blueprint, request
 # import Flask and other libraries
 from flask import jsonify
 from models.sender import Sender, PhoneNumber
 from models.model_utility import get_phone_number_from_db
-from tools.utility import format_phone_number, add_to_vector_store
+from tools.utility import format_phone_number
+from tools.vector_store_utility import add_to_vector_store
 from context.database import db
 # Import the functions from the other files
 

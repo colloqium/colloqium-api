@@ -2,7 +2,8 @@ from models.ai_agents.agent import Agent
 from models.interaction import SenderVoterRelationship
 from models.interaction import Interaction, InteractionStatus
 from context.database import db
-from tools.utility import get_llm_response_to_conversation, initialize_conversation, get_vector_store_results
+from tools.utility import get_llm_response_to_conversation, initialize_conversation
+from tools.vector_store_utility import get_vector_store_results
 from tools.ai_functions.alert_campaign_manager import AlertCampaignManager
 from tools.ai_functions.end_conversation import EndConversation
 from tools.ai_functions.get_candidate_information import GetCandidateInformation
@@ -39,7 +40,13 @@ class TextingAgent(Agent):
             sender_voter_relationship = SenderVoterRelationship.query.filter_by(sender_id=sender.id, voter_id=voter.id).first()
 
             # look in the vector store for a subset of example interactions based on the campaign prompt
-            key_examples = json.dumps(get_vector_store_results(campaign.campaign_prompt, {'context': 'sender', 'id': sender.id}))
+            key_examples = get_vector_store_results(campaign.campaign_prompt, 3, 0.25, {'context': 'sender', 'id': sender.id})
+
+            # get the key_examples["text"] from each example and remove the brackets
+            key_examples = [example["text"] for example in key_examples]
+
+            # remove all [ and { }] from the examples
+            key_examples = [example.replace("[", "").replace("]", "").replace("{", "").replace("}", "") for example in key_examples]
 
             prompt_template = '''You are a helpful agent reaching out to {voter_name} on behalf of {sender_name} Keep your comments short, but welcoming. Please respond with 1 or 2 sentences and be brief. Your responses should be concise, informative, and engaging. If the voter is losing interest in the conversation or has no more questions, include "goodbye" in your response to mark the end of the communication.
 

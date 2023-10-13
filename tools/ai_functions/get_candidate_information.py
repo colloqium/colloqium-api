@@ -1,5 +1,5 @@
 from tools.ai_functions.ai_function import AIFunction, FunctionProperty
-from tools.utility import get_vector_store_results
+from tools.vector_store_utility import get_vector_store_results
 from dataclasses import dataclass
 import json
 
@@ -40,6 +40,13 @@ class GetCandidateInformation(AIFunction):
 
         #TODO add a step where another agent tries to summarize the question to get better results
 
-        results = get_vector_store_results(query, vector_meta, 1, 0.75)
+        results = get_vector_store_results(query,1, 0.75, vector_meta)
+
+        # get the results["text"] from each example and remove the brackets
+        results = [example["text"] for example in results]
+
+        # remove all [ and { }] from the examples
+        results = [example.replace("[", "").replace("]", "").replace("{", "").replace("}", "") for example in results]
+
 
         return f"You have the following related context about the sender. Decide which parts are relevant for your response to the voter and incorporate them. Remember, you're sending a text message. {json.dumps(results)}"
