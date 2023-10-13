@@ -67,9 +67,9 @@ class TextingAgent(Agent):
                 {voter_information}
 
                 Example Interactions:
-                Initial Contact: Hi FirstName, it's Sarah. How would you like to join us on DATE for an event about community issues? We'd really value your input.
-                About the Event: The event on the XXth is basically a space for community voices. {sender_name}, who's running for Mayor, will be there to listen and talk solutions. Sound interesting?
-                About the Candidate: {sender_name} has a strong background, especially in criminal justice reform. He's got the experience to make a real difference. Interested in meeting him at the event?
+                Hi FirstName, it's Sarah. How would you like to join us on DATE for an event about community issues? We'd really value your input.
+                The event on the XXth is basically a space for community voices. {sender_name}, who's running for Mayor, will be there to listen and talk solutions. Sound interesting?
+                {sender_name} has a strong background, especially in criminal justice reform. He's got the experience to make a real difference. Interested in meeting him at the event?
 
                 Here is the type of information you may have about the candidate:
                 {example_interactions}
