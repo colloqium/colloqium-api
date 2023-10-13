@@ -1,6 +1,7 @@
 import openai
 from context.vector_store import get_index_from_context, EMBEDDINGS_MODEL
 from langchain.text_splitter import CharacterTextSplitter
+import uuid
 
 def get_embeddings_vector(string):
   res = openai.Embedding.create(input=[string], engine=EMBEDDINGS_MODEL)
@@ -22,7 +23,8 @@ def get_vector_id(meta):
   vector_id_part1 = meta['context']
   vector_id_part2 = meta['id']
   # get a random uuid to add to the end of the vector id to avoid collisions
-  vector_id = f'{vector_id_part1}-{vector_id_part2}'
+  vector_id_part3 = str(uuid.uuid4())[0:8]
+  vector_id = f'{vector_id_part1}-{vector_id_part2}-{vector_id_part3}'
 
   print(f'vector_id = {vector_id}')
   return vector_id
