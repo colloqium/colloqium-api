@@ -8,6 +8,6 @@ def job_listener(event):
     else:
         print("Job executed successfully")
 
-scheduler = BackgroundScheduler()
+scheduler = GeventScheduler()
 
 scheduler.add_listener(job_listener, EVENT_JOB_EXECUTED | EVENT_JOB_ERROR)
