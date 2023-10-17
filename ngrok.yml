@@ -1,0 +1,7 @@
+tunnels:
+  web:
+    addr: nginx:80
+    proto: http
+    domain: colloqium.ngrok.dev
+version: 2
+authtoken: 2Qt7CWrSokBa8tHwz22qJXNIovX_2EDi3Awe5PYvoP6wvVg6J

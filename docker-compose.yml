@@ -1,0 +1,25 @@
+version: '3'
+
+services:
+  web:
+    build: .
+    env_file:
+      - .env
+    command: ["sh", "-c", "gunicorn -k geventwebsocket.gunicorn.workers.GeventWebSocketWorker -w 1 -b 0.0.0.0:5000 main:app"]
+    deploy:
+      replicas: 3
+
+  nginx:
+    image: nginx:latest
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf
+    ports:
+      - 8080:80
+  
+  ngrok:
+    image: ngrok/ngrok
+    volumes:
+      - ./ngrok.yml:/etc/ngrok/config.yml
+    command: start --config=/etc/ngrok/config.yml web
+    depends_on:
+      - nginx

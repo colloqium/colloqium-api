@@ -73,7 +73,7 @@ class AlertCampaignManager(AIFunction):
 
     # check if the sender alert phone number is set, if not, return a message with the last message and let the agent know that the campaign manager was not alerted
     if not sender.alert_phone_number:
-        return f"Sender {sender.sender_name} does not have an alert phone number set. They will be notified later. The agent has written the following message to send back to the voter {last_message}"
+        return f"Sender {sender.sender_name} does not have an alert phone number set. They will be notified later. The agent has written the following message to send back to the voter {voter_message}"
     
     message = f'''Voter {voter.voter_name} has a question for you. You can reach them at {voter.voter_phone_number}.
 
