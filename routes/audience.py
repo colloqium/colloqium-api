@@ -69,7 +69,7 @@ def create_audience(data):
     audience = Audience(audience_name=audience_name, audience_information=audience_information, sender_id=sender_id, voters=voters, campaigns=campaigns)
     db.session.add(audience)
     db.session.commit()
-    db.session.close()
+    ()
     return jsonify({'status': 'success', 'audience':{ 'id': audience.id}, 'status_code': 201}), 201
 
 def update_audience(data):
@@ -117,7 +117,7 @@ def update_audience(data):
             audience.campaigns = list(set(audience.campaigns + new_campaigns))
 
     db.session.commit()
-    db.session.close()
+    ()
 
     return jsonify({'status': 'success', 'audience': audience.to_dict(), 'status_code': 200}), 200
 
@@ -156,7 +156,7 @@ def delete_audience(data):
 
     db.session.delete(audience)
     db.session.commit()
-    db.session.close()
+    ()
 
     return jsonify({'status': 'success', 'status_code': 200}), 200
 
@@ -167,4 +167,4 @@ def initialize_sender_voter_relationships(sender_id, voters):
             relationship = SenderVoterRelationship(sender_id=sender_id, voter_id=voter.id)
             db.session.add(relationship)
     db.session.commit()
-    db.session.close()
+    ()

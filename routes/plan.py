@@ -60,7 +60,7 @@ def plan(voter_id):
                 break
 
         db.session.commit()
-        db.session.close()
+        ()
         return jsonify({
             'status': 'success',
             'last_action': 'Planning for ' + voter.voter_name,

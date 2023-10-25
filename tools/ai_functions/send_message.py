@@ -83,7 +83,7 @@ class SendMessage(AIFunction):
 
       db.session.add(interaction)
       db.session.commit()
-      db.session.close()
+      ()
 
       return "Message sent successfully. Wait for a response from the voter or a new request from the campaign. Say Ok, if you understand."
   

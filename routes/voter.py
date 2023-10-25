@@ -54,7 +54,7 @@ def create_voter(data):
 
     db.session.add(voter)
     db.session.commit()
-    db.session.close()
+    ()
 
     voter = Voter.query.filter_by(voter_name=voter_name).first()
 
@@ -74,7 +74,7 @@ def create_voter(data):
 
     db.session.add(profile_object)
     db.session.commit()
-    db.session.close()
+    ()
 
     analytics.identify(voter.id, {
         'name': voter.voter_name,
@@ -116,7 +116,7 @@ def update_voter(data):
             voter_profile = VoterProfile(voter_id=voter_id)
             db.session.add(voter_profile)
             db.session.commit()
-            db.session.close()
+            ()
 
             #check if voter profile was created
             voter_profile = VoterProfile.query.filter_by(voter_id=voter_id).first()
@@ -134,7 +134,7 @@ def update_voter(data):
 
     db.session.add(voter)
     db.session.commit()
-    db.session.close()
+    ()
 
     return jsonify({'status': 'success', 'voter': voter.to_dict(), 'status_code': 200}), 200
 
@@ -168,6 +168,6 @@ def delete_voter(data):
 
     db.session.delete(voter)
     db.session.commit()
-    db.session.close()
+    ()
 
     return jsonify({'status': 'success', 'status_code': 200}), 200

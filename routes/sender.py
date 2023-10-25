@@ -116,7 +116,7 @@ def create_sender(data):
     # add the sender to the database
     db.session.add(sender)
     db.session.commit()
-    db.session.close()
+    ()
 
     #retrieve the instantiated sender from the database
     sender = Sender.query.filter_by(sender_name=sender_name).first()
@@ -138,7 +138,7 @@ def create_sender(data):
             phone_number.sender_id = sender.id
             db.session.add(phone_number)
             db.session.commit()
-            db.session.close()
+            ()
 
     vector_meta = {
         'context': 'sender',
@@ -163,7 +163,7 @@ def create_sender(data):
     # add the sender to the database
     db.session.add(sender)
     db.session.commit()
-    db.session.close()
+    ()
 
     # return a success code and the created sender id
     return jsonify({'sender':{'id': sender.id}, 'status_code': 201}), 201
@@ -226,7 +226,7 @@ def update_sender(data):
     
     db.session.add(sender)
     db.session.commit()
-    db.session.close()
+    ()
 
     # return success is true, the sender id and a success code
     return jsonify({'status': 'success',

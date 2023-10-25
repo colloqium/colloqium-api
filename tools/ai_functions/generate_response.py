@@ -66,7 +66,7 @@ class GenerateResponse(AIFunction):
         db.session.add(interaction)
         db.session.add(texting_agent)
         db.session.commit()
-        db.session.close()
+        ()
 
         print(f"Texting agent generated a response that is ready to be sent: {last_message}")
 

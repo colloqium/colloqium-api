@@ -65,7 +65,7 @@ class AlertCampaignManager(AIFunction):
     db.session.add(interaction)
     db.session.add(texting_agent)
     db.session.commit()
-    db.session.close()
+    ()
 
     #send text to sender's alert phone number
     sender_id = interaction.campaign.sender_id

@@ -68,7 +68,7 @@ class EndConversation(AIFunction):
         db.session.add(interaction)
         db.session.add(texting_agent)
         db.session.commit()
-        db.session.close()
+        ()
 
         planning_agent.send_message(f"Conversation with campaign_id {campaign_id} and voter_id {voter_id} ended because {ending_reason}")
 
