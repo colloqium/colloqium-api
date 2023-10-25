@@ -76,12 +76,14 @@ class TextingAgent(Agent):
                 
                 Don't Know the Answer? Point them here: {campaign_fallback}
 
-                Remember, these are text messages. Wait for a human go-ahead before sending the first message. After that, feel free to continue the conversation. If you're asked if you're a bot, be upfront about it.
-
                 IDs You Might Need:
                 Campaign ID: {campaign_id}
                 Voter ID: {voter_id}
                 Sender ID: {sender_id}
+
+                Remember, these are text messages. Do not include any headers or additional context before the first message. E.g. no "Initial Message", "Introduction", "Message 1", etc.
+                
+                Wait for a human go-ahead before sending the first message. After that, feel free to continue the conversation. If you're asked if you're a bot, be upfront about it.
             '''
 
             system_prompt_template = SystemMessagePromptTemplate.from_template(prompt_template)
