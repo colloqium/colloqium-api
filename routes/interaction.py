@@ -87,6 +87,7 @@ def create_interaction(data):
 
             db.session.add(interaction)
             db.session.commit()
+            db.session.close()
 
             thread = threading.Thread(target=initialize_interaction, args=[interaction.id, current_app._get_current_object()])
             thread.start()
@@ -118,6 +119,7 @@ def initialize_interaction(interaction_id, app):
             sender_voter_relationship = SenderVoterRelationship(sender_id=interaction.sender_id, voter_id=interaction.voter_id)
             db.session.add(sender_voter_relationship)
             db.session.commit()
+            db.session.close()
             # get the hydrated sender_voter_relationship
             sender_voter_relationship = SenderVoterRelationship.query.filter_by(sender_id=interaction.sender_id, voter_id=interaction.voter_id).first()
 
@@ -129,6 +131,7 @@ def initialize_interaction(interaction_id, app):
             planning_agent = PlanningAgent(sender_voter_relationship_id=sender_voter_relationship.id)
             db.session.add(planning_agent)
             db.session.commit()
+            db.session.close()
             # get the hydrated planner agent
             planning_agent = Agent.query.filter_by(sender_voter_relationship_id=sender_voter_relationship.id, name="planning_agent").first()
 
@@ -229,5 +232,6 @@ def update_interaction(data):
 
     db.session.add(interaction)
     db.session.commit()
+    db.session.close()
 
     return jsonify({'interaction': interaction.to_dict(), 'status_code': 200}), 200

@@ -73,6 +73,7 @@ def create_campaign(data):
 
     db.session.add(campaign)
     db.session.commit()
+    db.session.close()
 
     campaign = Campaign.query.filter_by(campaign_name=campaign_name).first()
 
@@ -149,6 +150,7 @@ def update_campaign(data):
 
     db.session.add(campaign)
     db.session.commit()
+    db.session.close()
 
     return jsonify({'status': 'success', 'campaign': {'id': campaign.id}, 'status_code': 200}), 200
 
@@ -182,6 +184,7 @@ def get_campaign(data):
     return jsonify({'campaigns': [campaign.to_dict() for campaign in campaigns], 'status_code': 200}), 200
 
 def delete_campaign(data):
+    print(f"Calling delete campaign at {datetime.now()} with data: {data}")
     if 'campaign_id' not in data.keys():
         return jsonify({'error': 'Campaign id is required', 'status_code': 400}), 400
 
@@ -192,5 +195,8 @@ def delete_campaign(data):
 
     db.session.delete(campaign)
     db.session.commit()
+    db.session.close()
+
+    print(f"Deleted campaign at {datetime.now()}")
 
     return jsonify({'status': 'success', 'status_code': 200}), 200

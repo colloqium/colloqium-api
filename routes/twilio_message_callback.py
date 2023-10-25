@@ -81,5 +81,6 @@ def twilio_message_callback():
     
     db.session.add(interaction)
     db.session.commit()
+    db.session.close()
 
     return response, 200

@@ -47,6 +47,7 @@ class Agent(BaseDbModel):
             # Commit the transaction to release the lock and save changes
             db.session.add(agent_to_update)
             db.session.commit()
+            db.session.close()
         except IntegrityError as e:
             db.session.rollback()
             raise ValueError(f"Database update failed: {str(e)}")

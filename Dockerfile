@@ -11,6 +11,3 @@ COPY . /app
 RUN pip install poetry
 RUN poetry config virtualenvs.create false
 RUN poetry install
-
-# Run database initialization and Gunicorn for the app
-CMD ["sh", "-c", "gunicorn -k geventwebsocket.gunicorn.workers.GeventWebSocketWorker -w 1 -b 0.0.0.0:5000 main:app"]

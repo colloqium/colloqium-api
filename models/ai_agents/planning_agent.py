@@ -56,3 +56,4 @@ class PlanningAgent(Agent):
 
         db.session.add(self)
         db.session.commit()
+        db.session.close()
