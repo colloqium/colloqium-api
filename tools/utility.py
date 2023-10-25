@@ -21,7 +21,7 @@ def get_llm_response_to_conversation(conversation, functions = []):
 
 
     # have a random wait time between 30 and 60 seconds to avoid hitting the rate limit
-    wait_time =  random.randint(30, 60)
+    wait_time =  random.randint(60, 90)
 
     max_retries = 50
     retry_count = 0
