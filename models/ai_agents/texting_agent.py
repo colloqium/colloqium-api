@@ -82,6 +82,7 @@ class TextingAgent(Agent):
                 Sender ID: {sender_id}
 
                 Remember, these are text messages. Do not include any headers or additional context before the first message. E.g. no "Initial Message", "Introduction", "Message 1", etc.
+                You should be able to send your responses directly to the voter with no adjustments.
                 
                 Wait for a human go-ahead before sending the first message. After that, feel free to continue the conversation. If you're asked if you're a bot, be upfront about it.
             '''
