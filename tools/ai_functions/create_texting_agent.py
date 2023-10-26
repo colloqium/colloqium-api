@@ -30,7 +30,6 @@ class CreateTextingAgent(AIFunction):
         try:
           db.session.add(texting_agent)
           db.session.commit()
-          ()
         except Exception as e:
             return "Was not able to create the agent."
 

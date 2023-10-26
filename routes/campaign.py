@@ -73,7 +73,6 @@ def create_campaign(data):
 
     db.session.add(campaign)
     db.session.commit()
-    ()
 
     campaign = Campaign.query.filter_by(campaign_name=campaign_name).first()
 
@@ -150,7 +149,6 @@ def update_campaign(data):
 
     db.session.add(campaign)
     db.session.commit()
-    ()
 
     return jsonify({'status': 'success', 'campaign': {'id': campaign.id}, 'status_code': 200}), 200
 
@@ -195,7 +193,6 @@ def delete_campaign(data):
 
     db.session.delete(campaign)
     db.session.commit()
-    ()
 
     print(f"Deleted campaign at {datetime.now()}")
 

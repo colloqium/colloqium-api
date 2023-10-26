@@ -63,7 +63,6 @@ class CampaignTools:
             return f"No function defined for outreach type {outreach_type}"
 
         self.db.session.commit()
-        self.()
         return f"Outreach schedule set for {outreach_date} with outreach goal {outreach_goal}"
 
     def get_outreach_schedule(self, communication_id):

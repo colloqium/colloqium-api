@@ -33,7 +33,6 @@ class CampaignWorker:
         print(f"First message: {new_texting_thread.conversation}")
         db.session.add(new_texting_thread)
         db.session.commit()
-        ()
 
         print(f"Texting thread id after db commit {new_texting_thread.id}")
 
@@ -131,7 +130,6 @@ def initialize_votert_outreach_thread(
 
     db.session.add(outreach_communication_thread)
     db.session.commit()
-    ()
 
     #retrieve filled out votertCommunication from database
     outreach_communication_thread = db.session.query(Interaction).get(

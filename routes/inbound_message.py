@@ -87,7 +87,6 @@ def inbound_message():
     flag_modified(interaction, "conversation")
     db.session.add(interaction)
     db.session.commit()
-    ()
 
     
     # check if the last element in the texting agent is a function, if so do not send a message

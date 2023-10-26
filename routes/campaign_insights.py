@@ -64,7 +64,6 @@ def campaign_insights():
 
     db.session.add(campaign)
     db.session.commit()
-    ()
 
     return jsonify({'status': 'success', 'status_code': 200}), 200
 
@@ -106,7 +105,6 @@ def summarize_campaign(campaign: Campaign, app):
 
         db.session.add(campaign)
         db.session.commit()
-        ()
 
         socketio.emit('campaign_insight_refreshed', {'campaign_id': campaign.id}, room=f'subscribe_campaign_insight_refresh_{campaign.id}')
 
@@ -179,7 +177,6 @@ def evaluate_interaction(interaction: Interaction, app):
 
         db.session.add(interaction)
         db.session.commit()
-        ()
 
         # emit a socket event to the campaign insights page to update the UI
         socketio.emit('interaction_evaluated', {'interaction_id': interaction.id}, room=f'subscribe_interaction_evaluation_{interaction.id}')
