@@ -77,6 +77,11 @@ def inbound_message():
     # get the texting agent with the interaction in it's interactions list
     texting_agent = Agent.query.filter(Agent.interactions.any(id=interaction.id)).first()
     
+    if not texting_agent:
+        logger.error("No agent attached")
+        print("No agent attached")
+        return response, 400
+    
     # send the message to the planning agent
     texting_agent.send_prompt({
         "content": f"{message_body}",
