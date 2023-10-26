@@ -55,7 +55,7 @@ def inbound_message():
     print(f"Sender: {sender.sender_name}")
 
     # get the interaction associated with this texting agent, campaign, voter, and the most recent time_created
-    interaction = Interaction.query.filter_by(sender_id=sender.id, voter_id=voter.id).order_by(Interaction.time_created.desc()).first()
+    interaction = Interaction.query.filter(Interaction.agent_id.isnot(None), Interaction.campaign_id.isnot(None), Interaction.sender_id==sender.id, Interaction.voter_id==voter.id).order_by(Interaction.time_created.desc()).first()
 
     if not interaction:
         print("No interaction found")
