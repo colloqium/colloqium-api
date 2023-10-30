@@ -20,7 +20,7 @@ def get_llm_response_to_conversation(conversation, functions = []):
     response_content = ""
 
 
-    # have a random wait time between 30 and 60 seconds to avoid hitting the rate limit
+    # have a random wait time between 60 and 90 seconds to avoid hitting the rate limit
     wait_time =  random.randint(60, 90)
 
     max_retries = 50
@@ -84,14 +84,12 @@ def get_llm_response_to_conversation(conversation, functions = []):
             conversation = conversation
             break
         except openai.error.RateLimitError:
-            wait_time = random.randint(30, 60)
             # sleep for a while before retrying
             print(f"Model hit rate limit, waiting for {wait_time} seconds before retry...")
             time.sleep(wait_time)
             retry_count += 1
             continue
         except openai.error.ServiceUnavailableError:
-            wait_time = random.randint(30, 60)
             print(f"Model unavailable, waiting for {wait_time} seconds before retry...")
             time.sleep(wait_time)
             retry_count += 1
