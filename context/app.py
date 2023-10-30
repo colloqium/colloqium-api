@@ -30,7 +30,7 @@ def create_app():
     app.register_blueprint(bp)
     app.config['SECRET_KEY'] = secrets.token_hex(nbytes=8)
     app.config['SQLALCHEMY_DATABASE_URI'] = os.environ['DATABASE_URL']
-    app.config["SQLALCHEMY_ENGINE_OPTIONS"] = {"pool_size": -1}
+    app.config["SQLALCHEMY_ENGINE_OPTIONS"] = {"pool_size": 1000}
 
     socketio.init_app(app)
     initialize_socket_handlers()
