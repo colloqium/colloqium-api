@@ -12,16 +12,16 @@ from tools.ai_functions.send_message import SendMessage
 campaign_id = FunctionProperty(name="campaign_id", paramater_type="string", description="The ID of the outreach campaign this agent is texting for")
 voter_id = FunctionProperty(name="voter_id", paramater_type="string", description="The ID of the voter this agent is texting")
 inbound_message = FunctionProperty(name="inbound_message", paramater_type="string", description="The message the voter sent")
-alert_message = FunctionProperty(name="alert_message", paramater_type="string", description="The message to send to the campaign manager")
-voter_message = FunctionProperty(name="voter_message", paramater_type="string", description="The message to send back to the voter when the campaign manager is alerted")
+alert_message = FunctionProperty(name="alert_message", paramater_type="string", description="The message to send to the campaign team member")
+voter_message = FunctionProperty(name="voter_message", paramater_type="string", description="The message to send back to the voter when the campaign is alerted")
 
-class AlertCampaignManager(AIFunction):
+class AlertCampaignTeam(AIFunction):
     
-  def __init__(self, name="alert_campaign_manager",description="Send an alert to the campaign manager that something needs their attention, like if they need to follow up with someone. Also prepars a message for the voter to send back to them.", parameters=[campaign_id, voter_id, alert_message, inbound_message, voter_message]):
+  def __init__(self, name="alert_campaign_team",description="Send an alert to someone who works with the campaign that something needs their attention, like if they need to follow up with someone. Also prepars a message for the voter to send back to them.", parameters=[campaign_id, voter_id, alert_message, inbound_message, voter_message]):
     super().__init__(name,description,parameters)
 
   def call(self, **kwargs):
-    print("Calling AlertCampaignManager")
+    print("Calling AlertCampaignTeam")
     print(kwargs)
 
     # check for required parameters
@@ -98,12 +98,12 @@ class AlertCampaignManager(AIFunction):
     print(f"Sending alert message to campaign manager: {message}")
 
     twilio_client.messages.create(
-        body=message,
-        from_=phone_number,
-        status_callback=message_webhook_url,
-        to=alert_phone_number,
-        messaging_service_sid=twilio_messaging_service_sid
+      body=message,
+      from_=phone_number,
+      status_callback=message_webhook_url,
+      to=alert_phone_number,
+      messaging_service_sid=twilio_messaging_service_sid
     )
 
-    return f"Campaign Manager alerted and message sent to voter"
+    return f"Campaign team alerted and message sent to voter"
 
