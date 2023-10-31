@@ -1,5 +1,4 @@
 from routes.send_text import send_text
-from prompts.campaign_volunteer_agent import get_campaign_text_message_system_prompt
 from dataclasses import dataclass
 from datetime import datetime as DateTime
 from models.voter import Voter
@@ -16,10 +15,9 @@ class InteractionType:
     # should define two methods for all children initialize, update, send
     
 
-    def __init__(self, name: str, method: callable, system_initialization_method: callable, callback_route: str):
+    def __init__(self, name: str, method: callable, callback_route: str):
         self.name = name
         self.method = method
-        self.system_initialization_method = system_initialization_method
         self.callback_route = callback_route
 
     #String representation that removes underscores and capitalizes the first letter of each word
@@ -67,5 +65,5 @@ class OutreachScheduleEntry:
     outreach_goal: str
 
 INTERACTION_TYPES = {
-    "text_message": InteractionType(name="text_message", method=send_text, system_initialization_method=get_campaign_text_message_system_prompt, callback_route="twilio_message_callback"),
+    "text_message": InteractionType(name="text_message", method=send_text, callback_route="twilio_message_callback"),
 }

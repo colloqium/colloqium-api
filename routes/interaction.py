@@ -1,18 +1,11 @@
-from flask import Blueprint, request, jsonify, current_app
+from flask import Blueprint, request, jsonify
 # import Flask and other libraries
 from models.voter import Voter
 from models.sender import Campaign
-from models.interaction import Interaction, InteractionStatus, SenderVoterRelationship
+from models.interaction import Interaction, InteractionStatus
 from models.interaction_types import INTERACTION_TYPES
-from models.ai_agents.planning_agent import PlanningAgent
-from models.ai_agents.agent import Agent
-from tools.utility import get_llm_response_to_conversation, initialize_conversation
 from context.database import db
-# Import the functions from the other files
-from context.analytics import analytics, EVENT_OPTIONS
-from context.sockets import socketio
-import threading
-import json
+from tasks.initialize_interaction import initialize_interaction
 
 
 interaction_bp = Blueprint('interaction', __name__)
@@ -88,9 +81,8 @@ def create_interaction(data):
             db.session.add(interaction)
             db.session.commit()
 
-            thread = threading.Thread(target=initialize_interaction, args=[interaction.id, current_app._get_current_object()])
-            thread.start()
-            print("Interaction created successfully and thread started")
+            initialize_interaction.apply_async(args=[interaction.id])
+
 
             # Initialize interaction
             interactions.append(interaction)
@@ -100,65 +92,10 @@ def create_interaction(data):
         "interactions": {'interaction': {'id': interaction.id} for interaction in interactions}
         }), 201
 
-# Creates a new interaction with a voter and the first system message in the conversation. Does not send the message.
-def initialize_interaction(interaction_id, app):
-    
-    with app.app_context():
-
-        print(f"Initializing interaction {interaction_id}")
-        interaction = Interaction.query.get(interaction_id)
-
-        if not interaction:
-            print("Interaction does not exist")
-            return
-        
-        sender_voter_relationship = SenderVoterRelationship.query.filter_by(sender_id=interaction.sender_id, voter_id=interaction.voter_id).first()
-
-        if not sender_voter_relationship:
-            sender_voter_relationship = SenderVoterRelationship(sender_id=interaction.sender_id, voter_id=interaction.voter_id)
-            db.session.add(sender_voter_relationship)
-            db.session.commit()
-            # get the hydrated sender_voter_relationship
-            sender_voter_relationship = SenderVoterRelationship.query.filter_by(sender_id=interaction.sender_id, voter_id=interaction.voter_id).first()
-
-        # look for an agent with the name planning_agent in the sender_voter_relationship
-        planning_agent = Agent.query.filter_by(sender_voter_relationship_id=sender_voter_relationship.id, name="planning_agent").first()
-
-        # if planner doesn't exist, create a new one
-        if not planning_agent:
-            planning_agent = PlanningAgent(sender_voter_relationship_id=sender_voter_relationship.id)
-            db.session.add(planning_agent)
-            db.session.commit()
-            # get the hydrated planner agent
-            planning_agent = Agent.query.filter_by(sender_voter_relationship_id=sender_voter_relationship.id, name="planning_agent").first()
-
-        planner_prompt = f"Start a text conversation with the voter to accomplish this goal: {interaction.campaign.campaign_goal}. The associated interaction id is {interaction.id}."
-        planning_agent.send_prompt({
-            "content": planner_prompt
-        })
-
 def get_interaction(data):
     #Check if there is a sender id. If there is return all interactions for that sender
     if 'sender_id' in data.keys():
         sender_id = data['sender_id']
-        interaction_type = interaction.interaction_type
-
-        system_prompt = INTERACTION_TYPES[interaction_type].system_initialization_method(interaction)
-
-        user_number = interaction.voter.voter_phone_number
-        sender_number = interaction.select_phone_number()
-
-        # Pre-create the first response
-        interaction.conversation = initialize_conversation(system_prompt)
-        initial_statement = get_llm_response_to_conversation(interaction.conversation)
-
-        # check if the initial statement is the same as the system prompt, if so, try again to get a different response
-        while initial_statement['content'] == system_prompt:
-            print("Initial statement is the same as the system prompt, trying again")
-            interaction.conversation = initialize_conversation(system_prompt)
-            initial_statement = get_llm_response_to_conversation(interaction.conversation)
-
-        interaction.conversation.append(initial_statement)
 
         interactions = Interaction.query.filter_by(sender_id=sender_id).all()
         if not interactions:

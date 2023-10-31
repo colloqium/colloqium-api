@@ -1,10 +1,7 @@
-
-
-
-
 from langchain.prompts import ChatPromptTemplate, SystemMessagePromptTemplate
+from typing import List, Dict
 
-def get_conversation_evaluation_system_prompt(conversation: [{}]):
+def get_conversation_evaluation_system_prompt(conversation: List[Dict]):
 
     # GPT API System Prompts
     system_prompt = ''' 

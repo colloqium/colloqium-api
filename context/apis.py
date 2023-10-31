@@ -19,7 +19,7 @@ call_webhook_url = base_url+"/twilio_call"
 message_webhook_url = base_url+"/twilio_message_callback"
 
 # Create a Twilio client object
-client = Client(account_sid, auth_token)
+twilio_client = Client(account_sid, auth_token)
 
 # set OpenAi Key for GPT4
 openai.api_key = os.environ['OPENAI_APIKEY']

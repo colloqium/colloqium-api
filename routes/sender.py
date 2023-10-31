@@ -8,7 +8,7 @@ from flask import Blueprint, request
 # import Flask and other libraries
 from flask import jsonify
 from models.sender import Sender, PhoneNumber
-from models.model_utility import get_phone_number_from_db
+from tools.db_utility import get_phone_number_from_db
 from tools.utility import format_phone_number
 from tools.vector_store_utility import add_to_vector_store
 from context.database import db

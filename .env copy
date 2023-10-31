@@ -1,0 +1,14 @@
+twilio_account_sid=AC4e1d8306bfb55bfcbfcf5a14b098bc59
+twilio_auth_token=7033ecc00d3885ab37f02b752613a509
+elevenlabs_key=6beffbbc983419a29f5147829783761o1
+twilio_app_sid=APdf7dd1855c0ca8787c3571246b4b4cba
+TWILIO_MESSAGING_SERVICE_SID=MGd63e54facf5897daf439fbccd997ec6f
+OPENAI_APIKEY=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
+FLASK_APP=/Users/oblet/Documents/GitHub/AI-Phone-Bank-POC/
+FLASK_DEBUG=TRUE
+DATABASE_URL=postgresql://oblet:password@host.docker.internal:5432/colloqium_test_db
+BASE_URL=https://colloqium.ngrok.dev/
+WRITE_KEY=wfYh4HuWr2Xw1rh1vRBcz1YsafWNlXdL
+PINECONE_API_KEY=12e1605b-98bd-46b1-9d98-388574fb1a0d
+PINECONE_ENVIRONMENT=us-east1-gcp
+NGROK_AUTH=2Qt7CWrSokBa8tHwz22qJXNIovX_2EDi3Awe5PYvoP6wvVg6J

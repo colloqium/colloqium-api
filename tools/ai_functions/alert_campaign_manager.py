@@ -4,7 +4,7 @@ from models.sender import Sender
 from models.ai_agents.agent import Agent
 from sqlalchemy.orm.attributes import flag_modified
 from context.database import db
-from context.apis import client, twilio_messaging_service_sid, message_webhook_url
+from context.apis import twilio_client, twilio_messaging_service_sid, message_webhook_url
 from tools.utility import format_phone_number
 from tools.ai_functions.send_message import SendMessage
 
@@ -97,7 +97,7 @@ class AlertCampaignManager(AIFunction):
 
     print(f"Sending alert message to campaign manager: {message}")
 
-    client.messages.create(
+    twilio_client.messages.create(
         body=message,
         from_=phone_number,
         status_callback=message_webhook_url,

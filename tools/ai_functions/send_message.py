@@ -1,15 +1,7 @@
 from tools.ai_functions.ai_function import AIFunction, FunctionProperty
-from models.interaction import Interaction, InteractionStatus
-from models.voter import Voter
-from models.sender import Sender
-from context.apis import client
-from tools.utility import format_phone_number
-from context.apis import twilio_messaging_service_sid, message_webhook_url
+from models.interaction import Interaction
 from context.database import db
-from context.analytics import analytics, EVENT_OPTIONS
-import datetime
-from context.scheduler import scheduler
-from flask import current_app
+from tasks.send_message import send_message
 
 '''
 {
@@ -70,52 +62,9 @@ class SendMessage(AIFunction):
 
       sender_phone_number = interaction.select_phone_number()
 
-      #start the scheduler if it is not already running
-      if not scheduler.running:
-          print("Starting scheduler")
-          scheduler.start()
-      
-      # schedule this message to send in 15 seconds
-      scheduler.add_job(self.send_message, 'date', run_date=datetime.datetime.now() + datetime.timedelta(seconds=5), args=[outbound_message, sender_phone_number, voter_id, interaction.sender.id, interaction.id, current_app._get_current_object()], misfire_grace_time=20)
-
-      #check the scheduler for the job we just added
-      print(f"Scheduler jobs: {scheduler.get_jobs()}")
+      send_message.apply_async(args=[outbound_message, sender_phone_number, voter_id, interaction.sender.id, interaction.id], countdown=10)
 
       db.session.add(interaction)
       db.session.commit()
 
       return "Message sent successfully. Wait for a response from the voter or a new request from the campaign. Say Ok, if you understand."
-  
-  def send_message(self, message_body, sender_phone_number, voter_id, sender_id, interaction_id, app):
-
-    print("Sub function to send message called")
-    
-    try:
-      with app.app_context():
-          print("App existed to give app context")
-          voter = Voter.query.get(voter_id)
-          sender = Sender.query.get(sender_id)
-          interaction = Interaction.query.get(interaction_id)
-
-          print(f"Message called at {datetime.datetime.now()}")
-          client.messages.create(
-                      body=message_body,
-                      from_=format_phone_number(sender_phone_number),
-                      status_callback=message_webhook_url,
-                      to=format_phone_number(voter.voter_phone_number),
-                      messaging_service_sid=twilio_messaging_service_sid)
-          
-          analytics.track(voter.id, EVENT_OPTIONS.sent, {
-                      'interaction_id': interaction.id,
-                      'voter_name': voter.voter_name,
-                      'voter_phone_number': format_phone_number(voter.voter_phone_number),
-                      'sender_name': sender.sender_name,
-                      'sender_phone_number': format_phone_number(sender_phone_number),
-                      'message': message_body,
-                  })
-
-          # if interaction status is less than sent, set it to sent. Do not want to overwrite responses from the voter as "sent status"
-          if interaction.interaction_status < InteractionStatus.SENT:
-              interaction.interaction_status = InteractionStatus.SENT
-    except Exception as e:
-       print(f"Error in send_message sub-function: {e}")

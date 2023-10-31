@@ -2,7 +2,7 @@
 from flask import Blueprint, request, jsonify, Response
 from models.voter import Voter
 from models.interaction import Interaction, InteractionStatus
-from models.model_utility import get_phone_number_from_db
+from tools.db_utility import get_phone_number_from_db
 from context.analytics import analytics, EVENT_OPTIONS
 from context.database import db
 from logs.logger import logger
