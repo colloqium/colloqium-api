@@ -51,9 +51,13 @@ def twilio_message_callback():
     if not voter:
         logger.error(f"voter not found for phone number {to_number}")
         return response, 400
+    
+    if not sender:
+        logger.error(f"sender not found for phone number {from_number}")
+        return response, 400
 
-    # Use SqlAlchemy to query the database for the interaction that was created most recently
-    interaction = Interaction.query.filter_by(voter_id=voter.id).order_by(Interaction.time_created.desc()).first()
+    # Use SqlAlchemy to query the database for the interaction that was created most recently and matches the sender id
+    interaction = Interaction.query.filter_by(voter_id=voter.id, sender_id=sender.id).order_by(Interaction.time_created.desc()).first()
 
     if not interaction:
         logger.error(f"No interaction found for voter {voter.voter_name} and sender {sender.sender_name}")
