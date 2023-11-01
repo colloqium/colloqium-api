@@ -1,12 +1,11 @@
 # URL to handle twilio status callbacks
-from flask import Blueprint, request, jsonify, Response
+from flask import Blueprint, request, Response
 from models.voter import Voter
-from models.interaction import Interaction, InteractionStatus
+from models.interaction import Interaction
 from tools.db_utility import get_phone_number_from_db
-from context.analytics import analytics, EVENT_OPTIONS
-from context.database import db
 from logs.logger import logger
 from twilio.twiml.messaging_response import MessagingResponse
+from tasks.process_twilio_callback import process_twilio_callback
 
 twilio_message_callback_bp = Blueprint('twilio_message_callback', __name__)
 
@@ -31,8 +30,7 @@ def twilio_message_callback():
     to_number = request.values.get('To', None)
     status = request.values.get('MessageStatus', None)
 
-    response = Response(str(MessagingResponse()), mimetype='application/xml')
-    
+    response = Response(str(MessagingResponse()), mimetype='application/xml') 
     
     # find the PhoneNumber object for the from number
     phone_number = get_phone_number_from_db(from_number)
@@ -63,27 +61,6 @@ def twilio_message_callback():
         logger.error(f"No interaction found for voter {voter.voter_name} and sender {sender.sender_name}")
         return response, 400
     
-    # update the interaction status
-    if status == 'sent':
-        print("Message sent")
-        if interaction.interaction_status < InteractionStatus.SENT:
-            interaction.interaction_status = InteractionStatus.SENT
-    if status == 'delivered':
-        print("Message delivered")
-        if interaction.interaction_status < InteractionStatus.DELIVERED:
-            interaction.interaction_status = InteractionStatus.DELIVERED
-
-    analytics.track(voter.id, EVENT_OPTIONS.interaction_call_back, {
-                'status': status,
-                'interaction_id': interaction.id,
-                'interaction_type': interaction.interaction_type,
-                'voter_name': voter.voter_name,
-                'voter_phone_number': voter.voter_phone_number,
-                'sender_name': sender.sender_name,
-                'sender_phone_number': phone_number.get_full_phone_number(),
-            })
-    
-    db.session.add(interaction)
-    db.session.commit()
+    process_twilio_callback.apply_async(args=[interaction.id, status, phone_number])
 
     return response, 200
