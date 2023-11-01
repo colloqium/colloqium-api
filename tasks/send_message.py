@@ -52,6 +52,9 @@ def send_message(self, message_body, sender_phone_number, voter_id, sender_id, i
                 # if interaction status is less than sent, set it to sent. Do not want to overwrite responses from the voter as "sent status"
                 if interaction.interaction_status < InteractionStatus.SENT:
                     interaction.interaction_status = InteractionStatus.SENT
+
+                db.session.add(interaction)
+                db.session.commit()
             finally:
                 db.session.close_all()
     except OperationalError as e:
