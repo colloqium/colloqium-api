@@ -9,7 +9,7 @@ from sqlalchemy.exc import OperationalError
 from tools.db_utility import check_db_connection
 
 # Creates a new interaction with a voter and the first system message in the conversation. Does not send the message.
-@celery_client.task(bind=True, max_retries=5, default_retry_delay=30)  # bind=True to access self, max_retries and default_retry_delay are optional
+@celery_client.task(bind=True, max_retries=10, default_retry_delay=30)  # bind=True to access self, max_retries and default_retry_delay are optional
 def initialize_interaction(self, interaction_id):
     from context.app import create_app # late import 
     app = create_app()

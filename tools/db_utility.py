@@ -27,13 +27,11 @@ def get_phone_number_from_db(phone_number: str) -> PhoneNumber:
     return phone_number
 
 def check_db_connection(db, max_attempts=5, delay=30):
-    for i in range(max_attempts):
-        try:
-            db.engine.execute('SELECT 1')  # simple query to check the connection
-            return True
-        except OperationalError:
-            print(f"Database connection failed. Attempt {i+1}/{max_attempts}. Retrying in {delay} seconds...")
-            time.sleep(delay)
+    try:
+        db.engine.execute('SELECT 1')  # simple query to check the connection
+        return True
+    except OperationalError:
+        print(f"Database connection failed. Attempt {i+1}/{max_attempts}. Retrying in {delay} seconds...")
     return False
 
 

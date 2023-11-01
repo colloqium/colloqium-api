@@ -13,7 +13,7 @@ from sqlalchemy.exc import OperationalError
 from tools.db_utility import check_db_connection
 
 
-@celery_client.task(bind=True, max_retries=5, default_retry_delay=30)  # bind=True to access self, max_retries and default_retry_delay are optional
+@celery_client.task(bind=True, max_retries=10, default_retry_delay=30)  # bind=True to access self, max_retries and default_retry_delay are optional
 def send_message(self, message_body, sender_phone_number, voter_id, sender_id, interaction_id):
     from context.app import create_app # late import 
     app = create_app()

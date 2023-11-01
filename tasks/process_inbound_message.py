@@ -14,7 +14,7 @@ from models.interaction import Interaction
 from celery.exceptions import MaxRetriesExceededError
 
 
-@celery_client.task(bind=True, max_retries=5, default_retry_delay=30)  # bind=True to access self, max_retries and default_retry_delay are optional
+@celery_client.task(bind=True, max_retries=10, default_retry_delay=30)  # bind=True to access self, max_retries and default_retry_delay are optional
 def process_inbound_message(self, interaction_id, message_body, sender_phone_number):
     from context.app import create_app # late import 
     app = create_app()
