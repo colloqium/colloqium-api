@@ -61,6 +61,6 @@ def twilio_message_callback():
         logger.error(f"No interaction found for voter {voter.voter_name} and sender {sender.sender_name}")
         return response, 400
     
-    process_twilio_callback.apply_async(args=[interaction.id, status, phone_number])
+    process_twilio_callback.apply_async(args=[interaction.id, status, phone_number.id])
 
     return response, 200

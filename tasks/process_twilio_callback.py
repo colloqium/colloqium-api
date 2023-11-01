@@ -1,11 +1,10 @@
 # import Flask and other libraries
 from models.interaction import InteractionStatus
 from models.voter import Voter
-from models.sender import Sender
+from models.sender import Sender, PhoneNumber
 # from logs.logger import logging
 from context.database import db
 from context.analytics import analytics, EVENT_OPTIONS
-from logs.logger import logger
 from sqlalchemy.exc import OperationalError
 from context.celery import celery_client
 from tools.db_utility import check_db_connection
@@ -14,7 +13,7 @@ from celery.exceptions import MaxRetriesExceededError
 
 
 @celery_client.task(bind=True, max_retries=10, default_retry_delay=30)  # bind=True to access self, max_retries and default_retry_delay are optional
-def process_twilio_callback(self, interaction_id, status, phone_number):
+def process_twilio_callback(self, interaction_id, status, phone_number_id):
     from context.app import create_app # late import 
     app = create_app()
     print("Sub function to send message called")
@@ -41,6 +40,7 @@ def process_twilio_callback(self, interaction_id, status, phone_number):
 
                 voter = Voter.query.filter_by(id=interaction.voter_id).first()
                 sender = Sender.query.filter_by(id=interaction.sender_id).first()
+                phone_number = PhoneNumber.query.filter_by(id=phone_number_id).first()
 
                 analytics.track(voter.id, EVENT_OPTIONS.interaction_call_back, {
                             'status': status,
