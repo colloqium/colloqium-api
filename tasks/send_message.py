@@ -21,40 +21,39 @@ def send_message(self, message_body, sender_phone_number, voter_id, sender_id, i
     
     try:
         with app.app_context():
-            try:
-                if not check_db_connection(db):
-                            print("Database connection failed")
-                            # retry in 30 seconds
-                            self.retry()
+            if not check_db_connection(db):
+                        print("Database connection failed")
+                        # retry in 30 seconds
+                        self.retry()
 
-                print("App existed to give app context")
-                voter = Voter.query.get(voter_id)
-                sender = Sender.query.get(sender_id)
-                interaction = Interaction.query.get(interaction_id)
+            print("App existed to give app context")
+            voter = Voter.query.get(voter_id)
+            sender = Sender.query.get(sender_id)
+            interaction = Interaction.query.get(interaction_id)
 
-                print(f"Message called at {datetime.datetime.now()}")
-                twilio_client.messages.create(
-                            body=message_body,
-                            from_=format_phone_number(sender_phone_number),
-                            status_callback=message_webhook_url,
-                            to=format_phone_number(voter.voter_phone_number),
-                            messaging_service_sid=twilio_messaging_service_sid)
-                
-                analytics.track(voter.id, EVENT_OPTIONS.sent, {
-                            'interaction_id': interaction.id,
-                            'voter_name': voter.voter_name,
-                            'voter_phone_number': format_phone_number(voter.voter_phone_number),
-                            'sender_name': sender.sender_name,
-                            'sender_phone_number': format_phone_number(sender_phone_number),
-                            'message': message_body,
-                        })
+            print(f"Message called at {datetime.datetime.now()}")
+            twilio_client.messages.create(
+                        body=message_body,
+                        from_=format_phone_number(sender_phone_number),
+                        status_callback=message_webhook_url,
+                        to=format_phone_number(voter.voter_phone_number),
+                        messaging_service_sid=twilio_messaging_service_sid)
+            
+            analytics.track(voter.id, EVENT_OPTIONS.sent, {
+                        'interaction_id': interaction.id,
+                        'voter_name': voter.voter_name,
+                        'voter_phone_number': format_phone_number(voter.voter_phone_number),
+                        'sender_name': sender.sender_name,
+                        'sender_phone_number': format_phone_number(sender_phone_number),
+                        'message': message_body,
+                    })
 
-                # if interaction status is less than sent, set it to sent. Do not want to overwrite responses from the voter as "sent status"
-                if interaction.interaction_status < InteractionStatus.SENT:
-                    interaction.interaction_status = InteractionStatus.SENT
+            # if interaction status is less than sent, set it to sent. Do not want to overwrite responses from the voter as "sent status"
+            if interaction.interaction_status < InteractionStatus.SENT:
+                interaction.interaction_status = InteractionStatus.SENT
 
-                db.session.add(interaction)
-                db.session.commit()
+            db.session.add(interaction)
+            db.session.commit()
     except OperationalError as e:
         try:
             self.retry(exc=e) # retry the task

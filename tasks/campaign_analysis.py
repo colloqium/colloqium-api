@@ -17,56 +17,55 @@ def summarize_campaign(self, campaignId: int):
     app = create_app()
     try:
         with app.app_context():
-            try:
-                if not check_db_connection(db):
-                    print("Database connection failed")
-                    # retry in 30 seconds
-                    self.retry()
+            if not check_db_connection(db):
+                print("Database connection failed")
+                # retry in 30 seconds
+                self.retry()
 
-                campaign = Campaign.query.get(campaignId)
+            campaign = Campaign.query.get(campaignId)
 
-                if not campaign:
-                    print("Campaign does not exist")
-                    return
+            if not campaign:
+                print("Campaign does not exist")
+                return
 
-                print(f"Starting summary for campaign {campaign.id}")
-                system_prompt = get_campaign_summary_system_prompt(campaign)
+            print(f"Starting summary for campaign {campaign.id}")
+            system_prompt = get_campaign_summary_system_prompt(campaign)
 
-                summary = initialize_conversation(system_prompt)
+            summary = initialize_conversation(system_prompt)
 
-                json_summary = {}
+            json_summary = {}
 
-                retry_count = 0
+            retry_count = 0
 
-                max_retries = 50
+            max_retries = 50
 
-                while not json_summary and retry_count <= max_retries:
+            while not json_summary and retry_count <= max_retries:
 
-                    llm_response = get_llm_response_to_conversation(summary)
+                llm_response = get_llm_response_to_conversation(summary)
 
-                    try:
-                        json_summary = json.loads(llm_response['content'])
-                    except json.decoder.JSONDecodeError as error:
-                        print(f"Error decoding JSON from LLM response: {error}")
-                        # try again
-                        retry_count += 1
-                        continue
+                try:
+                    json_summary = json.loads(llm_response['content'])
+                except json.decoder.JSONDecodeError as error:
+                    print(f"Error decoding JSON from LLM response: {error}")
+                    # try again
+                    retry_count += 1
+                    continue
 
-                if not json_summary:
-                    socketio.emit('campaign_insight_error', {'campaign_id': campaign.id, 'error': 'Error decoding JSON from LLM response'}, room=f'subscribe_campaign_insight_refresh_{campaign.id}')
-                    return
+            if not json_summary:
+                socketio.emit('campaign_insight_error', {'campaign_id': campaign.id, 'error': 'Error decoding JSON from LLM response'}, room=f'subscribe_campaign_insight_refresh_{campaign.id}')
+                return
 
-                print(f"Summary: {json_summary}")
+            print(f"Summary: {json_summary}")
 
-                campaign.campaign_manager_summary = json_summary['campaign_manager_summary']
-                campaign.communications_director_summary = json_summary['communications_director_summary']
-                campaign.field_director_summary = json_summary['field_director_summary']
-                campaign.policy_insights = json_summary['policy_insights']
+            campaign.campaign_manager_summary = json_summary['campaign_manager_summary']
+            campaign.communications_director_summary = json_summary['communications_director_summary']
+            campaign.field_director_summary = json_summary['field_director_summary']
+            campaign.policy_insights = json_summary['policy_insights']
 
-                db.session.add(campaign)
-                db.session.commit()
+            db.session.add(campaign)
+            db.session.commit()
 
-                socketio.emit('campaign_insight_refreshed', {'campaign_id': campaign.id}, room=f'subscribe_campaign_insight_refresh_{campaign.id}')
+            socketio.emit('campaign_insight_refreshed', {'campaign_id': campaign.id}, room=f'subscribe_campaign_insight_refresh_{campaign.id}')
     except OperationalError as e:
         try:
             self.retry(exc=e) # retry the task

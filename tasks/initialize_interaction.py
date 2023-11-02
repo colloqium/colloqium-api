@@ -15,43 +15,42 @@ def initialize_interaction(self, interaction_id):
     app = create_app()
     try:
         with app.app_context():
-            try:
-                if not check_db_connection(db):
-                    print("Database connection failed")
-                    # retry in 30 seconds
-                    self.retry()
+            if not check_db_connection(db):
+                print("Database connection failed")
+                # retry in 30 seconds
+                self.retry()
 
-                print(f"Initializing interaction {interaction_id}")
-                interaction = Interaction.query.get(interaction_id)
+            print(f"Initializing interaction {interaction_id}")
+            interaction = Interaction.query.get(interaction_id)
 
-                if not interaction:
-                    print("Interaction does not exist")
-                    return
-                
+            if not interaction:
+                print("Interaction does not exist")
+                return
+            
+            sender_voter_relationship = SenderVoterRelationship.query.filter_by(sender_id=interaction.sender_id, voter_id=interaction.voter_id).first()
+
+            if not sender_voter_relationship:
+                sender_voter_relationship = SenderVoterRelationship(sender_id=interaction.sender_id, voter_id=interaction.voter_id)
+                db.session.add(sender_voter_relationship)
+                db.session.commit()
+                # get the hydrated sender_voter_relationship
                 sender_voter_relationship = SenderVoterRelationship.query.filter_by(sender_id=interaction.sender_id, voter_id=interaction.voter_id).first()
 
-                if not sender_voter_relationship:
-                    sender_voter_relationship = SenderVoterRelationship(sender_id=interaction.sender_id, voter_id=interaction.voter_id)
-                    db.session.add(sender_voter_relationship)
-                    db.session.commit()
-                    # get the hydrated sender_voter_relationship
-                    sender_voter_relationship = SenderVoterRelationship.query.filter_by(sender_id=interaction.sender_id, voter_id=interaction.voter_id).first()
+            # look for an agent with the name planning_agent in the sender_voter_relationship
+            planning_agent = Agent.query.filter_by(sender_voter_relationship_id=sender_voter_relationship.id, name="planning_agent").first()
 
-                # look for an agent with the name planning_agent in the sender_voter_relationship
+            # if planner doesn't exist, create a new one
+            if not planning_agent:
+                planning_agent = PlanningAgent(sender_voter_relationship_id=sender_voter_relationship.id)
+                db.session.add(planning_agent)
+                db.session.commit()
+                # get the hydrated planner agent
                 planning_agent = Agent.query.filter_by(sender_voter_relationship_id=sender_voter_relationship.id, name="planning_agent").first()
 
-                # if planner doesn't exist, create a new one
-                if not planning_agent:
-                    planning_agent = PlanningAgent(sender_voter_relationship_id=sender_voter_relationship.id)
-                    db.session.add(planning_agent)
-                    db.session.commit()
-                    # get the hydrated planner agent
-                    planning_agent = Agent.query.filter_by(sender_voter_relationship_id=sender_voter_relationship.id, name="planning_agent").first()
-
-                planner_prompt = f"Start a text conversation with the voter to accomplish this goal: {interaction.campaign.campaign_goal}. The associated interaction id is {interaction.id}."
-                planning_agent.send_prompt({
-                    "content": planner_prompt
-                })
+            planner_prompt = f"Start a text conversation with the voter to accomplish this goal: {interaction.campaign.campaign_goal}. The associated interaction id is {interaction.id}."
+            planning_agent.send_prompt({
+                "content": planner_prompt
+            })
     except OperationalError as e:
         try:
             self.retry(exc=e) # retry the task
