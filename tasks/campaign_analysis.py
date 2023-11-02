@@ -67,9 +67,6 @@ def summarize_campaign(self, campaignId: int):
                 db.session.commit()
 
                 socketio.emit('campaign_insight_refreshed', {'campaign_id': campaign.id}, room=f'subscribe_campaign_insight_refresh_{campaign.id}')
-                
-            finally:
-                db.session.close_all()
     except OperationalError as e:
         try:
             self.retry(exc=e) # retry the task

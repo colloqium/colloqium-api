@@ -55,8 +55,6 @@ def process_twilio_callback(self, interaction_id, status, phone_number_id):
                 db.session.add(interaction)
                 db.session.commit()
 
-            finally:
-                db.session.close_all()
     except OperationalError as e:
         try:
             self.retry(exc=e) # retry the task

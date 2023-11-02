@@ -52,8 +52,6 @@ def initialize_interaction(self, interaction_id):
                 planning_agent.send_prompt({
                     "content": planner_prompt
                 })
-            finally:
-                db.session.close_all()
     except OperationalError as e:
         try:
             self.retry(exc=e) # retry the task

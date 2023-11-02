@@ -90,8 +90,6 @@ def process_inbound_message(self, interaction_id, message_body, sender_phone_num
 
                 send_message.call(**kwargs)
 
-            finally:
-                db.session.close_all()
     except OperationalError as e:
         try:
             self.retry(exc=e) # retry the task

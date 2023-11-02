@@ -55,8 +55,6 @@ def send_message(self, message_body, sender_phone_number, voter_id, sender_id, i
 
                 db.session.add(interaction)
                 db.session.commit()
-            finally:
-                db.session.close_all()
     except OperationalError as e:
         try:
             self.retry(exc=e) # retry the task
