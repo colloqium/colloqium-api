@@ -39,21 +39,9 @@ def create_app():
     with app.app_context():
         db.engine.execution_options(isolation_level="SERIALIZABLE")
 
+    
+    @app.teardown_appcontext
+    def shutdown_session(exception=None):
+        db.session.remove()
+    
     return app
-
-# def setup_migrations(app, db):
-#     db.session.close_all()
-
-#     # setup migrations
-#     Migrate(app, db)
-
-#     # check if migrations folder does not exists, then initialize
-#     if not os.path.exists('migrations'):
-#         # Create a migrations folder and the initial migration
-#         with app.app_context():
-#             os.mkdir('migrations')
-#             upgrade()
-
-#     # Run the migration and apply it to the database
-#     with app.app_context():
-#         upgrade()
