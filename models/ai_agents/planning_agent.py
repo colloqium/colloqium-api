@@ -35,6 +35,16 @@ class PlanningAgent(Agent):
 
         chat_prompt_template = ChatPromptTemplate.from_messages([system_prompt_template])
 
+        sender = sender_voter_relationship.sender
+
+        if sender.sender_information is None:
+            sender.sender_information = {}
+
+        voter = sender_voter_relationship.voter
+
+        if voter.voter_profile is None:
+            voter.voter_profile = {}
+
         self.system_prompt = chat_prompt_template.format(
             candidate_info=sender_voter_relationship.sender.sender_information,
             voter_info=sender_voter_relationship.voter.voter_profile.to_dict()
