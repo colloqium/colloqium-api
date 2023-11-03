@@ -21,7 +21,11 @@ def create_app():
 
     app.register_blueprint(bp)
     app.config['SECRET_KEY'] = secrets.token_hex(nbytes=8)
-    app.config['SQLALCHEMY_DATABASE_URI'] = os.environ['DATABASE_CONNECTION_POOL_URL']
+
+    uri = os.environ['DATABASE_CONNECTION_POOL_URL']
+    if uri and uri.startswith("postgres://"):
+        uri = uri.replace("postgres://", "postgresql://", 1)
+    app.config['SQLALCHEMY_DATABASE_URI'] = uri
     app.config["SQLALCHEMY_ENGINE_OPTIONS"] = {"pool_size": 1}
 
     socketio.init_app(app)
