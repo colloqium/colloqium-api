@@ -7,5 +7,5 @@ while true; do
   heroku pg:psql PUCE --command "SELECT COUNT(*) FROM pg_stat_activity;"
   
   # Wait for 10 seconds
-  sleep 5
+  sleep 2
 done
