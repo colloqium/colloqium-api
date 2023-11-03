@@ -13,7 +13,7 @@ def init_db():
     app = Flask(__name__)
 
     app.config['SECRET_KEY'] = secrets.token_hex(nbytes=8)
-    app.config['SQLALCHEMY_DATABASE_URI'] = os.environ['DATABASE_URL']
+    app.config['SQLALCHEMY_DATABASE_URI'] = os.environ['PGBOUNCER_URLS']
 
     db.init_app(app)
 
