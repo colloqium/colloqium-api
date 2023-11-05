@@ -5,7 +5,6 @@ from context.database import db
 from tools.utility import get_llm_response_to_conversation, initialize_conversation
 from tools.vector_store_utility import get_vector_store_results
 from tools.ai_functions.alert_campaign_team import AlertCampaignTeam
-from tools.ai_functions.alert_campaign_manager import AlertCampaignManager
 from tools.ai_functions.end_conversation import EndConversation
 from tools.ai_functions.get_candidate_information import GetCandidateInformation
 from langchain.prompts import ChatPromptTemplate, SystemMessagePromptTemplate
@@ -125,7 +124,7 @@ class TextingAgent(Agent):
             interaction.conversation = self.conversation_history
             interaction.interaction_status = InteractionStatus.INITIALIZED
  
-            self.available_actions = json.dumps([AlertCampaignTeam().to_dict(), EndConversation().to_dict(), GetCandidateInformation().to_dict(), AlertCampaignManager().to_dict()])
+            self.available_actions = json.dumps([AlertCampaignTeam().to_dict(), EndConversation().to_dict(), GetCandidateInformation().to_dict()])
             self.interactions = [interaction]
             
             db.session.add(self)
