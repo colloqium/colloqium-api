@@ -1,9 +1,10 @@
-# Converse
+# Colloqium
 
 ## Prerequisites
 - Python 3.10.12
-- pip
 - ngrok
+- redis
+- poetry
 
 ## Installation & Setup
 
