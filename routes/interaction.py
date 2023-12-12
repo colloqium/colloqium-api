@@ -6,6 +6,7 @@ from models.interaction import Interaction, InteractionStatus
 from models.interaction_types import INTERACTION_TYPES
 from context.database import db
 from tasks.initialize_interaction import initialize_interaction
+from logs.logger import logger
 
 
 interaction_bp = Blueprint('interaction', __name__)
@@ -41,6 +42,10 @@ def create_interaction(data):
     if 'campaign_id' in data.keys():
         campaign_id = data['campaign_id']
     
+
+    if 'interaction_type' not in data.keys():
+        return jsonify({'error': 'interaction_type is required', 'status_code': 400}), 400
+
     interaction_type = data['interaction_type']
 
     # Check if required fields are missing
@@ -135,9 +140,9 @@ def build_interaction(voter: Voter, interaction_type: str, campaign: Campaign = 
     
     # check if the interaction types is in the keys of INTERACTION_TYPES
     if interaction_type not in INTERACTION_TYPES.keys():
-        print("Invalid interaction type")
-        print(f"Interaction type keys: {INTERACTION_TYPES.keys()}")
-        print(f"Interaction type: {interaction_type}")
+        logger.debug("Invalid interaction type")
+        logger.debug(f"Interaction type keys: {INTERACTION_TYPES.keys()}")
+        logger.debug(f"Interaction type: {interaction_type}")
         return jsonify({'error': 'Invalid interaction type', 'status_code': 400}), 400
 
     # Create new interaction

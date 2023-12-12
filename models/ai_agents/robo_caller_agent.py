@@ -4,23 +4,21 @@ from models.interaction import Interaction, InteractionStatus
 from context.database import db
 from tools.utility import get_llm_response_to_conversation, initialize_conversation
 from tools.vector_store_utility import get_vector_store_results
-from tools.ai_functions.alert_campaign_team import AlertCampaignTeam
-from tools.ai_functions.end_conversation import EndConversation
-from tools.ai_functions.get_candidate_information import GetCandidateInformation
 from langchain.prompts import ChatPromptTemplate, SystemMessagePromptTemplate
 from context.sockets import socketio
 from context.analytics import analytics, EVENT_OPTIONS
 import json
+from logs.logger import logger
 
-class TextingAgent(Agent):
+class RoboCallerAgent(Agent):
     __mapper_args__ = {
-        'polymorphic_identity': 'texting_agent'
+        'polymorphic_identity': 'robo_caller_agent'
     }
     
     def __init__(self, interaction_id: int):
 
         with db.session.no_autoflush:
-            print(f"Creating a new TextingAgent for interaction_id {interaction_id}")
+            print(f"Creating a new RoboCallerAgent for interaction_id {interaction_id}")
 
             # get interaction
             interaction = Interaction.query.get(interaction_id)
@@ -49,42 +47,44 @@ class TextingAgent(Agent):
             key_examples = [example.replace("[", "").replace("]", "").replace("{", "").replace("}", "") for example in key_examples]
 
             prompt_template = '''
-                Hey there! You're helping to connect with {voter_name} on behalf of {sender_name}. The tone? Let's keep it friendly and straightforward—like chatting with a mature friend. Aim for 1-2 sentences; keep it short and sweet. If the conversation starts to fizzle or they're all out of questions, make sure to say "goodbye" to wrap it up.
+                Hi, you're going to be writing a concise and engaging script that sounds like a message from a knowledgeable and friendly campaign volunteer. The tone should be professional, informative, and personable.
 
-                Campaign Details:
+                Key Elements to Include:
+
+                Professional Greeting: Start with "Hello, this is <your_name>, reaching out from the {sender_name} campaign."
+                Campaign Information: Include details about the campaign and how it connects with issues that might interest the voter.
+                Personalized Invitation for Involvement: Offer a genuine invitation to get involved, related to "{campaign_goal}", and tailor it to the voter using "{voter_name}" for a personal touch.
+                Appreciative Closing: Thank the listener for their time, and direct them to "{campaign_fallback}" for more information.
+
+
+                The message will be successful if the recipient does {campaign_goal}
+
+                You're instructions for this script:
                 {campaign_prompt}
-
-                What We're Trying to Achieve:
-                {campaign_goal}
-
-                Campaign End Date:
-                {campaign_end_date} (Note: that's election day for political races.)
-
-                Sender Information:
-                {sender_information}
-
-                Voter Information:
-                {voter_information}
-
-                Example Interactions:
-                Hi FirstName, it's Sarah. How would you like to join us on DATE for an event about community issues? We'd really value your input.
-                The event on the XXth is basically a space for community voices. {sender_name}, who's running for Mayor, will be there to listen and talk solutions. Sound interesting?
-                {sender_name} has a strong background, especially in criminal justice reform. He's got the experience to make a real difference. Interested in meeting him at the event?
-
-                Here is the type of information you may have about the candidate:
-                {example_interactions}
                 
-                Don't Know the Answer? Point them here: {campaign_fallback}
+                
+                Available information:
 
-                IDs You Might Need:
+                Voter Name: {voter_name}
+                Voter Interests: {voter_information}
+                
+                Campaign Name: {campaign_name}
+                Campaign End Date: {campaign_end_date}
+                
+                Your Name: {sender_name}
+                Sender Information: {sender_information}
+
+                Example Interactions: {example_interactions}
+                
                 Campaign ID: {campaign_id}
                 Voter ID: {voter_id}
                 Sender ID: {sender_id}
-
-                Remember, these are text messages. Do not include any headers or additional context before the first message. E.g. **NO** "Initial Message", "Introduction", "Message 1", etc.
-                You should be able to send your responses directly to the voter with no adjustments.
                 
-                Wait for a human go-ahead before sending the first message. After that, feel free to continue the conversation. If you're asked if you're a bot, be upfront about it.
+                
+                Tone and Approach:
+
+                Tone: Approachable and respectful, with a slight personal touch without being overly familiar.
+                Approach: Imagine you're an informed volunteer who is passionate about the campaign, speaking to a potential supporter with shared interests.
             '''
 
             system_prompt_template = SystemMessagePromptTemplate.from_template(prompt_template)
@@ -100,14 +100,14 @@ class TextingAgent(Agent):
                 campaign_prompt = campaign.campaign_prompt,
                 sender_information = sender.sender_information,
                 campaign_goal = campaign.campaign_goal,
-                campaign_fallback = sender.fallback_url,
                 example_interactions = key_examples,
                 campaign_id = campaign.id,
                 voter_id = voter.id,
-                sender_id = sender.id
+                sender_id = sender.id,
+                campaign_fallback = sender.fallback_url
             )
 
-            super().__init__(self.system_prompt, "texting_agent", "Writes text messages", sender_voter_relationship.id)
+            super().__init__(self.system_prompt, "robo_caller_agent", "Writes robo_call scripts", sender_voter_relationship.id)
 
             self.conversation_history = initialize_conversation(self.system_prompt)
 
@@ -119,12 +119,12 @@ class TextingAgent(Agent):
 
             self.conversation_history.append(first_llm_response)
 
-            print(f"Generated first response for texting agent: {first_llm_response}")
+            logger.info(f"Generated first response for robo-calling agent: {first_llm_response}")
 
             interaction.conversation = self.conversation_history
             interaction.interaction_status = InteractionStatus.INITIALIZED
  
-            self.available_actions = json.dumps([AlertCampaignTeam().to_dict(), EndConversation().to_dict(), GetCandidateInformation().to_dict()])
+            self.available_actions = json.dumps([])
             self.interactions = [interaction]
             
             db.session.add(self)

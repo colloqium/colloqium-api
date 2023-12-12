@@ -16,7 +16,7 @@ base_url = os.environ['BASE_URL']
 call_webhook_url = base_url+"/twilio_call"
 
 # The webhook URL for handling the message events
-message_webhook_url = base_url+"/twilio_message_callback"
+message_webhook_url = base_url+"/interaction_callback"
 
 # Create a Twilio client object
 twilio_client = Client(account_sid, auth_token)
