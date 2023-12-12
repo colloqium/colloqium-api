@@ -98,7 +98,12 @@ class Agent(BaseDbModel):
             flag_modified(self, "conversation_history")
             self.update_agent(self)
 
-            self.available_actions = [AIFunction.from_dict(function_dict) for function_dict in json.loads(self.available_actions)] if self.available_actions else []
+            if isinstance(self.available_actions, str):
+                self.available_actions = [AIFunction.from_dict(function_dict) for function_dict in json.loads(self.available_actions)] if self.available_actions else []
+            elif isinstance(self.available_actions, list):
+                self.available_actions = [AIFunction.from_dict(function_dict) for function_dict in self.available_actions] if self.available_actions else []
+            else:
+                self.available_actions = []
 
             # Convert available actions to a dictionary for faster lookup
             available_functions = {function.name: function for function in self.available_actions}
@@ -172,7 +177,13 @@ class Agent(BaseDbModel):
 
                     if 'function_call' in llm_response:
                         print(f"{self.name} The LLM returned another function call. Continuing to process...")
-                        self.available_actions = [AIFunction.from_dict(function_dict) for function_dict in json.loads(self.available_actions)]
+                        
+                        if isinstance(self.available_actions, str):
+                            self.available_actions = [AIFunction.from_dict(function_dict) for function_dict in json.loads(self.available_actions)] if self.available_actions else []
+                        elif isinstance(self.available_actions, list):
+                            self.available_actions = [AIFunction.from_dict(function_dict) for function_dict in self.available_actions] if self.available_actions else []
+                        else:
+                            self.available_actions = []
             except Exception as e:
                 print(f"{self.name} Error in while loop: {str(e)}")
             
