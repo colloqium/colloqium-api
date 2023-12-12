@@ -29,8 +29,15 @@ class Agent(BaseDbModel):
         self.name = name
         self.description = description
         self.sender_voter_relationship_id = sender_voter_relationship_id
-        self.available_actions = [AIFunction.from_dict(function_dict) for function_dict in json.loads(self.available_actions)] if self.available_actions else []
 
+        # check if self.available actions is a string or a list. If it is a string us json.loads to convert it to a list
+
+        if isinstance(self.available_actions, str):
+            self.available_actions = [AIFunction.from_dict(function_dict) for function_dict in json.loads(self.available_actions)] if self.available_actions else []
+        elif isinstance(self.available_actions, list):
+            self.available_actions = [AIFunction.from_dict(function_dict) for function_dict in self.available_actions] if self.available_actions else []
+        else:
+            self.available_actions = []
     @staticmethod
     def update_agent(agent):
         try:

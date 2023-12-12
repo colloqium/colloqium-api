@@ -9,7 +9,7 @@ interaction_id = FunctionProperty(name="interaction_id", paramater_type="string"
 @dataclass
 class CreateRoboCallerAgent(AIFunction):
 
-    def __init__(self, name="create_robo_calling_agent",description="Spin up an volunteer to leave a Robo Call for the voter. Writes the call script and prepares the call to be sent. Will send an notification back to the planner when the call is prepared to be confirmed by a human.", parameters=[interaction_id]):
+    def __init__(self, name="create_robo_caller_agent",description="Spin up an volunteer to leave a Robo Call for the voter. Writes the call script and prepares the call to be sent. Will send an notification back to the planner when the call is prepared to be confirmed by a human.", parameters=[interaction_id]):
         super().__init__(name,description,parameters)
 
     def call(self, **kwargs):
