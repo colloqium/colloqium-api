@@ -129,8 +129,12 @@ class Agent(BaseDbModel):
             self.update_agent(self)
 
             #reload the available actions
-            self.available_actions = [AIFunction.from_dict(function_dict) for function_dict in json.loads(self.available_actions)] if self.available_actions else []
-
+            if isinstance(self.available_actions, str):
+                self.available_actions = [AIFunction.from_dict(function_dict) for function_dict in json.loads(self.available_actions)] if self.available_actions else []
+            elif isinstance(self.available_actions, list):
+                self.available_actions = [AIFunction.from_dict(function_dict) for function_dict in self.available_actions] if self.available_actions else []
+            else:
+                self.available_actions = []
 
             try:
                 # Check for a function call in the LLM's response
