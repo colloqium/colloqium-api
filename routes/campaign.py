@@ -49,6 +49,7 @@ def create_campaign(data):
     campaign_goal = data.get('campaign_goal', None)
     campaign_end_date = data.get('campaign_end_date', None)
     audience_ids = data.get('audiences', None)
+    campaign_type = data.get('campaign_type', None)
 
     # Parse campaign end date if provided
     if campaign_end_date:
@@ -65,7 +66,8 @@ def create_campaign(data):
         campaign_prompt=campaign_prompt, 
         campaign_goal=campaign_goal, 
         sender_id=sender_id, 
-        campaign_end_date=campaign_end_date, 
+        campaign_end_date=campaign_end_date,
+        campaign_type=campaign_type
     )
 
     if audiences:
@@ -112,6 +114,9 @@ def update_campaign(data):
 
     if 'campaign_goal' in data.keys():
         campaign.campaign_goal = data['campaign_goal']
+
+    if 'campaign_type' in data.keys():
+        campaign.campaign_type = data['campaign_type']
 
     if 'audiences' in data.keys():
         #get audiences from the ids in the array

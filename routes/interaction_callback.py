@@ -7,28 +7,20 @@ from logs.logger import logger
 from twilio.twiml.messaging_response import MessagingResponse
 from tasks.process_twilio_callback import process_twilio_callback
 
-twilio_message_callback_bp = Blueprint('twilio_message_callback', __name__)
+interaction_callback_bp = Blueprint('interaction_callback', __name__)
 
-@twilio_message_callback_bp.route('/twilio_message_callback', methods=['POST'])
-def twilio_message_callback():
-    logger.info("Twilio Callback Request:")
-    print("Twilio Callback Request:")
-
-    #the resquest is a application/x-www-form-urlencoded type post.
-    # Extract the values form the request:
-    #   SmsSid: SM2xxxxxx
-    #   SmsStatus: sent
-    #   MessageStatus: sent
-    #   To: +1512zzzyyyy
-    #   MessageSid: SM2xxxxxx
-    #   AccountSid: ACxxxxxxx
-    #   From: +1512xxxyyyy
-    #   ApiVersion: 2010-04-01
+@interaction_callback_bp.route('/interaction_callback', methods=['POST'])
+def interaction_callback():
+    logger.info("Interaction Callback Request:")
+    print("Interaction Callback Request:")
 
     # Get the 'From' number from the incoming request
     from_number = request.values.get('From', None)
     to_number = request.values.get('To', None)
+
+    # should only be one of these
     status = request.values.get('MessageStatus', None)
+    status = request.values.get('CallStatus', None)
 
     response = Response(str(MessagingResponse()), mimetype='application/xml') 
     

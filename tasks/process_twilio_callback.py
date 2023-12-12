@@ -20,11 +20,15 @@ def process_twilio_callback(self, interaction_id, status, phone_number_id):
         interaction = Interaction.query.filter_by(id=interaction_id).first()
             
         # update the interaction status
-        if status == 'sent':
+
+        # sent for sms and initiated for calls
+        if status == 'sent' or status == 'initiated':
             print("Message sent")
             if interaction.interaction_status < InteractionStatus.SENT:
                 interaction.interaction_status = InteractionStatus.SENT
-        if status == 'delivered':
+        
+        # delivered for sms and ringing for calls
+        if status == 'delivered' or status == 'ringing':
             print("Message delivered")
             if interaction.interaction_status < InteractionStatus.DELIVERED:
                 interaction.interaction_status = InteractionStatus.DELIVERED

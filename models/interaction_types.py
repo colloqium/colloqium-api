@@ -1,4 +1,5 @@
 from routes.send_text import send_text
+from routes.make_robo_call import make_robo_call
 from dataclasses import dataclass
 from datetime import datetime as DateTime
 from models.voter import Voter
@@ -20,9 +21,8 @@ class InteractionType:
         self.method = method
         self.callback_route = callback_route
 
-    #String representation that removes underscores and capitalizes the first letter of each word
     def __str__(self):
-        return self.name.replace("_", " ").capitalize()
+        return self.name
 
 
 class EventType:
@@ -65,5 +65,6 @@ class OutreachScheduleEntry:
     outreach_goal: str
 
 INTERACTION_TYPES = {
-    "text_message": InteractionType(name="text_message", method=send_text, callback_route="twilio_message_callback"),
+    "text_message": InteractionType(name="text_message", method=send_text, callback_route="interaction_callback"),
+    "robo_call": InteractionType(name="robo_call", method=make_robo_call, callback_route="interaction_callback"),
 }

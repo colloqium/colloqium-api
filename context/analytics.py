@@ -11,7 +11,7 @@ analytics.on_error = on_error
 
 @dataclass
 class EVENT_OPTIONS:
-    initialized = 'Interactin Initialized'
+    initialized = 'Interaction Initialized'
     sent =  'Interaction Sent'
     recieved = 'Interaction Recieved'
     interaction_call_back = 'Interaction Call Back'
