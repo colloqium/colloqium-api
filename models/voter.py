@@ -9,6 +9,7 @@ class Voter(BaseDbModel):
     id = db.Column(db.Integer, primary_key=True)
     voter_name = db.Column(db.String(50))
     voter_phone_number = db.Column(db.String(100))
+    voter_email = db.Column(db.String(100))
     voter_profile = db.relationship('VoterProfile',backref='voter', lazy=True, uselist=False)
     interactions = db.relationship('Interaction',
                                   backref='voter',

@@ -11,6 +11,7 @@ from models.association_tables import audience_voter, campaign_audience
 class Sender(BaseDbModel):
     id = db.Column(db.Integer, primary_key=True)
     sender_name = db.Column(db.Text)
+    sender_email = db.Column(db.String(100))
     sender_information = db.Column(db.Text)
     sender_schedule = db.Column(db.JSON())
     # Add relationship

@@ -51,6 +51,11 @@ class Interaction(BaseDbModel):
         sender = Sender.query.get(self.sender_id)
         return sender.phone_numbers[0].get_full_phone_number()
 
+    def select_email(self):
+        print(f"Selecting email for interaction {self.id}")
+        sender = Sender.query.get(self.sender_id)
+        return sender.email
+
     #overwrite to_dict method to include the sender and recipient and the conversation object
     def to_dict(self):
         interaction_dict = super().to_dict()

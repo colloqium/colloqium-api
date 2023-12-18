@@ -1,5 +1,6 @@
 from routes.send_text import send_text
 from routes.make_robo_call import make_robo_call
+from routes.send_email import send_email
 from dataclasses import dataclass
 from datetime import datetime as DateTime
 from models.voter import Voter
@@ -67,4 +68,5 @@ class OutreachScheduleEntry:
 INTERACTION_TYPES = {
     "text_message": InteractionType(name="text_message", method=send_text, callback_route="interaction_callback"),
     "robo_call": InteractionType(name="robo_call", method=make_robo_call, callback_route="interaction_callback"),
+    "email": InteractionType(name="email", method=send_email, callback_route="interaction_callback"),
 }

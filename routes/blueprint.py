@@ -6,6 +6,7 @@ from routes.index import index
 from routes.interaction import interaction
 from routes.send_text import send_text
 from routes.make_robo_call import make_robo_call
+from routes.send_email import send_email
 from routes.interaction_callback import interaction_callback
 from routes.sender import sender
 from routes.voter import voter
@@ -22,6 +23,7 @@ bp.add_url_rule("/", view_func=index, methods=['GET', 'POST'])
 bp.add_url_rule("/interaction", view_func=interaction, methods=['GET', 'POST', 'PUT', 'DELETE'])
 bp.add_url_rule("/send_text", view_func=send_text, methods=['POST', 'OPTIONS'])
 bp.add_url_rule("/make_robo_call", view_func=make_robo_call, methods=['POST', 'OPTIONS'])
+bp.add_url_rule("/send_email", view_func=send_email, methods=['POST', 'OPTIONS'])
 bp.add_url_rule("/interaction_callback", view_func=interaction_callback, methods=['POST'])
 bp.add_url_rule("/sender", view_func=sender, methods=['GET', 'POST', 'PUT'])
 bp.add_url_rule("/voter", view_func=voter, methods=['GET', 'POST', 'PUT', 'OPTIONS'])

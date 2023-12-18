@@ -39,18 +39,33 @@ def voter():
 def create_voter(data):
     voter_name = data['voter_name']
     voter_phone_number = data['voter_phone_number']
+    voter_email = data['voter_email']
 
     # Check if required fields are missing
-    if not voter_name or not voter_phone_number:
-        return jsonify({'error': 'Both voter_name and voter_phone_number are required', 'status_code': 400}), 400
+    if not voter_name or (not voter_phone_number and not voter_email):
+        return jsonify({'error': 'voter_name is required along with either voter_phone_number or voter_email', 'status_code': 400}), 400
 
-    cleaned_phone_number = format_phone_number(voter_phone_number)
+    
+    if voter_phone_number:
+        cleaned_phone_number = format_phone_number(voter_phone_number)
 
-    voter = Voter.query.filter_by(voter_name=voter_name, voter_phone_number=cleaned_phone_number).first()
+        voter = Voter.query.filter_by(voter_name=voter_name, voter_phone_number=cleaned_phone_number).first()
+
+    if voter_email:
+        voter = Voter.query.filter_by(voter_name=voter_name, voter_email=voter_email).first()
+
     if voter:
         return jsonify({'error': 'voter already exists', 'status_code': 409}), 409
 
-    voter = Voter(voter_name=voter_name, voter_phone_number=cleaned_phone_number)
+    if voter_phone_number and voter_email:
+        voter = Voter(voter_name=voter_name, voter_phone_number=cleaned_phone_number, voter_email=voter_email)
+    elif voter_email:
+        voter = Voter(voter_name=voter_name, voter_email=voter_email)
+    elif voter_phone_number:
+        voter = Voter(voter_name=voter_name, voter_phone_number=cleaned_phone_number)
+
+    if not voter:
+        return jsonify({'error': 'voter could not be created', 'status_code': 500}), 500
 
     db.session.add(voter)
     db.session.commit()
@@ -76,7 +91,8 @@ def create_voter(data):
 
     analytics.identify(voter.id, {
         'name': voter.voter_name,
-        'phone': voter.voter_phone_number
+        'phone': voter.voter_phone_number,
+        'email': voter.voter_email
     })
 
     return jsonify({ 
@@ -102,6 +118,13 @@ def update_voter(data):
         if existing_voter and existing_voter.id != voter_id:
             return jsonify({'error': 'voter with this phone number already exists', 'status_code': 409}), 409
         voter.voter_phone_number = format_phone_number(voter_phone_number)
+
+    if 'voter_email' in data.keys():
+        voter_email = data['voter_email']
+        existing_voter = Voter.query.filter_by(voter_email=voter_email).first()
+        if existing_voter and existing_voter.id != voter_id:
+            return jsonify({'error': 'voter with this email already exists', 'status_code': 409}), 409
+        voter.voter_email = voter_email
 
     if 'voter_name' in data.keys():
         voter.voter_name = data['voter_name']
@@ -149,6 +172,14 @@ def get_voter(data):
         voter = Voter.query.filter_by(voter_phone_number=voter_phone_number).first()
         if not voter:
             return jsonify({'error': 'voter with this phone number does not exist', 'status_code': 404}), 404
+        return jsonify({'voter': voter.to_dict(), 'status_code': 200}), 200
+    
+    # Attempt to look up by voter email
+    if 'voter_email' in data.keys():
+        voter_email = data['voter_email']
+        voter = Voter.query.filter_by(voter_email=voter_email).first()
+        if not voter:
+            return jsonify({'error': 'voter with this email does not exist', 'status_code': 404}), 404
         return jsonify({'voter': voter.to_dict(), 'status_code': 200}), 200
 
     return jsonify({'error': 'No valid parameter provided', 'status_code': 400}), 400

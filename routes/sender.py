@@ -123,6 +123,7 @@ def create_sender(data):
     sender_information = data.get('sender_information', None)
     #phone numbers is expected to be an array of phone numbers
     phone_numbers = data.get('phone_numbers', None)
+    email = data.get('email', None)
     example_interactions = data.get('example_interactions', None)
     fallback_url = data.get('fallback_url', None)
     alert_phone_number = data.get('alert_phone_number', None)
@@ -157,6 +158,9 @@ def create_sender(data):
 
     if alert_phone_number:
         sender.alert_phone_number = alert_phone_number
+
+    if email:
+        sender.sender_email = email
 
     # add the sender to the database
     db.session.add(sender)
@@ -209,6 +213,10 @@ def update_sender(data):
             
             phone_number.sender_id = sender.id
             db.session.add(phone_number)
+
+    #update the sender email if it is provided
+    if 'email' in data.keys():
+        sender.sender_email = data['email']
     
     #update the example interactions if they are provided
     if 'example_interactions' in data.keys():
@@ -250,6 +258,24 @@ def get_sender(data):
             return jsonify({'error': 'Sender with this ID does not exist', 'status_code': 404}), 404
         
         # return the sender information as a json object
+        return jsonify({'sender': sender.to_dict(), 'status_code': 200}), 200
+
+    if 'sender_email' in data.keys():
+        sender_email = data['sender_email']
+        sender = Sender.query.filter_by(sender_email=sender_email).first()
+        if not sender:
+            return jsonify({'error': 'Sender with this email does not exist', 'status_code': 404}), 404
+        return jsonify({'sender': sender.to_dict(), 'status_code': 200}), 200
+
+    if 'sender_phone_number' in data.keys():
+        sender_phone_number = data['sender_phone_number']
+
+        # check if the phone number is among the senders phone numbers
+        sender = Sender.query.join(Sender.phone_numbers).filter_by(phone_number=sender_phone_number).first()
+        
+        if not sender:
+            return jsonify({'error': 'Sender with this phone number does not exist', 'status_code': 404}), 404
+        
         return jsonify({'sender': sender.to_dict(), 'status_code': 200}), 200
     
     # if no sender name or id is provided, return a list of all senders.

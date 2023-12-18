@@ -1,4 +1,5 @@
 from twilio.rest import Client
+from sendgrid import SendGridAPIClient
 import os
 import openai
 from dotenv import load_dotenv
@@ -20,6 +21,9 @@ message_webhook_url = base_url+"/interaction_callback"
 
 # Create a Twilio client object
 twilio_client = Client(account_sid, auth_token)
+
+# create SendGrid client object
+sg = SendGridAPIClient(os.environ.get('SENDGRID_API_KEY'))
 
 # set OpenAi Key for GPT4
 openai.api_key = os.environ['OPENAI_APIKEY']
