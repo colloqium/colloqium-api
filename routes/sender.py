@@ -215,8 +215,8 @@ def update_sender(data):
             db.session.add(phone_number)
 
     #update the sender email if it is provided
-    if 'email' in data.keys():
-        sender.sender_email = data['email']
+    if 'sender_email' in data.keys():
+        sender.sender_email = data['sender_email']
     
     #update the example interactions if they are provided
     if 'example_interactions' in data.keys():
@@ -270,8 +270,12 @@ def get_sender(data):
     if 'sender_phone_number' in data.keys():
         sender_phone_number = data['sender_phone_number']
 
+        sender_phone_number = format_phone_number(sender_phone_number)
+
+        last_ten_digits = sender_phone_number[-10:]
+
         # check if the phone number is among the senders phone numbers
-        sender = Sender.query.join(Sender.phone_numbers).filter_by(phone_number=sender_phone_number).first()
+        sender = Sender.query.join(Sender.phone_numbers).filter_by(phone_number_after_code=last_ten_digits).first()
         
         if not sender:
             return jsonify({'error': 'Sender with this phone number does not exist', 'status_code': 404}), 404

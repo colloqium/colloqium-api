@@ -44,9 +44,11 @@ def initialize_interaction(self, interaction_id):
         print(f"Interaction Type Of Interaction: {interaction.interaction_type}")
         print(f"Text message from Interaction Types enum: {INTERACTION_TYPES['text_message']}")
         print(f"Robo call from Interaction Types enum: {INTERACTION_TYPES['robo_call']}")
+        print(f"Email from Interaction Types enum: {INTERACTION_TYPES['email']}")
 
         print(f"Check if interaction type is text message: {interaction.interaction_type == INTERACTION_TYPES['text_message']}")
         print(f"Check if interaction type is robo call: {interaction.interaction_type == INTERACTION_TYPES['robo_call']}")
+        print(f"Check if interaction type is email: {interaction.interaction_type == INTERACTION_TYPES['email']}")
         
         
         #switch on interaction type
@@ -54,6 +56,8 @@ def initialize_interaction(self, interaction_id):
             planner_prompt = f"Start a text conversation with the voter to accomplish this goal: {interaction.campaign.campaign_goal}. The associated interaction id is {interaction.id}."
         elif interaction.interaction_type == INTERACTION_TYPES["robo_call"].name: 
             planner_prompt = f"Send a robocall to the voter to accomplish this goal: {interaction.campaign.campaign_goal}. The associated interaction id is {interaction.id}."
+        elif interaction.interaction_type == INTERACTION_TYPES["email"].name:
+            planner_prompt = f"Send an email to the voter to accomplish this goal: {interaction.campaign.campaign_goal}. The associated interaction id is {interaction.id}."
         
         planning_agent.send_prompt({
             "content": planner_prompt

@@ -3,6 +3,7 @@ from models.interaction import SenderVoterRelationship
 from context.database import db
 from tools.ai_functions.create_texting_agent import CreateTextingAgent
 from tools.ai_functions.create_robo_caller_agent import CreateRoboCallerAgent
+from tools.ai_functions.create_email_agent import CreateEmailAgent
 from tools.utility import get_llm_response_to_conversation, initialize_conversation
 from langchain.prompts import ChatPromptTemplate, SystemMessagePromptTemplate
 import json
@@ -59,7 +60,7 @@ class PlanningAgent(Agent):
 
         self.conversation_history.append(first_llm_response)
 
-        self.available_actions = json.dumps([CreateTextingAgent().to_dict(), CreateRoboCallerAgent().to_dict()])
+        self.available_actions = json.dumps([CreateTextingAgent().to_dict(), CreateRoboCallerAgent().to_dict(), CreateEmailAgent().to_dict()])
 
 
         print(f"Created a new PlanningAgent")

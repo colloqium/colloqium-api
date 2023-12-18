@@ -69,7 +69,7 @@ class EmailAgent(Agent):
                 Example Interactions:
                 {{
                     Subject: Come Discuss Community Issues
-                    Body: Hi FirstName, it's Sarah. How would you like to join us on DATE for an event about community issues? We'd really value your input. The event on the XXth is basically a space for community voices. {sender_name}, who's running for Mayor, will be there to listen and talk solutions. Sound interesting? {sender_name} has a strong background, especially in criminal justice reform. He's got the experience to make a real difference. Interested in meeting him at the event?
+                    Body: <p>Hi FirstName, it's Sarah. How would you like to join us on DATE for an event about community issues? We'd really value your input. The event on the XXth is basically a space for community voices. {sender_name}, who's running for Mayor, will be there to listen and talk solutions. Sound interesting?</p> <p>{sender_name} has a strong background, especially in criminal justice reform. He's got the experience to make a real difference. Interested in meeting him at the event?</p>
                 }}
 
                 Here is the type of information you may have about the candidate:
@@ -85,7 +85,7 @@ class EmailAgent(Agent):
                 Remember, these are emails. Return your email including the subject line as a json string in the following format:
                 {{
                     "subject": "Example Subject",
-                    "body": "Body of the email goes here"
+                    "body": "Body of the email as html goes here"
                 }} 
                 
                 Wait for a human go-ahead before sending the first message. After that, feel free to continue the conversation. If you're asked if you're a bot, be upfront about it.

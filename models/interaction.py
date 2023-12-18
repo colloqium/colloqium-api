@@ -54,7 +54,7 @@ class Interaction(BaseDbModel):
     def select_email(self):
         print(f"Selecting email for interaction {self.id}")
         sender = Sender.query.get(self.sender_id)
-        return sender.email
+        return sender.sender_email
 
     #overwrite to_dict method to include the sender and recipient and the conversation object
     def to_dict(self):

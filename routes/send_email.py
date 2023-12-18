@@ -6,6 +6,7 @@ from context.database import db
 from twilio.twiml.messaging_response import MessagingResponse
 from tools.ai_functions.send_email import SendEmail
 import json
+import re
 
 send_email_bp = Blueprint('send_email', __name__)
 
@@ -72,7 +73,7 @@ def send_email():
 
             body = ""
 
-            while body[0] != "{":
+            while len(body) == 0 or body[0] != "{":
                 print(f"relationship.agents: {relationship.agents}")
                 email_agent = [agent for agent in relationship.agents if agent.name == "email_agent"][0]
                 body = email_thread.conversation[-1].get('content')
@@ -92,9 +93,23 @@ def send_email():
                     email_agent.send_prompt("Please respond with a json object in the form: {\"email_subject\": \"subject\", \"email_body\": \"body\"} to send an email to the voter.")
 
             print("body is a json object")
+            print(f"body: {body}")
+
+            # Replace actual newline characters with escaped version, excluding those inside double quotes
+            body = re.sub(r'(?<!")\n(?!")', '', body)
+
+            # Replace the newlines inside double quotes with an aditional escape character
+            body = re.sub(r'(?<=")\n(?=")', '\\\\n', body)
+
+
+            print(f"body after replacing newlines and quotes: {body}")
+
             body = json.loads(body)
-            email_subject = body.get("email_subject")
-            email_body = body.get("email_body")
+            print(f"body after json.loads: {body}")
+            email_subject = body.get("subject")
+            print(f"email_subject: {email_subject}")
+            email_body = body.get("body")
+            print(f"email_body: {email_body}")
             
             
             send_email = SendEmail()
