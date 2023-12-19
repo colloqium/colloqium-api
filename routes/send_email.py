@@ -93,6 +93,8 @@ def send_email():
                     email_agent.send_prompt({
                         "content": "Please send a json object with the subject and body of the email in the form: \n\n { \n \"subject\": \"subject of the email\", \n \"body\": \"body of the email as an html string\" \n }"
                     })
+                    body = email_thread.conversation[-1].get('content')
+                    print(f"body after redo: {body}")
 
             print("body is a json object")
             print(f"body: {body}")
