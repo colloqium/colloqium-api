@@ -82,15 +82,15 @@ def send_email():
                 Check if the body of the response is a json object in the form
 
                 {
-                    "email_subject": "subject",
-                    "email_body": "body"
+                    "subject": "subject of the email",
+                    "body": "body of the email as an html string"
                 }
 
                 if so, extract the email_subject and email_body from the json object
                 '''
 
-                if body[0] != "{":
-                    email_agent.send_prompt("Please respond with a json object in the form: {\"email_subject\": \"subject\", \"email_body\": \"body\"} to send an email to the voter.")
+                if len(body) == 0 or body[0] != "{":
+                    email_agent.send_prompt("Please send a json object with the subject and body of the email in the form: \n\n { \n \"subject\": \"subject of the email\", \n \"body\": \"body of the email as an html string\" \n }")
 
             print("body is a json object")
             print(f"body: {body}")
