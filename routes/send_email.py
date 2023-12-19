@@ -91,7 +91,7 @@ def send_email():
 
                 if len(body) == 0 or body[0] != "{":
                     email_agent.send_prompt({
-                        "content": "Please send a json object with the subject and body of the email in the form: \n\n { \n \"subject\": \"subject of the email\", \n \"body\": \"body of the email as an html string\" \n }"
+                        "content": "Please send only send a valid json object with the subject and body of the email in the form: \n\n { \n \"subject\": \"subject of the email\", \n \"body\": \"body of the email as an html string\" \n }"
                     })
                     body = email_thread.conversation[-1].get('content')
                     print(f"body after redo: {body}")
