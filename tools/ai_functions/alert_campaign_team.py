@@ -1,12 +1,11 @@
 from tools.ai_functions.ai_function import AIFunction, FunctionProperty
-from models.interaction import Interaction
+from models.interaction import Interaction, Alert, AlertStatus
 from models.sender import Sender
 from models.ai_agents.agent import Agent
 from sqlalchemy.orm.attributes import flag_modified
 from context.database import db
 from context.apis import twilio_client, twilio_messaging_service_sid, message_webhook_url
 from tools.utility import format_phone_number
-from tools.ai_functions.send_message import SendMessage
 
 
 campaign_id = FunctionProperty(name="campaign_id", paramater_type="string", description="The ID of the outreach campaign this agent is texting for")
@@ -66,10 +65,12 @@ class AlertCampaignTeam(AIFunction):
     db.session.add(texting_agent)
     db.session.commit()
 
-    #send text to sender's alert phone number
+    #Add alert to alert list for this campaign
     sender_id = interaction.campaign.sender_id
     sender = Sender.query.filter_by(id=sender_id).first()
     voter = interaction.voter
+
+    alert = Alert(sender_id=sender_id, voter_id=voter_id, campaign_id=campaign_id, alert_message=alert_message, alert_status=AlertStatus.SENT)
 
     # check if the sender alert phone number is set, if not, return a message with the last message and let the agent know that the campaign manager was not alerted
     if not sender.alert_phone_number:
@@ -94,7 +95,12 @@ class AlertCampaignTeam(AIFunction):
     if alert_phone_number is None or sender.alert_phone_number is None:
         return "Error: Alert phone number from sender is None"
     
+    # add alert to db
+    db.session.add(alert)
+    db.session.commit()
+    
 
+    #Send alert to campaign manager
     print(f"Sending alert message to campaign manager: {message}")
 
     twilio_client.messages.create(
