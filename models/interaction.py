@@ -3,9 +3,10 @@ from context.database import db
 from models.sender import Sender
 from models.voter import Voter
 from models.base_db_model import BaseDbModel
-from models.ai_agents.agent import Agent
 from sqlalchemy.sql import func
+from enum import Enum as PyEnum
 from dataclasses import dataclass
+
 
 @dataclass
 class InteractionStatus:
@@ -84,3 +85,32 @@ class SenderVoterRelationship(BaseDbModel):
     
     # New SQLAlchemy relationship
     agents = db.relationship('Agent', backref='sender_voter_relationship')
+
+
+
+class AlertStatus(PyEnum):
+    SENT = 1
+    SEEN = 2
+    PROCESSED = 3
+
+    to_dict = lambda self: self.name.lower()
+
+
+@dataclass
+class Alert(BaseDbModel):
+    id = db.Column(db.Integer, primary_key=True)
+    sender_id = db.Column(db.Integer, db.ForeignKey('sender.id'))
+    voter_id = db.Column(db.Integer, db.ForeignKey('voter.id'))
+    campaign_id = db.Column(db.Integer, db.ForeignKey('campaign.id'))
+    alert_time = db.Column(DateTime(timezone=True), server_default=func.now())
+    alert_message = db.Column(db.Text())
+    alert_status = db.Column(db.Enum(AlertStatus), default=AlertStatus.SENT)
+
+    def to_dict(self):
+        alert_dict = super().to_dict()
+        sender = Sender.query.get(self.sender_id)
+        alert_dict["sender"] = sender.to_dict()
+        voter = Voter.query.get(self.voter_id)
+        alert_dict["voter"] = voter.to_dict()
+        alert_dict["alert_status"] = self.alert_status.name.lower()
+        return alert_dict
