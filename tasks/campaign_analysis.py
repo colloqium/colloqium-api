@@ -1,12 +1,15 @@
 import json
 from models.sender import Campaign
-from models.interaction import Interaction, InteractionStatus
+from models.interaction import Interaction, InteractionStatus, SenderVoterRelationship
+from models.ai_agents.agent import Agent
+from models.ai_agents.voter_analysis_agent import VoterAnalysisAgent
 from prompts.interaction_evaluation_agent import get_conversation_evaluation_system_prompt
 from prompts.campaign_insights_agent import get_campaign_summary_system_prompt
 from tools.utility import get_llm_response_to_conversation , initialize_conversation
 from context.database import db
 from context.sockets import socketio
 from context.celery import celery_client
+from context.analytics import analytics, EVENT_OPTIONS
 from tasks.base_task import BaseTaskWithDB
 
 
@@ -132,3 +135,90 @@ def evaluate_interaction(self, interactionId: int):
 
         # emit a socket event to the campaign insights page to update the UI
         socketio.emit('interaction_evaluated', {'interaction_id': interaction.id}, room=f'subscribe_interaction_evaluation_{interaction.id}')
+
+        update_voter_profile.delay(interaction.id)
+
+
+@celery_client.task(bind=True, base=BaseTaskWithDB, max_retries=5, default_retry_delay=30)  # bind=True to access self, max_retries and default_retry_delay are optional
+def update_voter_profile(self, interactionId: int):
+
+    with self.session_scope():
+        interaction = Interaction.query.get(interactionId)
+
+        voter = interaction.voter
+
+        voter_profile = voter.voter_profile
+
+        sender_voter_relationship = SenderVoterRelationship.query.filter_by(sender_id=interaction.sender_id, voter_id=interaction.voter_id).first()
+
+        if not sender_voter_relationship:
+            sender_voter_relationship = SenderVoterRelationship(sender_id=interaction.sender_id, voter_id=interaction.voter_id)
+            db.session.add(sender_voter_relationship)
+            db.session.commit()
+            # get the hydrated sender_voter_relationship
+            sender_voter_relationship = SenderVoterRelationship.query.filter_by(sender_id=interaction.sender_id, voter_id=interaction.voter_id).first()
+
+        voter_analysis_agent = Agent.query.filter_by(sender_voter_relationship_id=sender_voter_relationship.id, name="voter_analysis_agent").first()
+
+        if not voter_analysis_agent:
+            voter_analysis_agent = VoterAnalysisAgent(voter_id = voter.id, latest_interaction_id = interaction.id)
+
+        # create a prompt for the voter analysis agent to review the voter profile, the latest interaction, and update the voter profile so that we can tailor or contact to the voter and be more responsive to their needs
+        voter_analyst_request_prompt = '''
+            Please gives us an updated voter profile for {voter_name}.
+
+            Current Voter Profile:
+            {voter_profile}
+
+            Last Interaction:
+            {last_interaction}
+
+            Remember to return your analysis as a complete JSON object. Your result will fully overwrite the current voter profile, so please include all relevant information.
+
+        '''
+
+        relevant_interaction_object = {
+            # get the conversation without the first message because we don't care about the system message
+            "conversation": interaction.conversation[1:],
+            "interaction_goal": interaction.interaction_goal,
+            "goal_achieved": interaction.goal_achieved,
+            "rating_explanation": interaction.rating_explanation,
+            "rating": interaction.rating,
+            "campaign_relevance_score": interaction.campaign_relevance_score,
+            "campaign_relevance_explanation": interaction.campaign_relevance_explanation,
+            "campaign_relevance_summary": interaction.campaign_relevance_summary,
+            "insights_about_issues": interaction.insights_about_issues,
+            "insights_about_voter": interaction.insights_about_voter
+        }
+
+        voter_analyst_request_prompt = voter_analyst_request_prompt.format(
+            voter_name = voter.voter_name,
+            voter_profile = voter_profile.to_dict(),
+            last_interaction = relevant_interaction_object
+        )
+
+        voter_analysis_agent.send_prompt({
+            "content": voter_analyst_request_prompt
+        })
+
+        db.session.add(voter_analysis_agent)
+
+        # update voter profile with the result from the voter analysis agent
+        analysis_json = voter_analysis_agent.last_message_as_json()
+        
+        voter_profile.interests = analysis_json['interests']
+        voter_profile.policy_preferences = analysis_json['policy_preferences']
+        voter_profile.background = analysis_json['background']
+        voter_profile.last_interaction = analysis_json['last_interaction']
+        voter_profile.preferred_contact_method = analysis_json['preferred_contact_method']
+
+        db.session.add(voter_profile)
+        db.session.commit()
+
+        analytics.track(interaction.voter.id, EVENT_OPTIONS.voter_analyzed, {
+            'sender_id': interaction.sender.id,
+            'campaign_id': interaction.campaign.id,
+            'interaction_id': interaction.id,
+            'voter_profile': voter_profile.to_dict(),
+        })
+

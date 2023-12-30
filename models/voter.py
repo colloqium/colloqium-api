@@ -30,4 +30,6 @@ class VoterProfile(BaseDbModel):
     voter_id = db.Column(db.Integer, db.ForeignKey('voter.id'))
     interests = db.Column(db.Text)
     policy_preferences = db.Column(db.Text)
-    preferred_contact_method = db.Column(db.String(50))
+    background = db.Column(db.Text)
+    last_interaction = db.Column(db.Text)
+    preferred_contact_method = db.Column(db.Text)

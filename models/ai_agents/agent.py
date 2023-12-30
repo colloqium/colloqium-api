@@ -4,8 +4,8 @@ from tools.ai_functions.ai_function import AIFunction
 from context.database import db
 from tools.utility import get_llm_response_to_conversation
 import json
-from sqlalchemy import inspect
 from sqlalchemy.orm.attributes import flag_modified
+from typing import Any
 
 
 class Agent(BaseDbModel):
@@ -73,6 +73,22 @@ class Agent(BaseDbModel):
         agent_dict['conversation_history'] = self.conversation_history if self.conversation_history else []
         agent_dict['available_actions'] = [action.to_dict() for action in self.available_actions] if self.available_actions else []
         return agent_dict
+    
+    def last_message_as_json(self) -> Any:
+        '''
+            Returns the last message in the conversation history as a json object.
+        '''
+
+        # check if the last message is json
+        last_message = self.last_message()
+        json_last_message = None
+
+        try:
+            json_last_message = json.loads(last_message['content'])
+        except json.decoder.JSONDecodeError as error:
+            print(f"Error decoding JSON from LLM response: {error}")
+        
+        return json_last_message
 
     def send_prompt(self, prompt_data: dict):
         """

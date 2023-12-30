@@ -66,7 +66,8 @@ class RoboCallerAgent(Agent):
                 Available information:
 
                 Voter Name: {voter_name}
-                Voter Interests: {voter_information}
+                Voter Profile:
+                {voter_information}
                 
                 Campaign Name: {campaign_name}
                 Campaign End Date: {campaign_end_date}
@@ -96,7 +97,7 @@ class RoboCallerAgent(Agent):
                 campaign_name = campaign.campaign_name,
                 campaign_end_date = campaign.campaign_end_date,
                 sender_name = sender.sender_name,
-                voter_information = voter.voter_profile.interests,
+                voter_information = voter.voter_profile.to_dict(),
                 campaign_prompt = campaign.campaign_prompt,
                 sender_information = sender.sender_information,
                 campaign_goal = campaign.campaign_goal,

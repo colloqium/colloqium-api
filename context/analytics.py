@@ -15,3 +15,4 @@ class EVENT_OPTIONS:
     sent =  'Interaction Sent'
     recieved = 'Interaction Recieved'
     interaction_call_back = 'Interaction Call Back'
+    voter_analyzed = 'Voter Analyzed'
