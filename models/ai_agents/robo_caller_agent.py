@@ -47,45 +47,39 @@ class RoboCallerAgent(Agent):
             key_examples = [example.replace("[", "").replace("]", "").replace("{", "").replace("}", "") for example in key_examples]
 
             prompt_template = '''
-                Hi, you're going to be writing a concise and engaging script that sounds like a message from a knowledgeable and friendly campaign volunteer. The tone should be professional, informative, and personable.
+                Objective: Create a concise, engaging script for a political campaign robocall. The script should sound like it's from a knowledgeable and friendly campaign volunteer, maintaining a professional, informative, and personable tone. The call duration should not exceed 30 seconds.
 
-                Key Elements to Include:
+                Key Elements:
 
-                Professional Greeting: Start with "Hello, this is <your_name>, reaching out from the {sender_name} campaign."
-                Campaign Information: Include details about the campaign and how it connects with issues that might interest the voter.
-                Personalized Invitation for Involvement: Offer a genuine invitation to get involved, related to "{campaign_goal}", and tailor it to the voter using "{voter_name}" for a personal touch.
-                Appreciative Closing: Thank the listener for their time, and direct them to "{campaign_fallback}" for more information.
+                Professional Greeting: "Hello, this is {sender_name}, reaching out from the {campaign_name} campaign."
 
+                Campaign Information: Briefly mention the core message or goal of the campaign in one sentence, tailored to align with the voter's interests.
 
-                The message will be successful if the recipient does {campaign_goal}
+                Personalized Invitation for Involvement: Offer a succinct invitation to get involved, related to "{campaign_goal}". Use "{voter_name}" for a personal touch.
 
-                You're instructions for this script:
+                Appreciative Closing: Express gratitude for the listener's time and provide a direction to "{campaign_fallback}" for more information.
+
+                Success Metric: The message will be considered successful if it leads to the recipient engaging with {campaign_goal}.
+
+                Your Instructions:
                 {campaign_prompt}
-                
-                
-                Available information:
+
+                Available Information:
 
                 Voter Name: {voter_name}
-                Voter Profile:
-                {voter_information}
-                
+                Voter Profile: {voter_information}
                 Campaign Name: {campaign_name}
                 Campaign End Date: {campaign_end_date}
-                
                 Your Name: {sender_name}
                 Sender Information: {sender_information}
-
                 Example Interactions: {example_interactions}
-                
                 Campaign ID: {campaign_id}
                 Voter ID: {voter_id}
                 Sender ID: {sender_id}
-                
-                
                 Tone and Approach:
 
-                Tone: Approachable and respectful, with a slight personal touch without being overly familiar.
-                Approach: Imagine you're an informed volunteer who is passionate about the campaign, speaking to a potential supporter with shared interests.
+                Tone: Approachable and respectful, with a personal touch but not overly familiar.
+                Approach: As an informed volunteer passionate about the campaign, engage the potential supporter by acknowledging their interests and inviting them to participate in the campaign.
             '''
 
             system_prompt_template = SystemMessagePromptTemplate.from_template(prompt_template)

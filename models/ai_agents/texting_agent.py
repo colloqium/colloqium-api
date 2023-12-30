@@ -40,7 +40,7 @@ class TextingAgent(Agent):
             sender_voter_relationship = SenderVoterRelationship.query.filter_by(sender_id=sender.id, voter_id=voter.id).first()
 
             # look in the vector store for a subset of example interactions based on the campaign prompt
-            key_examples = get_vector_store_results(campaign.campaign_prompt, 3, 0.25, {'context': 'sender', 'id': sender.id})
+            key_examples = get_vector_store_results(campaign.campaign_prompt, 2, 0.25, {'context': 'sender', 'id': sender.id})
 
             # get the key_examples["text"] from each example and remove the brackets
             key_examples = [example["text"] for example in key_examples]
@@ -71,6 +71,8 @@ class TextingAgent(Agent):
                 The event on the XXth is basically a space for community voices. {sender_name}, who's running for Mayor, will be there to listen and talk solutions. Sound interesting?
                 {sender_name} has a strong background, especially in criminal justice reform. He's got the experience to make a real difference. Interested in meeting him at the event?
 
+                Remember, always incorporate relevant voter information if it will help the conversation.
+                
                 Here is the type of information you may have about the candidate:
                 {example_interactions}
                 

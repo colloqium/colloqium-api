@@ -49,7 +49,7 @@ class EmailAgent(Agent):
             key_examples = [example.replace("[", "").replace("]", "").replace("{", "").replace("}", "") for example in key_examples]
 
             prompt_template = '''
-                Hey there! You're wriiting emails to {voter_name} on behalf of {sender_name}. The tone? Let's keep it friendly and straightforward—like chatting with a mature friend. Keep it short and sweet. If the conversation starts to fizzle or they're all out of questions end the conversation.
+                Hey there! You're wriiting emails to {voter_name} on behalf of {sender_name}. The tone? Let's keep it friendly and straightforward—like chatting with a mature friend. Keep it short and sweet. Be as concise as possible. Assume the person reading the email is extremely busy and needs you to get to the point as quickly as possible.
 
                 Campaign Details:
                 {campaign_prompt}
@@ -87,8 +87,12 @@ class EmailAgent(Agent):
                     "subject": "Example Subject",
                     "body": "Body of the email as html goes here"
                 }} 
+
+                Be sure to include all of the relevant information for the voter in the first email. Your goal is to get them to open and read it, assume they won't respond and continue the conversation.
+
+                Include any relevant links and a clear call to action. You should only make affirmative statements or use retorical questions. The person getting the email is not going to respond.
                 
-                Wait for a human go-ahead before sending the first message. After that, feel free to continue the conversation. If you're asked if you're a bot, be upfront about it.
+                Wait for a human go-ahead before sending the first message.
             '''
 
             system_prompt_template = SystemMessagePromptTemplate.from_template(prompt_template)
