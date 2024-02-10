@@ -18,6 +18,11 @@ DELETE FROM interaction WHERE campaign_id IN (
   SELECT id FROM campaign WHERE campaign_name NOT LIKE '%Volunteer Recruitment Team Testing%'
 );
 
+-- Step 4c: Delete Corresponding Rows in "alert Table"
+DELETE FROM alert WHERE campaign_id IN (
+	SELECT id FROM campaign WHERE campaign_name NOT LIKE '%Volunteer Recruitment Team Testing%'
+);
+
 -- Step 5: Re-run the DELETE Query for "campaign" Table
 DELETE FROM campaign WHERE campaign_name NOT LIKE '%Volunteer Recruitment Team Testing%';
 

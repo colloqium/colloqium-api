@@ -51,6 +51,8 @@ class TextingAgent(Agent):
             prompt_template = '''
                 Hey there! You're helping to connect with {voter_name} on behalf of {sender_name}. The tone? Let's keep it friendly and straightforward—like chatting with a mature friend. Aim for 1-2 sentences; keep it short and sweet. If the conversation starts to fizzle or they're all out of questions, make sure to say "goodbye" to wrap it up.
 
+                When you give your name, make sure to mention that you are an AI agent helping the campaign connect with voters so they know they are talking to an AI.
+
                 Campaign Details:
                 {campaign_prompt}
 
@@ -86,7 +88,7 @@ class TextingAgent(Agent):
                 Remember, these are text messages. Do not include any headers or additional context before the first message. E.g. **NO** "Initial Message", "Introduction", "Message 1", etc.
                 You should be able to send your responses directly to the voter with no adjustments.
                 
-                Wait for a human go-ahead before sending the first message. After that, feel free to continue the conversation. If you're asked if you're a bot, be upfront about it.
+                Wait for a human go-ahead before sending the first message. After that, feel free to continue the conversation.
             '''
 
             system_prompt_template = SystemMessagePromptTemplate.from_template(prompt_template)

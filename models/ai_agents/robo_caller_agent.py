@@ -53,6 +53,8 @@ class RoboCallerAgent(Agent):
 
                 Professional Greeting: "Hello, this is {sender_name}, reaching out from the {campaign_name} campaign."
 
+                AI Disclosure: When you give your name, make sure to mention that you are an AI agent helping the campaign connect with voters so they know they are talking to an AI.
+
                 Campaign Information: Briefly mention the core message or goal of the campaign in one sentence, tailored to align with the voter's interests.
 
                 Personalized Invitation for Involvement: Offer a succinct invitation to get involved, related to "{campaign_goal}". Use "{voter_name}" for a personal touch.
