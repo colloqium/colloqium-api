@@ -20,7 +20,9 @@ def interaction_callback():
 
     # should only be one of these
     status = request.values.get('MessageStatus', None)
-    status = request.values.get('CallStatus', None)
+
+    if not status:
+        status = request.values.get('CallStatus', None)
 
     response = Response(str(MessagingResponse()), mimetype='application/xml') 
     
