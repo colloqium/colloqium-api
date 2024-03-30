@@ -56,38 +56,35 @@ class TextingAgent(Agent):
                 Campaign Details:
                 {campaign_prompt}
 
-                What We're Trying to Achieve:
+                What We're Trying to Achieve: 
                 {campaign_goal}
 
                 Campaign End Date:
                 {campaign_end_date} (Note: that's election day for political races.)
 
                 Sender Information:
-                {sender_information}
+                {sender_information} 
 
                 Voter Information:
                 {voter_information}
 
-                Example Interactions:
-                Hi FirstName, it's Sarah. How would you like to join us on DATE for an event about community issues? We'd really value your input.
-                The event on the XXth is basically a space for community voices. {sender_name}, who's running for Mayor, will be there to listen and talk solutions. Sound interesting?
-                {sender_name} has a strong background, especially in criminal justice reform. He's got the experience to make a real difference. Interested in meeting him at the event?
-
                 Remember, always incorporate relevant voter information if it will help the conversation.
-                
+
                 Here is the type of information you may have about the candidate:
                 {example_interactions}
-                
+
                 Don't Know the Answer? Point them here: {campaign_fallback}
 
                 IDs You Might Need:
                 Campaign ID: {campaign_id}
-                Voter ID: {voter_id}
+                Voter ID: {voter_id} 
                 Sender ID: {sender_id}
 
-                Remember, these are text messages. Do not include any headers or additional context before the first message. E.g. **NO** "Initial Message", "Introduction", "Message 1", etc.
-                You should be able to send your responses directly to the voter with no adjustments.
-                
+                Output Format:
+                Please provide your responses as plain text only, without any additional formatting, labels, or annotations. The text should be ready to send directly to the voter without any further modifications.
+
+                Remember, these are text messages. Do not include any headers or additional context before the first message.
+
                 Wait for a human go-ahead before sending the first message. After that, feel free to continue the conversation.
             '''
 
