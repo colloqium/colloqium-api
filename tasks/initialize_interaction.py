@@ -16,7 +16,10 @@ import os
 
 # Initialize Redis client and Redlock
 redis_client = Redis.from_url(os.getenv('REDIS_URL'))
-dlm = RedLock("campaign_initial_message_")
+dlm = RedLock(
+                resource = "campaign_initial_message_",
+                connection_details=[redis_client]
+            )
 
 # TODO: Switch this to populate with the fist message from the campaign rather than generating one from the LLM
 # Creates a new interaction with a voter and the first system message in the conversation. Does not send the message.
