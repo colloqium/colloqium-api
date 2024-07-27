@@ -54,12 +54,14 @@ class Audience(BaseDbModel):
         return audience_dict
 
 
+#TODO add an initial campaign message to the model. Remember this needs to be updated using poetry run flask -A main db migrate  both locally and in the Heroku server on the cloud
 class Campaign(BaseDbModel):
     id = db.Column(db.Integer, primary_key=True)
     campaign_name = db.Column(db.Text)
     campaign_prompt = db.Column(db.Text)
     campaign_type = db.Column(db.Text)
     campaign_goal = db.Column(db.Text)
+    initial_message = db.Column(db.Text)
     sender_id = db.Column(db.Integer, db.ForeignKey('sender.id'), name="sender_id")
     campaign_end_date = db.Column(db.Date)
 

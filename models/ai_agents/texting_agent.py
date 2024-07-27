@@ -112,15 +112,24 @@ class TextingAgent(Agent):
 
             self.conversation_history = initialize_conversation(self.system_prompt)
 
-            first_llm_response = get_llm_response_to_conversation(self.conversation_history)
+            first_message = campaign.initial_message
 
-            while first_llm_response['content'] == self.system_prompt:
-                print("The llm did not return a response. Trying again.")
-                first_llm_response = get_llm_response_to_conversation(self.conversation_history)
+            # Check if first_message is a dictionary and has a 'content' key
+            if isinstance(first_message, dict) and 'content' in first_message:
+                content = first_message['content']
+            else:
+                # If it's not a dictionary or doesn't have 'content', use it directly
+                content = str(first_message)
 
-            self.conversation_history.append(first_llm_response)
+            #break the voters name in to first and last name
+            voter_first_name = interaction.voter.voter_name.split(" ")[0]
 
-            print(f"Generated first response for texting agent: {first_llm_response}")
+            # replace <VOTER_NAME> in the initial message with the voter's name
+            content = content.replace("<VOTER_NAME>", voter_first_name)
+
+            self.conversation_history.append({"role": "assistant", "content": content})
+
+            print(f"Generated first response for texting agent: {content}")
 
             interaction.conversation = self.conversation_history
             interaction.interaction_status = InteractionStatus.INITIALIZED

@@ -72,7 +72,6 @@ def send_text():
 
 
             print(f"relationship.agents: {relationship.agents}")
-            texting_agent = [agent for agent in relationship.agents if agent.name == "texting_agent"][0]
             body = text_thread.conversation[-1].get('content')
 
             send_message = SendMessage()

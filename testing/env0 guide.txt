@@ -1,0 +1,212 @@
+env0 offers an advanced automation platform designed to revolutionize how organizations manage their cloud environments using infrastructure-as-code (IaC) practices. Targeting DevOps teams, cloud engineers, and security professionals, env0 simplifies deployment, governance, and cost management across multiple cloud platforms. By integrating env0, companies can automate their cloud deployments, enforce policy compliance, and gain unprecedented visibility into their cloud infrastructure, making it an indispensable tool for any team looking to optimize their cloud operations efficiently.
+
+### **Compatible Platforms and Cloud Vendors**
+
+- **Q: What cloud platforms does env0 support?**
+- **A:** env0 is cloud-agnostic, seamlessly integrating with any cloud platform, including Amazon Web Services (AWS), Google Cloud Platform (GCP), and Microsoft Azure. For a comprehensive list of supported platforms, visit [env0's supported platforms documentation](https://docs.env0.com/docs/supported-platforms).
+
+### **Use Cases and Implementation**
+
+- **Q: How can env0 automate my cloud deployment processes?**
+- **A:** env0 leverages infrastructure-as-code to automate and streamline cloud deployments, offering governance and cost control. "env0 allows us to focus on writing and maintaining our Terraform configurations," says Jason Walsh, Sr. Infrastructure Engineer.
+- **Q: How does env0 help reduce risks associated with manual processes?**
+- **A:** By enforcing IaC best practices and governance, including approval workflows and RBAC, env0 minimizes deployment risks. Check [approval workflows and RBAC documentation](https://docs.env0.com/docs/rbac) for more details.
+
+### **Security, Governance, and Control**
+
+- **Q: Can env0 help enforce specific security policies and compliance standards?**
+- **A:** Yes, env0 supports strong governance and compliance through customizable policies, variable management, and approval workflows. "env0 allows us to enforce policies on specific environments," states Gal Porat, Director of DevOps, IT, and Security.
+- **Q: How does env0 enhance visibility and governance over our cloud usage?**
+- **A:** env0 provides real-time insights into resource consumption, deployment history, and user activities, enhancing decision-making and governance.
+
+### **Efficiency and Cost Management**
+
+- **Q: How can env0 help control and reduce cloud spend?**
+- **A:** env0 offers tools for setting environment time-to-live limits and budget caps, effectively managing cloud expenses. For insights into cost management strategies, explore [env0's cost monitoring documentation](https://docs.env0.com/docs/cost-monitoring).
+- **Q: How does env0 promote infrastructure reuse and optimization?**
+- **A:** Through private module registries and multi-level projects, env0 encourages efficient infrastructure reuse. "Creating a CloudFront or EKS distribution used to take about three days, now it takes about ten minutes," notes Eldad Stainbook, Director of Cloud Engineering.
+
+### **Customer Success Stories**
+
+- **Q: Are there examples of how env0 has improved team collaboration and efficiency?**
+- **A:** Customers report significant improvements in collaboration and efficiency. Amit Daniel, DevOps Team Lead, highlights env0's role in automating Terraform workflows and enhancing team collaboration.
+
+If they use teraforrm in their infrastrucuture stack, we can help them.
+
+env0 (pronounced "env zero") is an automation platform for cloud environments based on infrastructure-as-code templates. env0 combines an easy to use interface with powerful governance tools and cost control so that you, or any member of your team, can quickly and easily deploy and manage environments in the cloud. In addition, env0 provides insights as to how cloud resources are consumed in your organization, and by whom.
+
+By integrating env0 into your processes you gain visibility, predictability, and better governance of your organization's cloud usage.
+
+env0 is vendor-neutral and works with [these cloud platforms](https://docs.env0.com/docs/supported-platforms).
+
+## Infrastructure-as-code and environment-as-a-service
+
+**Infrastructure-as-code** is the management of infrastructure with a software tool (i.e., *Terraform*) which uses a model stored in configuration files to build a cloud environment. With this, you can automate the provisioning of infrastructure. This is now a key part of building a CI/CD pipeline.
+
+The real idea behind Infrastructure-as-code, more than just deploying to staging/production, is to implement a mechanism that allows users to create fully functioning sandboxed environments outside of the CI/CD pipeline, for development, testing demos, etc.
+
+This is called **environment-as-a-service.**
+
+## How does env0 help in managing environment-as-a-service?
+
+By properly structuring your infrastructure-as-code configuration, you can design it to support the CI/CD pipeline, as well as to create environments for other purposes.
+
+env0 provides a management layer above the infrastructure-as-code software. This allows the administrator to supply environment templates (based on the infrastructure-as-code configuration), manage variables and cloud credentials, and define policies for access control, environment time-to-live, and budget limits for users.
+
+The users get an easy-to-use interface to self-provision and manage their environments, within the policies defined by the administrators. If necessary, they can also customize deployments, according to what the policy allows, and view their deployment history and logs.
+
+In addition to defining policies, env0 allows administrators to track environments created by users. It collects usage and cost metrics, and provides insights as to how the cloud resources are used and by whom.
+
+## Why build your environment-as-a-service with env0?
+
+**It saves effort**
+
+The ability to adapt your infrastructure-as-code configuration to any type of environment is only part of an environment-as-a-service solution.
+
+The other part is building user flows on top of it, to make it accessible to users. While it is certainly possible to build it yourself, implementing env0 is fast and easy, and can provide rich flows that you won't have to develop or maintain.
+
+**It's easy to use**
+
+The user flow is simple, quick to learn, and does not require a deep understanding of the underlying technology. [Test it yourself to see how easy it is](https://app.env0.com/).
+
+**It reduces cloud spend, significantly**
+
+A big portion of organizational cloud costs is unoptimized.
+
+env0 helps you save in 3 ways:
+
+- It tracks cloud spend by user and purpose, not just resource consumption. When you know who uses what, and why, you can think about improving your cloud spend.
+- it allows you to limit the environment lifetime, having it automatically stopped when the time limit is reached. A surprising amount of money is being spent on environments that are no longer in use, but which have not been stopped.
+- It allows you to limit cloud spend by user, team, and project.
+
+**It gives you control**
+
+Self-service is great. It saves time and eliminates dependencies and frustration.
+
+But, as the organization grows, it is harder to track what is going on, but you probably want to exercise some control, while keeping it self-service.
+
+env0 allows you to do exactly that. By setting policies, getting a real-time view of running environments, and gaining insight into cloud usage patterns, you can get all the control you want, without compromising the flexibility you give your users.
+
+## Customer Testamonials
+
+**Jason Walsh**
+
+Sr. Infrastructure Engineer
+
+env0 allows us to focus on writing and maintaining our Terraform configurations.Speculative plans for pull requests enable our team to quickly review and approve changes to our infrastructure which helps mitigate risk and provides transparency.
+
+**Henry Tze**
+
+Cloud and IaC Security Engineer
+
+With env0 we can streamline our deployments easily.We can now maintain a large number of projects, and env0 ensures that the process is scalable, especially when we have to deal with multiple cloud accounts.
+
+Troy Knapp
+
+Senior DevOps Engineer
+
+env0 cut our mean time to merge in half by helping us better manage our workflow and code conflicts.Their customer service and willingness to roll out features based on our needs was unprecedented.
+
+**Amit Daniel**
+
+DevOps Team Lead
+
+As we moved our cloud deployments to Terraform and needed an automation layer on top. We found env0 to be a great solution for automating our Terraform workflows and enhance our collaboration.
+
+**Shaked Shauli**
+
+DevOps Lead, PayPal
+
+Compared to Jenkins or scripts, env0 is built specifically for IaC workflows and our team actually likes using it.
+
+**Radek Dors**
+
+Site Reliability Engineer
+
+We chose env0 to manage all of our AWS Terraform-based deployments. Thanks to env0, we can now collaborate and manage our environments, leveraging GitOps and governance workflows.
+
+Imri Zvik
+
+Director of Architecture
+
+Using env0, we now can provide an infrastructure to our developers, allowing me to focus on what’s important. I no longer have to manage the management solution.
+
+**Gal Porat**
+
+Director of Devops, IT and Security
+
+env0 allows us to enforce policies on specific environments without the need to constantly check and manually deactivate/activate them.
+
+**Eldad Stainbook**
+
+Director of Cloud Engineering
+
+Creating a CloudFront or EKS distribution used to take me about three days, now it takes about ten minutes, because we know the model works. All you have to do is populate a few values and that’s it.
+
+## **Use our platform to...**
+
+### **Reduce risk from manual processes**
+
+Enforce Infrastructure-as-Code best practices and governance with [approval workflows](https://docs.env0.com/docs/environments?_gl=1*qejl3m*_ga*MzQzMjE4NzQ4LjE2Nzc2OTQ3MDk.*_ga_VYZFC0GDCG*MTY4MzE0MDA1MS43MC4xLjE2ODMxNDA1MDQuMjIuMC4w#approval-flow), full and granular [RBAC](https://docs.env0.com/docs/rbac), and [multi-layer variable management](https://docs.env0.com/docs/variables?_gl=1*qejl3m*_ga*MzQzMjE4NzQ4LjE2Nzc2OTQ3MDk.*_ga_VYZFC0GDCG*MTY4MzE0MDA1MS43MC4xLjE2ODMxNDA1MDQuMjIuMC4w#variables-and-scopes-in-env0).
+
+### **Swiftly roll out IaC across teams**
+
+With [IaC guardrails](https://docs.env0.com/docs/policies?__hstc=17958374.438560ca4e31356ddb65e304d5b67b18.1697695625780.1699353413650.1700744742973.31&__hssc=17958374.2.1700744742973&__hsfp=2690663212), developers at any skill level can safely write, deploy, and manage infrastructure code. [OPA](https://docs.env0.com/docs/policies?__hstc=17958374.438560ca4e31356ddb65e304d5b67b18.1697695625780.1699353413650.1700744742973.31&__hssc=17958374.2.1700744742973&__hsfp=2690663212#deployment-policies), [approval workflows](https://docs.env0.com/docs/environments?__hstc=17958374.438560ca4e31356ddb65e304d5b67b18.1697695625780.1699353413650.1700744742973.31&__hssc=17958374.2.1700744742973&__hsfp=2690663212#approval-flow), [variable management](https://docs.env0.com/docs/variables?__hstc=17958374.438560ca4e31356ddb65e304d5b67b18.1697695625780.1699353413650.1700744742973.31&__hssc=17958374.2.1700744742973&__hsfp=2690663212), and [RBAC](https://docs.env0.com/docs/user-management?__hstc=17958374.438560ca4e31356ddb65e304d5b67b18.1697695625780.1699353413650.1700744742973.31&__hssc=17958374.2.1700744742973&__hsfp=2690663212#project-roles) keep your critical resources safe while enabling devs to get their work done.
+
+### **Move fast without breaking things**
+
+Devs can interact with Infrastructure-as-Code in the modes they prefer including [CLI](https://docs.env0.com/docs/remote-plan), in [Git](https://docs.env0.com/docs/features), or with a [Terraform provider](https://github.com/env0/terraform-provider-env0), and their plans and applies are fully governed with powerful and [flexible IaC guardrails](https://docs.env0.com/docs/policies).
+
+### **Blend IaC with your application development**
+
+Infrastructure is critical to your applications and business. With env0 you can manage cloud deployments alongside existing application development pipelines. Our [IaC CI](https://docs.env0.com/docs/continuous-deployment) provides [deployment history](https://docs.env0.com/docs/plan-on-pull-request#enable-pull-request-plan), [workflow triggers,](https://docs.env0.com/docs/workflow-triggers) [visual change outputs](https://docs.env0.com/changelog/pretty-plan), and more.
+
+Moreover, env0 [Plugins](https://docs.env0.com/docs/plugins) make it simple to tie in external tools like [tflint](https://docs.env0.com/docs/tflint-plugin), [OPA](https://docs.env0.com/docs/opa-plugin), [checkov](https://docs.env0.com/docs/checkov-plugin), and others into [Infrastructure-as-Code](https://docs.env0.com/docs/continuous-deployment)
+
+### **Maintain Git as your IaC Source of Truth**
+
+env0 simplifies [environment management](https://docs.env0.com/docs/setting-up-a-new-environment) by auto-generating and updating environments based on Git changes, in line with GitOps best practices. This preserves Git's integrity as the central hub for approval flows, CodeOwners details, auditability, and more.
+
+‍
+
+### **Gain end-to-end IaC visibility**
+
+Get at-a-glance visibility into what [might change](https://docs.env0.com/docs/plan-on-pull-request), full [deployment history](https://docs.env0.com/docs/environments), and [audit logs](https://docs.env0.com/docs/audit-logs) to ensure you know what’s happening with your IaC at all times. Improve issue correlation and security by exporting IaC run logs to your [logging platform of choice](https://docs.env0.com/docs/integrations).
+
+### **Maximize your IaC investment**
+
+Seamlessly tie Infrastructure-as-Code into existing [observability platforms](https://docs.env0.com/docs/integrations), [expand access to more teams](https://docs.env0.com/docs/user-management), and increase Infrastructure as Code reuse with [RBAC](https://docs.env0.com/docs/user-management#project-roles), [private module registries](https://docs.env0.com/docs/modules), [multi-level projects](https://docs.env0.com/docs/projects), and [cost management](https://docs.env0.com/docs/cost-monitoring).
+
+### **Create IaC-centric build pipelines**
+
+Instead of using webhooks in Terraform Cloud, you can integrate whatever tools you need into env0’s flexible [custom flows](https://docs.env0.com/docs/custom-flows), using the tooling of your choice.
+
+### **Measure actual cloud cost**
+
+In addition to predicting the [estimated cost impact](https://docs.env0.com/docs/cost-monitoring?_gl=1*15zy97q*_ga*MzQzMjE4NzQ4LjE2Nzc2OTQ3MDk.*_ga_VYZFC0GDCG*MTY4MzE0MDA1MS43MC4xLjE2ODMxNDA1MDQuMjIuMC4w#cost-estimation) from every Infrastructure-as-Code change, env0 supports smart automatic tagging and follows up with [actual costs](https://docs.env0.com/docs/cost-monitoring?_gl=1*15zy97q*_ga*MzQzMjE4NzQ4LjE2Nzc2OTQ3MDk.*_ga_VYZFC0GDCG*MTY4MzE0MDA1MS43MC4xLjE2ODMxNDA1MDQuMjIuMC4w#actual-cost) once deployed. This is extremely helpful for usage based cloud resources pricing.
+
+### **Catch issues before they hit production**
+
+Improve customer experiences and reduce time to resolution with Infrastructure-as-Code testing and verification, pre-apply checks, [advanced drift management](https://docs.env0.com/docs/drift-detection), [IaC templates](https://docs.env0.com/docs/templates), and [clearly visible pre-apply change logs](https://docs.env0.com/changelog/pretty-plan). Troubleshooting IaC problems has never been easier.
+
+### **Build happier teams**
+
+Developers, DevOps, and SREs can continue to work in the tools they’re familiar with. Control your Infrastructure-as-Code with env0 via the [Terraform provider](https://registry.terraform.io/providers/env0/env0/latest/docs), [CLI](https://docs.env0.com/docs/remote-plan), [VCS platform](https://docs.env0.com/docs/plan-and-apply-from-pr-comments), or [UI](https://app.env0.com/). And developers actually enjoy using env0 compared to other CI and IaC management tools.
+
+### Supported Platforms
+
+## Cloud Vendors
+
+env0 is cloud-agnostic. It works with **any cloud platform,** and is regularly tested against the three main public cloud vendors:
+
+**Amazon Web Service (AWS)**
+
+**Google Cloud Platform (GCP)**
+
+**Microsoft Azure**
+
+## Infrastructure-as-code
+
+env0 includes native support for Opentofu, Terraform, Terragrunt, Cloudformation, Pulumi, Kubernetes and Helm.
+
+In addition to the build in Infrastructure-as-code frameworks support, our [Custom Flows](https://docs.env0.com/docs/custom-flows) capability allows you to plug in and run any other tool you wish, like configuration management tools such as [Ansible](https://www.ansible.com/), [Chef](https://www.chef.io/) and [Puppet](https://puppet.com/) or even plain bash scripts as part of your deployment process.

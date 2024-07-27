@@ -64,6 +64,8 @@ def create_interaction(data):
         return jsonify({'error': 'Campaign does not have an audience', 'status_code': 404}), 404
 
 
+    #TODO: Generate a single message for each audience, with a blank space to input the persons name
+    
     print("Campaign has an audience")
     interactions = []
     for audience in audiences:
