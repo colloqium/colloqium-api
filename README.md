@@ -52,7 +52,7 @@ You will need to install the Poetry Buildpack to deploy to Heroku. https://githu
 
 - [x] Add tracking with segment to follow conversations
 - [x] Implement twilio callbacks to track call status
-- [ ] Implement simple report for campaign manager to review output of conversations
+- [x] Implement simple report for campaign manager to review output of conversations
 - [ ] Programatically generate Twilio phone numbers
 
 
