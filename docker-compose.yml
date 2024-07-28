@@ -1,25 +1,83 @@
-version: '3'
+version: '3.8'
 
 services:
   web:
-    build: .
-    env_file:
-      - .env
-    command: ["sh", "-c", "gunicorn -k geventwebsocket.gunicorn.workers.GeventWebSocketWorker -w 1 --worker-tmp-dir /dev/shm -b 0.0.0.0:5000 main:app"]
-    deploy:
-      replicas: 3
-
-  nginx:
-    image: nginx:latest
+    build: 
+      context: .
+      dockerfile: Dockerfile
+    command: ["./db-migrate.sh", "gunicorn", "-k", "geventwebsocket.gunicorn.workers.GeventWebSocketWorker", "-w", "1", "-b", "0.0.0.0:8000", "main:app"]
     volumes:
-      - ./nginx.conf:/etc/nginx/nginx.conf
+      - .:/app
     ports:
-      - 8080:80
-  
-  ngrok:
-    image: ngrok/ngrok
-    volumes:
-      - ./ngrok.yml:/etc/ngrok/config.yml
-    command: start --config=/etc/ngrok/config.yml web
+      - "8000:8000"
+    env_file:
+      - .env.docker
+    environment:
+      - FLASK_APP=main.py
+      - FLASK_DEBUG=1
+      - DATABASE_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db/${POSTGRES_DB}
+      - DATABASE_CONNECTION_POOL_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db/${POSTGRES_DB}
+      - REDIS_URL=redis://redis:6379/0
+      - PYTHONPATH=/app
     depends_on:
-      - nginx
+      - db
+      - redis
+
+  worker:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    command: celery -A main.celery_app worker --loglevel=info
+    volumes:
+      - .:/app
+    env_file:
+      - .env.docker
+    environment:
+      - FLASK_APP=main.py
+      - DATABASE_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db/${POSTGRES_DB}
+      - DATABASE_CONNECTION_POOL_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db/${POSTGRES_DB}
+      - REDIS_URL=redis://redis:6379/0
+      - PYTHONPATH=/app
+    depends_on:
+      - db
+      - redis
+
+  db:
+    image: postgres:13
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    env_file:
+      - .env.docker
+    environment:
+      - POSTGRES_DB=${POSTGRES_DB}
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+
+  redis:
+    image: redis:6
+    ports:
+      - "6379:6379"
+
+  pgbouncer:
+    image: edoburu/pgbouncer:1.15.0
+    env_file:
+      - .env.docker
+    environment:
+      - DB_USER=${POSTGRES_USER}
+      - DB_PASSWORD=${POSTGRES_PASSWORD}
+      - DB_HOST=db
+      - DB_NAME=${POSTGRES_DB}
+      - POOL_MODE=transaction
+      - MAX_CLIENT_CONN=1000
+      - DEFAULT_POOL_SIZE=100
+    ports:
+      - "6432:5432"
+    depends_on:
+      - db
+
+networks:
+  default:
+    driver: bridge
+
+volumes:
+  postgres_data:
