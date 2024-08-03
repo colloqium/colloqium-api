@@ -24,7 +24,7 @@ class Agent(BaseDbModel):
         'polymorphic_on': name
     }
 
-    def __init__(self, system_prompt: str, name: str, description: str, sender_voter_relationship_id: int):
+    def __init__(self, system_prompt: str, name: str, description: str, sender_voter_relationship_id: int = None):
         self.system_prompt = system_prompt
         self.name = name
         self.description = description

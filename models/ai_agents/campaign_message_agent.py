@@ -64,7 +64,7 @@ class CampaignMessageAgent(Agent):
             sender_information=sender.sender_information
         )
 
-        super().__init__(self.system_prompt, "campaign_message_agent", "Generates an initial message for a campaign", campaign.id)
+        super().__init__(self.system_prompt, "campaign_message_agent", "Generates an initial message for a campaign")
 
         self.conversation_history = initialize_conversation(self.system_prompt)
 

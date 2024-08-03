@@ -1,7 +1,6 @@
 from celery import Task
 from contextlib import contextmanager
 from sqlalchemy.exc import OperationalError
-from flask import current_app
 from context.database import db
 
 class BaseTaskWithDB(Task):
@@ -13,8 +12,9 @@ class BaseTaskWithDB(Task):
 
     @contextmanager
     def session_scope(self):
+        from context.context import app
         """Provide a transactional scope around a series of operations."""
-        with current_app.app_context():
+        with app.app_context():
             if not self.check_db_connection(db):
                 raise OperationalError("Database connection failed")
             try:

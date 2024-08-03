@@ -34,9 +34,17 @@ def initialize_interaction(self, interaction_id):
             return
         
         sender_voter_relationship = SenderVoterRelationship.query.filter_by(sender_id=interaction.sender_id, voter_id=interaction.voter_id).first()
-
+        
         if not sender_voter_relationship:
-            sender_voter_relationship = SenderVoterRelationship(sender_id=interaction.sender_id, voter_id=interaction.voter_id)
+            print("Sender voter relationship does not exist")
+            sender_id = interaction.sender_id
+            voter_id = interaction.voter_id
+            print(f"Attempting to call create_sender_voter_relationship with sender_id: {sender_id} and voter_id: {voter_id}")
+            sender_voter_relationship = SenderVoterRelationship(sender_id=sender_id, voter_id=voter_id)
+
+            sender_from_relationship = sender_voter_relationship.sender_id
+            voter_from_relationship = sender_voter_relationship.voter_id
+            print(f"Sender id: {sender_id}, Voter id: {voter_id}, Relationship id: {sender_voter_relationship.id}")
             db.session.add(sender_voter_relationship)
             db.session.commit()
             # get the hydrated sender_voter_relationship
@@ -81,6 +89,7 @@ def initialize_interaction(self, interaction_id):
                     # Double-check if the initial message was created while waiting for the lock
                     db.session.refresh(interaction.campaign)
                     if not interaction.campaign.initial_message:
+                        print("Trying to create a new initial message")
                         # generate a new initial message
                         campaign_agent = CampaignMessageAgent(interaction.campaign.id)
                         initial_message = campaign_agent.send_prompt({
