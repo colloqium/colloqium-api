@@ -6,8 +6,8 @@ from dotenv import load_dotenv
 
 load_dotenv()
 # Your Twilio account credentials
-account_sid = os.environ['twilio_account_sid']
-auth_token = os.environ['twilio_auth_token']
+account_sid = os.environ['TWILIO_ACCOUNT_SID']
+auth_token = os.environ['TWILIO_AUTH_TOKEN']
 segment_write_key = os.environ['WRITE_KEY']
 twilio_messaging_service_sid = os.environ['TWILIO_MESSAGING_SERVICE_SID']
 

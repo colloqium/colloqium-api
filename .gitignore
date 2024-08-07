@@ -8,3 +8,5 @@ venv/
 *tzap*
 *.csv
 *.rdb
+.env*
+fly.toml
