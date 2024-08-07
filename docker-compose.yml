@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   web:
     build: 
@@ -17,7 +15,7 @@ services:
       - FLASK_DEBUG=1
       - DATABASE_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db/${POSTGRES_DB}
       - DATABASE_CONNECTION_POOL_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db/${POSTGRES_DB}
-      - REDIS_URL=redis://redis:6379/0
+      - REDIS_URL=${REDIS_URL}
       - PYTHONPATH=/app
     depends_on:
       - db
