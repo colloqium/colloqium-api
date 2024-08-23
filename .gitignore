@@ -10,3 +10,4 @@ venv/
 *.rdb
 .env*
 fly.toml
+testing/SUA/*

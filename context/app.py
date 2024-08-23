@@ -33,6 +33,7 @@ def create_app():
 
     CORS(app, resources={r"/*": {"origins": "*"}})
     app.config['CORS_HEADERS'] = 'Content-Type'
+    print("CORS has been configured")
 
     app.config['CELERY_BROKER_URL'] = os.environ['REDIS_URL']
     celery_client.conf.update(app.config)

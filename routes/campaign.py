@@ -158,7 +158,6 @@ def update_campaign(data):
     return jsonify({'status': 'success', 'campaign': {'id': campaign.id}, 'status_code': 200}), 200
 
 def get_campaign(data):
-    
     # Look for a sender id. If there is one, get all campaigns for that sender
     if 'sender_id' in data.keys():
         sender = Sender.query.filter_by(id=data['sender_id']).first()
@@ -173,9 +172,10 @@ def get_campaign(data):
     # look for a campaign based on the campaign id
     if 'campaign_id' in data.keys():
         try:
-            campaign = Campaign.query.filter_by(id=data['campaign_id']).first()
-        except KeyError:
-            return jsonify({'error': 'If \'sender_id\' not given, \'campaign_id\' is required', 'status_code': 400}), 400
+            campaign_id = int(data['campaign_id'])
+            campaign = Campaign.query.filter_by(id=campaign_id).first()
+        except (ValueError, KeyError):
+            return jsonify({'error': 'Invalid campaign_id', 'status_code': 400}), 400
 
         if not campaign:
             return jsonify({'error': 'Campaign does not exist', 'status_code': 404}), 404
