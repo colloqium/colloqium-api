@@ -49,8 +49,8 @@ class Audience(BaseDbModel):
         # get the sender from the sender_id
         sender = Sender.query.get(self.sender_id)
         audience_dict["sender"] = sender.to_dict()
-        # get the voters object from the voter ids
-        audience_dict["voters"] = [voter.to_dict() for voter in self.voters]
+        # get the ids of the voters
+        audience_dict["voters"] = [voter.id for voter in self.voters]
         return audience_dict
 
 
@@ -92,7 +92,7 @@ class Campaign(BaseDbModel):
         campaign_dict["sender"] = sender.to_dict()
 
         #audiences can belong to multiple campaigns
-        campaign_dict["audiences"] = [audience.to_dict() for audience in self.audiences]
+        campaign_dict["audiences"] = [audience.id for audience in self.audiences]
 
         #make sure policy_insights is turned to a dict
         campaign_dict["policy_insights"] = self.policy_insights if self.policy_insights else {}
