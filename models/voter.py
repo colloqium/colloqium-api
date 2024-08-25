@@ -2,22 +2,18 @@ from context.database import db
 from models.base_db_model import BaseDbModel
 from models.association_tables import audience_voter
 from models.sender import Audience
-
-
+from sqlalchemy.orm import relationship
 
 class Voter(BaseDbModel):
     id = db.Column(db.Integer, primary_key=True)
     voter_name = db.Column(db.String(50))
     voter_phone_number = db.Column(db.String(100))
     voter_email = db.Column(db.String(100))
-    voter_profile = db.relationship('VoterProfile',backref='voter', lazy=True, uselist=False)
-    interactions = db.relationship('Interaction',
-                                  backref='voter',
-                                  lazy=True)
-    audiences = db.relationship('Audience', secondary=audience_voter, back_populates='voters')
-    sender_relationships = db.relationship('SenderVoterRelationship',backref='voter',lazy=True)
+    voter_profile = relationship('VoterProfile', backref='voter', lazy='joined', uselist=False)
+    interactions = relationship('Interaction', backref='voter', lazy='dynamic')
+    audiences = relationship('Audience', secondary=audience_voter, back_populates='voters')
+    sender_relationships = relationship('SenderVoterRelationship', backref='voter', lazy='dynamic')
 
-    #overwrite the to_dict method to include the sender relationship
     def to_dict(self):
         voter_dict = super().to_dict()
         voter_dict["sender_relationships"] = [relationship.to_dict() for relationship in self.sender_relationships]
@@ -27,7 +23,7 @@ class Voter(BaseDbModel):
 
 class VoterProfile(BaseDbModel):
     id = db.Column(db.Integer, primary_key=True)
-    voter_id = db.Column(db.Integer, db.ForeignKey('voter.id'))
+    voter_id = db.Column(db.Integer, db.ForeignKey('voter.id'), unique=True)
     interests = db.Column(db.Text)
     policy_preferences = db.Column(db.Text)
     background = db.Column(db.Text)

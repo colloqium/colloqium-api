@@ -158,16 +158,17 @@ def update_campaign(data):
     return jsonify({'status': 'success', 'campaign': {'id': campaign.id}, 'status_code': 200}), 200
 
 def get_campaign(data):
-    # Look for a sender id. If there is one, get all campaigns for that sender
+    # Look for a sender id. If there is one, get all campaign IDs for that sender
     if 'sender_id' in data.keys():
         sender = Sender.query.filter_by(id=data['sender_id']).first()
 
         if not sender:
             return jsonify({'error': 'Sender does not exist', 'status_code': 404}), 404
 
-        campaigns = Campaign.query.filter_by(sender_id=sender.id).all()
+        campaign_ids = db.session.query(Campaign.id).filter_by(sender_id=sender.id).all()
+        campaign_ids = [id[0] for id in campaign_ids]  # Flatten the list of tuples
 
-        return jsonify({'campaigns': [campaign.to_dict() for campaign in campaigns], 'status_code': 200}), 200
+        return jsonify({'campaign_ids': campaign_ids, 'status_code': 200}), 200
     
     # look for a campaign based on the campaign id
     if 'campaign_id' in data.keys():
@@ -182,9 +183,10 @@ def get_campaign(data):
 
         return jsonify({'campaign': campaign.to_dict(), 'status_code': 200}), 200
     
-    #return a list of all campaigns
-    campaigns = Campaign.query.all()
-    return jsonify({'campaigns': [campaign.to_dict() for campaign in campaigns], 'status_code': 200}), 200
+    # return a list of all campaign IDs
+    campaign_ids = db.session.query(Campaign.id).all()
+    campaign_ids = [id[0] for id in campaign_ids]  # Flatten the list of tuples
+    return jsonify({'campaign_ids': campaign_ids, 'status_code': 200}), 200
 
 def delete_campaign(data):
     print(f"Calling delete campaign at {datetime.now()} with data: {data}")
