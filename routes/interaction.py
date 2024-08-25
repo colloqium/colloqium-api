@@ -100,30 +100,33 @@ def create_interaction(data):
         }), 201
 
 def get_interaction(data):
-    #Check if there is a sender id. If there is return all interactions for that sender
+    #Check if there is a sender id. If there is return all interaction IDs for that sender
     if 'sender_id' in data.keys():
         sender_id = data['sender_id']
 
-        interactions = Interaction.query.filter_by(sender_id=sender_id).all()
-        if not interactions:
+        interaction_ids = db.session.query(Interaction.id).filter_by(sender_id=sender_id).all()
+        interaction_ids = [id[0] for id in interaction_ids]  # Flatten the list of tuples
+        if not interaction_ids:
             return jsonify({'error': 'Sender does not have any interactions', 'status_code': 404}), 404
-        return jsonify({'interactions': [interaction.to_dict() for interaction in interactions], 'status_code': 200}), 200
+        return jsonify({'interaction_ids': interaction_ids, 'status_code': 200}), 200
 
-    #Check if there is a voter id. If there is return all interactions for that voter
+    #Check if there is a voter id. If there is return all interaction IDs for that voter
     if 'voter_id' in data.keys():
         voter_id = data['voter_id']
-        interactions = Interaction.query.filter_by(voter_id=voter_id).all()
-        if not interactions:
-            return jsonify({'error': 'voter does not have any interactions', 'status_code': 404}), 404
-        return jsonify({'interactions': [interaction.to_dict() for interaction in interactions], 'status_code': 200}), 200
+        interaction_ids = db.session.query(Interaction.id).filter_by(voter_id=voter_id).all()
+        interaction_ids = [id[0] for id in interaction_ids]  # Flatten the list of tuples
+        if not interaction_ids:
+            return jsonify({'error': 'Voter does not have any interactions', 'status_code': 404}), 404
+        return jsonify({'interaction_ids': interaction_ids, 'status_code': 200}), 200
     
-    #Check if there is a campaign id. If there is return all interactions for that campaign
+    #Check if there is a campaign id. If there is return all interaction IDs for that campaign
     if 'campaign_id' in data.keys():
         campaign_id = data['campaign_id']
-        interactions = Interaction.query.filter_by(campaign_id=campaign_id).all()
-        if not interactions:
+        interaction_ids = db.session.query(Interaction.id).filter_by(campaign_id=campaign_id).all()
+        interaction_ids = [id[0] for id in interaction_ids]  # Flatten the list of tuples
+        if not interaction_ids:
             return jsonify({'error': 'Campaign does not have any interactions', 'status_code': 404}), 404
-        return jsonify({'interactions': [interaction.to_dict() for interaction in interactions], 'status_code': 200}), 200
+        return jsonify({'interaction_ids': interaction_ids, 'status_code': 200}), 200
     
     #Check if there is an interaction id. If there is return that interaction
     if 'interaction_id' in data.keys():
