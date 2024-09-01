@@ -7,6 +7,8 @@ from models.interaction_types import INTERACTION_TYPES
 from context.database import db
 from tasks.initialize_interaction import initialize_interaction
 from logs.logger import logger
+from sqlalchemy.orm import joinedload, load_only
+from sqlalchemy import update
 
 
 interaction_bp = Blueprint('interaction', __name__)
@@ -175,14 +177,42 @@ def build_interaction(voter: Voter, interaction_type: str, campaign: Campaign = 
 def update_interaction(data):
     print("Updating interaction")
     interaction_id = data['interaction_id']
-    interaction = Interaction.query.get(interaction_id)
-    if not interaction:
-        return jsonify({'error': 'Interaction does not exist', 'status_code': 404}), 404
+    
+    with db.session.no_autoflush:
+        # Load only the necessary columns
+        interaction = Interaction.query.options(load_only('id', 'conversation', 'interaction_status')).get(interaction_id)
+        if not interaction:
+            return jsonify({'error': 'Interaction does not exist', 'status_code': 404}), 404
 
-    interaction_status = data['interaction_status']
-    interaction.interaction_status = interaction_status
+        changes = {}
 
-    db.session.add(interaction)
-    db.session.commit()
+        if 'interaction_status' in data:
+            interaction_status = data['interaction_status']
+            if int(interaction_status) < InteractionStatus.CREATED or int(interaction_status) > InteractionStatus.CONVERTED:
+                return jsonify({'error': f'Your interaction status is outside of the valid range from {InteractionStatus.CREATED} for created interactions to {InteractionStatus.CONVERTED} for converted interactions', 'status_code': 400}), 400
+            changes['interaction_status'] = interaction_status
+
+        if 'last_message' in data:
+            conversation = interaction.conversation.copy() if interaction.conversation else []
+            if conversation:
+                conversation[-1]['content'] = data['last_message']
+            else:
+                conversation = [{'role': 'assistant', 'content': data['last_message']}]
+            changes['conversation'] = conversation
+            print(f"Updated conversation: {conversation}")
+
+        if changes:
+            # Use update() to directly update the database
+            db.session.execute(
+                update(Interaction).
+                where(Interaction.id == interaction_id).
+                values(**changes)
+            )
+            db.session.commit()
+
+        # Refresh the interaction object to ensure we have the latest data
+        db.session.refresh(interaction)
+
+        print(f"Updated interaction: {interaction.to_dict()}")
 
     return jsonify({'interaction': interaction.to_dict(), 'status_code': 200}), 200
