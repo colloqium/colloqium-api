@@ -4,7 +4,7 @@ from flask import jsonify
 from models.interaction import Interaction, InteractionStatus, SenderVoterRelationship
 from context.database import db
 from twilio.twiml.messaging_response import MessagingResponse
-from tools.ai_functions.send_message import SendMessage
+from tasks.send_message import send_message
 
 send_text_bp = Blueprint('send_text', __name__)
 
@@ -74,19 +74,12 @@ def send_text():
             print(f"relationship.agents: {relationship.agents}")
             body = text_thread.conversation[-1].get('content')
 
-            send_message = SendMessage()
+            sender_phone_number = text_thread.select_phone_number()
 
-            args = {
-                "campaign_id": text_thread.campaign_id,
-                "voter_id": text_thread.voter_id,
-                "outbound_message": body
-            }
-
-            send_message.call(**args)
-
-            return response, 200
+            send_message.apply_async(args=[body, sender_phone_number, text_thread.voter_id, text_thread.sender.id, text_thread.id])
+            return jsonify({'status': 'success', 'last_action': 'send_text'}), 200
         else:
-            return response, 400
+            return jsonify({'status': 'error', 'last_action': 'send_text', 'errors': ['Text thread not found']}), 400
 
     except Exception as e:
         print(f"Exception: {e}")
