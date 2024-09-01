@@ -27,3 +27,6 @@ sg = SendGridAPIClient(os.environ.get('SENDGRID_API_KEY'))
 
 # set OpenAi Key for GPT4
 openai.api_key = os.environ['OPENAI_APIKEY']
+
+#mixpanel tracking username and secret
+mixpanel_api_secret = os.environ['MIXPANEL_API_SECRET']

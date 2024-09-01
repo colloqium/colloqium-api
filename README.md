@@ -27,6 +27,7 @@ poetry install
     - Create a TwIML App and set the url to your deployment
     - Create OpenAI account and get API key
     - Create a Segment account and get WRITE_KEY
+    - Create a Mixpanel account and get API secret
 
 5. Activate the virtual environment:
 poetry shell

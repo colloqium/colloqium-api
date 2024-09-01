@@ -1,13 +1,45 @@
 from dataclasses import dataclass
-import segment.analytics as analytics
-from context.apis import segment_write_key
+from context.apis import mixpanel_api_secret
+import requests
+import json
+import time
+import uuid
 
-def on_error(error, items):
-    print("An error occurred:", error)
 
-analytics.write_key = segment_write_key
-analytics.debug = True
-analytics.on_error = on_error
+class analytics:
+    
+    def track(user_id, event, properties):
+        url = "https://api.mixpanel.com/import?strict=1"
+        headers = {
+            "Content-Type": "application/json"
+        }
+        auth = (mixpanel_api_secret, "")
+
+        # Prepare the event data
+        event_data = {
+            "event": event,
+            "properties": {
+                "time": int(time.time()),
+                "distinct_id": str(user_id),
+                "$insert_id": str(uuid.uuid4()),
+                **properties
+            }
+        }
+
+        # Send the request
+        try:
+            response = requests.post(
+                url,
+                auth=auth,
+                headers=headers,
+                data=json.dumps([event_data])
+            )
+            response.raise_for_status()
+            print(f"Event tracked successfully: {event}")
+            print(response.json())
+        except requests.exceptions.RequestException as e:
+            print(f"Error tracking event: {e}")
+            on_error(e, [event_data])
 
 @dataclass
 class EVENT_OPTIONS:
