@@ -122,13 +122,15 @@ def get_interaction(data):
     #Check if there is a campaign id. If there is return all interaction IDs for that campaign
     if 'campaign_id' in data.keys():
         campaign_id = data['campaign_id']
+        min_interaction_status = data.get('min_interaction_status', InteractionStatus.CREATED)
+        max_interaction_status = data.get('max_interaction_status', InteractionStatus.CONVERTED)
 
-        if 'interaction_status' in data.keys():
-            interaction_status = data['interaction_status']
-            # get the interactions with a status  greater than or equal to the interaction_status
-            interaction_ids = db.session.query(Interaction.id).filter(Interaction.campaign_id==campaign_id, Interaction.interaction_status>=interaction_status).all()
-        else:
-            interaction_ids = db.session.query(Interaction.id).filter_by(campaign_id=campaign_id).all()
+        if int(min_interaction_status) < InteractionStatus.CREATED or int(max_interaction_status) > InteractionStatus.CONVERTED:
+            return jsonify({'error': f'Your min interaction status is outside of the valid range from {InteractionStatus.CREATED} for created interactions to {InteractionStatus.CONVERTED} for converted interactions', 'status_code': 400}), 400
+
+        # get the interactions with a status  greater than or equal to the interaction_status
+        interaction_ids = db.session.query(Interaction.id).filter(Interaction.campaign_id==campaign_id, Interaction.interaction_status>=min_interaction_status, Interaction.interaction_status<=max_interaction_status).all()
+
         interaction_ids = [id[0] for id in interaction_ids]  # Flatten the list of tuples
         if not interaction_ids:
             return jsonify({'error': 'Campaign does not have any interactions', 'status_code': 404}), 404
