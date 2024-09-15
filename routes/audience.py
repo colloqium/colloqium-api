@@ -107,7 +107,8 @@ def update_audience(data):
         if new_voters:
             # Create a new list merging the existing voter and the new ones
             audience.voters = list(set(audience.voters + new_voters))
-            initialize_sender_voter_relationships(audience.sender_id, new_voters)
+
+            initialize_sender_voter_relationships.apply_async(args=[audience.sender_id, [voter.id for voter in new_voters]])
 
     campaign_ids = data.get('campaigns')
     if campaign_ids:
