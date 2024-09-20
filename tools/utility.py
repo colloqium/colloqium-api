@@ -4,6 +4,8 @@ import openai
 import re
 import time
 from typing import List, Dict
+import os
+import requests
 
 def add_message_to_conversation(conversation: List[Dict[str, str]], message: Dict[str, str]) -> List[Dict[str, str]]:
     """
@@ -28,18 +30,26 @@ def get_llm_response_to_conversation(conversation, functions = []):
 
     while retry_count <= max_retries:
         try:
+            headers = {
+                "Content-Type": "application/json",
+                "api-key": os.getenv("AZURE_OPENAI_API_KEY"),
+            }
+            endpoint = os.getenv("AZURE_OPENAI_ENDPOINT")
+            payload = {
+                "messages": conversation,
+                "temperature": 0.9,
+            }
+
+            if not functions == []:
+                payload["functions"] = functions
+                payload["function_call"] = "auto"
+            
             # generate a new response from OpenAI to continue the conversation
 
-            if functions == []:
-                completion = openai.ChatCompletion.create(model="gpt-4",
-                                                      messages=conversation,
-                                                      temperature=0.9)
-            else:
-                completion = openai.ChatCompletion.create(model="gpt-4-0613",
-                                                      messages=conversation,
-                                                      functions=functions,
-                                                      function_call="auto",
-                                                      temperature=0.9)
+            print(f"payload: {payload}")
+            response = requests.post(endpoint, headers=headers, json=payload)
+            print(response.json())
+            response.raise_for_status()
 
             '''
             Response in the following formats:
@@ -76,7 +86,7 @@ def get_llm_response_to_conversation(conversation, functions = []):
                         }]
                     }
             '''
-            response_content = completion.choices[0].message
+            response_content = response.json()["choices"][0]["message"]
 
 
             conversation.append(response_content)
@@ -92,6 +102,10 @@ def get_llm_response_to_conversation(conversation, functions = []):
         except openai.error.ServiceUnavailableError:
             print(f"Model unavailable, waiting for {wait_time} seconds before retry...")
             time.sleep(wait_time)
+            retry_count += 1
+            continue
+        except Exception as e:
+            print(f"Error: {e}")
             retry_count += 1
             continue
 
