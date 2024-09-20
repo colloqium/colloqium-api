@@ -11,3 +11,4 @@ venv/
 .env*
 fly.toml
 testing/SUA/*
+output.txt
