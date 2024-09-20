@@ -108,26 +108,36 @@ class Agent(BaseDbModel):
             print(f"{self.name} calling an agent with prompt data: {prompt_data}")
             self.conversation_history.append({
                 "role": "user",
-                "content": prompt_data['content']
+                "content": [{"type": "text", "text": prompt_data['content']}]
             })
 
             flag_modified(self, "conversation_history")
             self.update_agent(self)
 
+            print(f"{self.name} available actions is: {self.available_actions}")
             if isinstance(self.available_actions, str):
-                self.available_actions = [AIFunction.from_dict(function_dict) for function_dict in json.loads(self.available_actions)] if self.available_actions else []
+                print(f"{self.name} available actions is a string")
+                function_dicts = json.loads(self.available_actions)
+                print(f"{self.name} function_dicts is: {function_dicts}")
+                self.available_actions = [AIFunction.from_dict(function_dict) for function_dict in function_dicts] if function_dicts else []
             elif isinstance(self.available_actions, list):
+                print(f"{self.name} available actions is a list")
                 self.available_actions = [AIFunction.from_dict(function_dict) for function_dict in self.available_actions] if self.available_actions else []
             else:
+                print(f"{self.name} available actions is not a string or list")
                 self.available_actions = []
 
+            print("Updated available actions")
             # Convert available actions to a dictionary for faster lookup
             available_functions = {function.name: function for function in self.available_actions}
+            print(f"{self.name} available functions is: {available_functions}")
             function_schema_array = [function.get_schema() for function in self.available_actions]
-
+            print(f"{self.name} function_schema_array is: {function_schema_array}")
+           
             # Call the get_llm_response_to_conversation function
             
             try:
+                print(f"{self.name} calling get_llm_response_to_conversation")
                 llm_response = get_llm_response_to_conversation(self.conversation_history, function_schema_array)
             except Exception as e:
                 return {'status': 'failure', 'message': f"{self.name} response failed: {str(e)}"}
@@ -135,10 +145,15 @@ class Agent(BaseDbModel):
 
             #the openai api returns an object with json, I want to return a dict
             if not isinstance(llm_response, dict):
+                print(f"{self.name} llm_response is not a dict")
                 llm_response = json.loads(llm_response)
-
+            
+            print(f"{self.name} llm_response is now a dict")
             # Update the conversation history with the LLM's response
-            self.conversation_history.append(llm_response)
+            self.conversation_history.append({
+                "role": "assistant",
+                "content": llm_response['content']
+            })
 
             print(f"{self.name} LLM response: {llm_response}")
             print(f"{self.name} Last message in conversation history: {self.last_message()}")
@@ -159,47 +174,49 @@ class Agent(BaseDbModel):
 
             try:
                 # Check for a function call in the LLM's response
-                while 'function_call' in llm_response:
-                    function_name = llm_response['function_call']['name']
-                    function_args = json.loads(llm_response['function_call']['arguments'])
-                    function_to_call = available_functions.get(function_name, None)
+                while any(block['type'] == 'tool_use' for block in llm_response['content']):
+                    for block in llm_response['content']:
+                        if block['type'] == 'tool_use':
+                            function_name = block['name']
+                            function_args = block['input']
+                            function_to_call = available_functions.get(function_name)
+                            if function_to_call:
+                                function_response = function_to_call.call(**function_args)
+                            else:
+                                function_response = "This function doesn't exist"
 
-                    print(f"{self.name} Calling function: {function_name}")
+                            # Append the function result as a `tool_result` content block
+                            self.conversation_history.append({
+                                "role": "user",
+                                "content": [{
+                                    "type": "tool_result",
+                                    "tool_use_id": block['id'],
+                                    "content": function_response
+                                }]
+                            })
+                            flag_modified(self, "conversation_history")
+                            self.update_agent(self)
 
-                    #serialize available functions so that if any db functions are called in the function, they will not throw an error
-                    self.available_actions = json.dumps([function.to_dict() for function in self.available_actions])
+                            # Call the LLM again with the updated conversation
+                            llm_response = get_llm_response_to_conversation(self.conversation_history, function_schema_array)
+                            self.conversation_history.append({
+                                "role": "assistant",
+                                "content": llm_response['content']
+                            })
+                            flag_modified(self, "conversation_history")
+                            self.update_agent(self)
 
-                    if function_to_call is None:
-                        function_response = "This function doesn't exist"
-                    else:
-                        function_response = function_to_call.call(**function_args)
-                        print(f"Function response: {function_response}")
-                    
-                    # Update the conversation history with the function's response
-                    self.conversation_history.append({
-                        "role": "function",
-                        "name": function_name,
-                        "content": function_response
-                    })
+                            print(f"{self.name} LLM response: {llm_response}")
 
-                    # Call the LLM again to get a new response considering the function's output
-                    llm_response = get_llm_response_to_conversation(self.conversation_history, function_schema_array)
-                    print(f"{self.name} LLM response: {llm_response}")
-
-                    self.conversation_history.append(llm_response)
-
-                    flag_modified(self, "conversation_history")
-                    self.update_agent(self)
-
-                    if 'function_call' in llm_response:
-                        print(f"{self.name} The LLM returned another function call. Continuing to process...")
-                        
-                        if isinstance(self.available_actions, str):
-                            self.available_actions = [AIFunction.from_dict(function_dict) for function_dict in json.loads(self.available_actions)] if self.available_actions else []
-                        elif isinstance(self.available_actions, list):
-                            self.available_actions = [AIFunction.from_dict(function_dict) for function_dict in self.available_actions] if self.available_actions else []
-                        else:
-                            self.available_actions = []
+                            if 'function_call' in llm_response:
+                                print(f"{self.name} The LLM returned another function call. Continuing to process...")
+                                
+                                if isinstance(self.available_actions, str):
+                                    self.available_actions = [AIFunction.from_dict(function_dict) for function_dict in json.loads(self.available_actions)] if self.available_actions else []
+                                elif isinstance(self.available_actions, list):
+                                    self.available_actions = [AIFunction.from_dict(function_dict) for function_dict in self.available_actions] if self.available_actions else []
+                                else:
+                                    self.available_actions = []
             except Exception as e:
                 print(f"{self.name} Error in while loop: {str(e)}")
             

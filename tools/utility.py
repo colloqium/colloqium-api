@@ -1,9 +1,12 @@
 # from logs.logger import logger
 import random
-import openai
+import anthropic
 import re
 import time
 from typing import List, Dict
+import anthropic
+import json
+from tools.ai_functions.ai_function import AIFunction
 
 def add_message_to_conversation(conversation: List[Dict[str, str]], message: Dict[str, str]) -> List[Dict[str, str]]:
     """
@@ -15,85 +18,50 @@ def add_message_to_conversation(conversation: List[Dict[str, str]], message: Dic
     return conversation
 
 
-def get_llm_response_to_conversation(conversation, functions = []):
+def get_llm_response_to_conversation(conversation, functions=[]):
     conversation = conversation.copy()
     response_content = ""
-
-
-    # have a random wait time between 60 and 90 seconds to avoid hitting the rate limit
-    wait_time =  random.randint(60, 90)
-
-    max_retries = 50
     retry_count = 0
+    max_retries = 1
+
+    # Prepare the messages and tools for Anthropic's API
+    formated_messages = format_messages_for_anthropic(conversation)
+    print(f"formated_messages is: {formated_messages}")
+    tools = functions  # Anthropic uses 'tools' instead of 'functions'
+
+    # Build the API request payload
+    request_payload = {
+        "model": "claude-3-sonnet-20240229",  # Update to the desired Claude model
+        "messages": formated_messages,
+        "max_tokens": 1000,
+        "temperature": 0.9,
+    }
+    if tools:
+        print(f"tools is: {tools}")
+        #replace tools.0.paramaters with tools.0.input_schema
+        for tool in tools:
+            tool["input_schema"] = tool["parameters"]
+            del tool["parameters"]
+        request_payload["tools"] = tools
 
     while retry_count <= max_retries:
         try:
-            # generate a new response from OpenAI to continue the conversation
+            # Send the request to Anthropic's API
+            anthropic_client = anthropic.Anthropic()
+            print(f"request_payload is: {request_payload}")
+            completion = anthropic_client.messages.create(**request_payload)
+            print(f"completion is: {completion}")
+            response_content = completion["content"]
 
-            if functions == []:
-                completion = openai.ChatCompletion.create(model="gpt-4",
-                                                      messages=conversation,
-                                                      temperature=0.9)
-            else:
-                completion = openai.ChatCompletion.create(model="gpt-4-0613",
-                                                      messages=conversation,
-                                                      functions=functions,
-                                                      function_call="auto",
-                                                      temperature=0.9)
-
-            '''
-            Response in the following formats:
-
-                    {
-                        "id": "chatcmpl-123",
-                        ...
-                        "choices": [{
-                            "index": 0,
-                            "message": {
-                            "role": "assistant",
-                            "content": null,
-                            "function_call": {
-                                "name": "get_current_weather",
-                                "arguments": "{ \"location\": \"Boston, MA\"}"
-                            }
-                            },
-                            "finish_reason": "function_call"
-                        }]
-                    }
-
-                    or
-
-                    {
-                        "id": "chatcmpl-123",
-                        ...
-                        "choices": [{
-                            "index": 0,
-                            "message": {
-                            "role": "assistant",
-                            "content": "The weather in Boston is currently sunny with a temperature of 22 degrees Celsius.",
-                            },
-                            "finish_reason": "stop"
-                        }]
-                    }
-            '''
-            response_content = completion.choices[0].message
-
-
-            conversation.append(response_content)
-            # print(f"Adding OpenAI response to conversation: {response_content}")
-            conversation = conversation
+            # Process the response (parse content blocks)
+            llm_response = json.loads(response_content)
+            conversation.append(llm_response)
             break
-        except openai.error.RateLimitError:
-            # sleep for a while before retrying
-            print(f"Model hit rate limit, waiting for {wait_time} seconds before retry...")
-            time.sleep(wait_time)
+        except Exception as e:
+            print(f"Error: {e}")
             retry_count += 1
-            continue
-        except openai.error.ServiceUnavailableError:
-            print(f"Model unavailable, waiting for {wait_time} seconds before retry...")
-            time.sleep(wait_time)
-            retry_count += 1
-            continue
+            if retry_count > max_retries:
+                raise e
 
     return conversation[-1]
 
@@ -120,3 +88,54 @@ def format_phone_number(phone_number: str) -> str:
         return "+" + "".join(digits[0:])
     else:
         return phone_number
+
+def format_messages_for_anthropic(messages):
+    
+    print("Formatting messages for Anthropic")
+    formatted_messages = []
+    current_role = None
+    current_content = []
+
+    for message in messages:
+        print(f"message is: {message}")
+        role = message['role']
+        content = message.get('content', '')
+
+        if role == 'system' or role == 'function':
+            role = 'user'
+
+        if role != current_role:
+            if current_role:
+                formatted_messages.append({
+                    'role': current_role,
+                    'content': '\n'.join(current_content)
+                })
+            current_role = role
+            current_content = [content]
+        else:
+            current_content.append(content)
+        print(f"current_content is: {current_content}")
+
+
+    if current_role:
+        print(f"current_role is: {current_role}")
+        formatted_messages.append({
+            'role': current_role,
+            'content': '\n'.join(current_content)
+        })
+
+    print(f"formatted_messages is: {formatted_messages}")
+
+    return formatted_messages
+
+if __name__ == "__main__":
+    messages = [
+        {"role": "system", "content": "You are a helpful assistant."},
+        {"role": "system", "content": "Glycolysis is the process of breaking down glucose into pyruvate."},
+        {"role": "user", "content": "What is the capital of France?"},
+        {"role": "assistant", "content": "The capital of France is Paris."},
+        {"role": "assistant", "content": "The capital of Germany is Berlin."},
+        {"role": "function", "content": "Glycolysis is the process of breaking down glucose into pyruvate."},
+        {"role": "user", "content": "What is the capital of Germany?"},
+    ]
+    print(format_messages_for_anthropic(messages))
