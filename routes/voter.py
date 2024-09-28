@@ -4,6 +4,7 @@ from models.voter import Voter, VoterProfile
 from context.database import db
 from tools.utility import format_phone_number
 from context.analytics import analytics
+from tasks.create_or_update_voter import create_or_update_voters
 
 # blueprint definition
 voter_bp = Blueprint('voter', __name__)
@@ -37,6 +38,20 @@ def voter():
         return delete_voter(data)
 
 def create_voter(data):
+
+    #Check if bulk upload or create is in the file
+    if 'bulk_create_or_update' in data.keys():
+        voter_list = data['voters']
+
+        if not voter_list:
+            return jsonify({'error': 'voter list is required', 'status_code': 400}), 400
+        
+        create_or_update_voters.apply_async(args=[voter_list])
+        return jsonify({'status': 'success', 'status_code': 200}), 200
+    
+    # Check if voter name is provided
+
+    # Check if voter name is provided
     voter_name = data['voter_name']
     voter_phone_number = data['voter_phone_number']
     voter_email = data['voter_email']

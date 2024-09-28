@@ -17,6 +17,7 @@ class InteractionStatus:
     DELIVERED = 5
     RESPONDED = 6
     CONVERTED = 7
+    OPTED_OUT = 8
 
 class Interaction(BaseDbModel):
     id = db.Column(db.Integer, primary_key=True)
@@ -82,6 +83,7 @@ class SenderVoterRelationship(BaseDbModel):
     sender_id = db.Column(db.Integer, db.ForeignKey('sender.id'))
     voter_id = db.Column(db.Integer, db.ForeignKey('voter.id'))
     funnel_stage = db.Column(db.String(50))
+    opted_out = db.Column(db.Boolean())
     
     # New SQLAlchemy relationship
     agents = db.relationship('Agent', backref='sender_voter_relationship')

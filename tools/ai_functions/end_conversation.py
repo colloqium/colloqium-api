@@ -9,10 +9,11 @@ campaign_id = FunctionProperty(name="campaign_id", paramater_type="string", desc
 voter_id = FunctionProperty(name="voter_id", paramater_type="string", description="The ID of the voter this agent is texting")
 inbound_message = FunctionProperty(name="inbound_message", paramater_type="string", description="The message the voter sent")
 ending_reason = FunctionProperty(name="ending_reason", paramater_type="string", description="The reason the conversation is ending")
+opted_out = FunctionProperty(name="opted_out", paramater_type="boolean", description="Whether the voter has opted out of further messages")
 
 class EndConversation(AIFunction):
 
-    def __init__(self, name="end_conversation",description="End the conversation with the votera and do not send a response. Can end either because the conversation has reached it's goal or if voter mentions violence or other inappropriate content. This should not be used if the voter is just disinterested.", parameters=[campaign_id, voter_id, ending_reason, inbound_message]):
+    def __init__(self, name="end_conversation",description="End the conversation with the votera and do not send a response. Can end either because the conversation has reached it's goal or if voter mentions violence or other inappropriate content. This should not be used if the voter is just disinterested.", parameters=[campaign_id, voter_id, ending_reason, inbound_message, opted_out]):
         super().__init__(name, description, parameters)
 
     def call(self, **kwargs):
@@ -34,7 +35,8 @@ class EndConversation(AIFunction):
         voter_id = kwargs["voter_id"]
         inbound_message = kwargs["inbound_message"]
         ending_reason = kwargs["ending_reason"]
-
+        opted_out = kwargs["opted_out"]
+        
         #get hydrated campaign object
         campaign = Campaign.query.filter_by(id=campaign_id).first()
 
@@ -61,12 +63,17 @@ class EndConversation(AIFunction):
 
         interaction.conversation = texting_agent.conversation_history.copy()
 
+        if opted_out:
+            relationship.opted_out = True
+
         flag_modified(interaction, "conversation")
         flag_modified(texting_agent, "conversation_history")
+        flag_modified(relationship, "opted_out")
 
         # save the interaction and texting agent
         db.session.add(interaction)
         db.session.add(texting_agent)
+        db.session.add(relationship)
         db.session.commit()
 
         planning_agent.send_message(f"Conversation with campaign_id {campaign_id} and voter_id {voter_id} ended because {ending_reason}")

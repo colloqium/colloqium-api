@@ -48,3 +48,4 @@ class EVENT_OPTIONS:
     recieved = 'Interaction Recieved'
     interaction_call_back = 'Interaction Call Back'
     voter_analyzed = 'Voter Analyzed'
+    voter_created_or_updated = 'Voter Created or Updated'

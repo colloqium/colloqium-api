@@ -1,5 +1,6 @@
 from models.ai_agents.agent import Agent
 from models.interaction import SenderVoterRelationship
+from models.voter import VoterProfile
 from context.database import db
 from tools.ai_functions.create_texting_agent import CreateTextingAgent
 from tools.ai_functions.create_robo_caller_agent import CreateRoboCallerAgent
@@ -45,7 +46,7 @@ class PlanningAgent(Agent):
         voter = sender_voter_relationship.voter
 
         if voter.voter_profile is None:
-            voter.voter_profile = {}
+            voter.voter_profile = VoterProfile()
 
         self.system_prompt = chat_prompt_template.format(
             candidate_info=sender_voter_relationship.sender.sender_information,

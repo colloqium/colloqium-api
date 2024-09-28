@@ -23,7 +23,7 @@ dlm = RedLock(
 
 # TODO: Switch this to populate with the fist message from the campaign rather than generating one from the LLM
 # Creates a new interaction with a voter and the first system message in the conversation. Does not send the message.
-@celery_client.task(bind=True, base=BaseTaskWithDB, max_retries=10, default_retry_delay=30)  # bind=True to access self, max_retries and default_retry_delay are optional
+@celery_client.task(bind=True, base=BaseTaskWithDB, max_retries=1, default_retry_delay=30)  # bind=True to access self, max_retries and default_retry_delay are optional
 def initialize_interaction(self, interaction_id):
     with self.session_scope():
         print(f"Initializing interaction {interaction_id}")

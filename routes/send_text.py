@@ -69,6 +69,14 @@ def send_text():
             
             print("relationship found")
 
+            #check if the voter has opted out
+            if relationship.opted_out:
+                print("Voter has opted out")
+                text_thread.interaction_status = InteractionStatus.OPTED_OUT
+                db.session.add(text_thread)
+                db.session.commit()
+                return jsonify({'status': 'success', 'last_action': 'send_text', 'message': "Voter has opted out"}), 200
+
 
 
             print(f"relationship.agents: {relationship.agents}")

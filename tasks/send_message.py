@@ -1,4 +1,4 @@
-from models.interaction import Interaction, InteractionStatus
+from models.interaction import Interaction, InteractionStatus, SenderVoterRelationship
 from models.voter import Voter
 from models.sender import Sender
 from context.apis import twilio_client
@@ -20,6 +20,16 @@ def send_message(self, message_body, sender_phone_number, voter_id, sender_id, i
         voter = Voter.query.get(voter_id)
         sender = Sender.query.get(sender_id)
         interaction = Interaction.query.get(interaction_id)
+
+        sender_voter_relationship = SenderVoterRelationship.query.filter_by(sender_id=sender_id, voter_id=voter_id).first()
+
+        #Check if the sender has opted out of contacts
+        if sender_voter_relationship.opted_out == True:
+            print(f"Recipient has opted out of contacts")
+            interaction.interaction_status = InteractionStatus.OPTED_OUT
+            db.session.add(interaction)
+            db.session.commit()
+            return
 
         print(f"Message called at {datetime.datetime.now()}")
         twilio_client.messages.create(

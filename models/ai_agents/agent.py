@@ -14,7 +14,7 @@ class Agent(BaseDbModel):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(50)) # descriminator column
     description = db.Column(db.String(200))
-    sender_voter_relationship_id = db.Column(db.Integer, db.ForeignKey('sender_voter_relationship.id'))
+    sender_voter_relationship_id = db.Column(db.Integer, db.ForeignKey('sender_voter_relationship.id'), nullable=True)
     interactions = db.relationship('Interaction', backref='agent', lazy=True)
     conversation_history = db.Column(db.JSON())
     available_actions = db.Column(db.JSON())
@@ -24,7 +24,7 @@ class Agent(BaseDbModel):
         'polymorphic_on': name
     }
 
-    def __init__(self, system_prompt: str, name: str, description: str, sender_voter_relationship_id: int):
+    def __init__(self, system_prompt: str, name: str, description: str, sender_voter_relationship_id: int = None):
         self.system_prompt = system_prompt
         self.name = name
         self.description = description

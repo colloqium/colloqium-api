@@ -39,6 +39,7 @@ def audience():
         return delete_audience(data)
 
 def create_audience(data):
+    print("Creating audience")
     audience_name = data.get('audience_name')
     sender_id = data.get('sender_id')
 
@@ -52,6 +53,7 @@ def create_audience(data):
     
     voters = []
     if 'voters' in data.keys():
+        print("Audience creation request with voters")
         if 'voters_by_phone_number' in data.keys():
             formatted_phone_numbers = [format_phone_number(str(phone_number)) for phone_number in data['voters']]
             voters = Voter.query.filter(Voter.voter_phone_number.in_(formatted_phone_numbers)).all()
@@ -101,9 +103,15 @@ def update_audience(data):
         audience.audience_information = audience_information
 
     # Check and update voters
-    voter_ids = data.get('voters')
-    if voter_ids:
-        new_voters = Voter.query.filter(Voter.id.in_(voter_ids)).all()
+    voters = data.get('voters')
+    if voters:
+        if 'voters_by_phone_number' in data.keys():
+            formatted_phone_numbers = [format_phone_number(str(phone_number)) for phone_number in voters]
+            new_voters = Voter.query.filter(Voter.voter_phone_number.in_(formatted_phone_numbers)).all()
+        else:
+            voter_ids = data['voters']
+            new_voters = Voter.query.filter(Voter.id.in_(voter_ids)).all()
+        
         if new_voters:
             # Create a new list merging the existing voter and the new ones
             audience.voters = list(set(audience.voters + new_voters))
