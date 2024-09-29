@@ -28,7 +28,6 @@ dlm = RedLock(
 @celery_client.task(bind=True, base=BaseTaskWithDB, max_retries=1, default_retry_delay=30)  # bind=True to access self, max_retries and default_retry_delay are optional
 def initialize_interaction(self, interaction_id):
     with self.session_scope():
-        print(f"Initializing interaction {interaction_id}")
         interaction = Interaction.query.get(interaction_id)
 
         if not interaction:

@@ -49,12 +49,10 @@ class Interaction(BaseDbModel):
     # Relationships are set up in Recipient, Sender, and CampaignContext models
     
     def select_phone_number(self):
-        print(f"Selecting phone number for interaction {self.id}")
         sender = Sender.query.get(self.sender_id)
         return sender.phone_numbers[0].get_full_phone_number()
 
     def select_email(self):
-        print(f"Selecting email for interaction {self.id}")
         sender = Sender.query.get(self.sender_id)
         return sender.sender_email
 

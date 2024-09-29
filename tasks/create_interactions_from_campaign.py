@@ -26,7 +26,6 @@ def create_interactions_from_campaign(self, campaign_id: int, interaction_type: 
         for audience in audiences:
             voters = audience.voters
             for voter in voters:
-                print(f"Creating interaction for voter {voter.id}")
                 #check if an interaction already exists for this voter and campaign
                 #if so, do not create a new interaction
                 existing_interaction = Interaction.query.filter_by(voter_id=voter.id, campaign_id=campaign.id).first()

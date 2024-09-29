@@ -43,6 +43,9 @@ def create_voter(data):
     if 'bulk_create_or_update' in data.keys():
         voter_list = data['voters']
         audience_data = data.get('audience_data')
+        print(f"Creating {len(voter_list)} voters")
+        if audience_data:
+            print(f"Creating audience with {len(voter_list)} voters")
         
         if not voter_list:
             return jsonify({'error': 'voter list is required', 'status_code': 400}), 400

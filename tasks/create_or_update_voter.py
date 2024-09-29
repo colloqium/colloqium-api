@@ -12,6 +12,7 @@ from typing import List
 def create_or_update_voters(self, voters: List[Voter], audience_data=None):
     with self.session_scope():
         voter_ids = []
+        print(f"Creating or updating {len(voters)} voters")
         for voter in voters:
             voter_name = voter.get('voter_name')
             voter_phone_number = voter.get('voter_phone_number')
@@ -65,8 +66,11 @@ def create_or_update_voters(self, voters: List[Voter], audience_data=None):
                 db.session.commit()
 
             voter_ids.append(existing_voter.id)
+        
+        print(f"Finished creating or updating voters. Total voters: {len(voter_ids)}")
 
         if audience_data:
+            print(f"Creating or updating audience")
             # After voters are created, update or create the audience
             audience = Audience.query.filter_by(
                 audience_name=audience_data['audience_name'],
@@ -89,6 +93,9 @@ def create_or_update_voters(self, voters: List[Voter], audience_data=None):
             if 'campaigns' in audience_data:
                 campaigns = Campaign.query.filter(Campaign.id.in_(audience_data['campaigns'])).all()
                 audience.campaigns.extend(campaigns)
+
+            print(f"Audience {audience.id} created or updated")
+            print(f"Audience: {audience}")
 
             db.session.commit()
 

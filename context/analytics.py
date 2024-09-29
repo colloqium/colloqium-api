@@ -35,8 +35,6 @@ class analytics:
                 data=json.dumps([event_data])
             )
             response.raise_for_status()
-            print(f"Event tracked successfully: {event}")
-            print(response.json())
         except requests.exceptions.RequestException as e:
             print(f"Error tracking event: {e}")
             on_error(e, [event_data])

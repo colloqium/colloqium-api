@@ -1,6 +1,5 @@
 # from logs.logger import logger
 import random
-import openai
 import re
 import time
 from typing import List, Dict
@@ -17,18 +16,14 @@ def add_message_to_conversation(conversation: List[Dict[str, str]], message: Dic
     return conversation
 
 
-def get_llm_response_to_conversation(conversation, functions = []):
+def get_llm_response_to_conversation(conversation, functions=[]):
     conversation = conversation.copy()
     response_content = ""
 
-
-    # have a random wait time between 60 and 90 seconds to avoid hitting the rate limit
-    wait_time =  random.randint(60, 90)
-
-    max_retries = 50
+    max_retries = 20
     retry_count = 0
 
-    while retry_count <= max_retries:
+    while retry_count < max_retries:
         try:
             headers = {
                 "Content-Type": "application/json",
@@ -43,71 +38,44 @@ def get_llm_response_to_conversation(conversation, functions = []):
             if not functions == []:
                 payload["functions"] = functions
                 payload["function_call"] = "auto"
-            
-            # generate a new response from OpenAI to continue the conversation
 
+            # Generate a new response from OpenAI to continue the conversation
             print(f"payload: {payload}")
             response = requests.post(endpoint, headers=headers, json=payload)
-            print(response.json())
             response.raise_for_status()
 
-            '''
-            Response in the following formats:
-
-                    {
-                        "id": "chatcmpl-123",
-                        ...
-                        "choices": [{
-                            "index": 0,
-                            "message": {
-                            "role": "assistant",
-                            "content": null,
-                            "function_call": {
-                                "name": "get_current_weather",
-                                "arguments": "{ \"location\": \"Boston, MA\"}"
-                            }
-                            },
-                            "finish_reason": "function_call"
-                        }]
-                    }
-
-                    or
-
-                    {
-                        "id": "chatcmpl-123",
-                        ...
-                        "choices": [{
-                            "index": 0,
-                            "message": {
-                            "role": "assistant",
-                            "content": "The weather in Boston is currently sunny with a temperature of 22 degrees Celsius.",
-                            },
-                            "finish_reason": "stop"
-                        }]
-                    }
-            '''
             response_content = response.json()["choices"][0]["message"]
-
-
             conversation.append(response_content)
-            # print(f"Adding OpenAI response to conversation: {response_content}")
-            conversation = conversation
-            break
-        except openai.error.RateLimitError:
-            # sleep for a while before retrying
-            print(f"Model hit rate limit, waiting for {wait_time} seconds before retry...")
-            time.sleep(wait_time)
+            break  # Exit the loop if the request is successful
+
+        except requests.exceptions.HTTPError as http_err:
+            error_status = response.status_code
+            error_message = response.json().get("error", {}).get("message", "")
+            print(f"HTTP Error {error_status}: {error_message}")
+
+            if error_status == 429:
+                # Rate limit exceeded
+                wait_time = random.randint(60, 90)
+                print(f"Rate limit exceeded. Retrying in {wait_time} seconds...")
+            else:
+                # Other HTTP errors
+                wait_time = 5  # Shorter wait time for other errors
+                print(f"Retrying in {wait_time} seconds...")
+
             retry_count += 1
-            continue
-        except openai.error.ServiceUnavailableError:
-            print(f"Model unavailable, waiting for {wait_time} seconds before retry...")
             time.sleep(wait_time)
-            retry_count += 1
             continue
+
         except Exception as e:
-            print(f"Error: {e}")
+            print(f"Unexpected error: {e}")
+            wait_time = 5  # Short wait time for unexpected errors
+            print(f"Retrying in {wait_time} seconds...")
             retry_count += 1
+            time.sleep(wait_time)
             continue
+
+    if retry_count == max_retries:
+        raise Exception("Maximum retries exceeded")
 
     return conversation[-1]
 

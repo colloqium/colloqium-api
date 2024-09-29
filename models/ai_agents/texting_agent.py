@@ -20,8 +20,6 @@ class TextingAgent(Agent):
     def __init__(self, interaction_id: int):
 
         with db.session.no_autoflush:
-            print(f"Creating a new TextingAgent for interaction_id {interaction_id}")
-
             # get interaction
             interaction = Interaction.query.get(interaction_id)
 
@@ -122,8 +120,6 @@ class TextingAgent(Agent):
             content = content.replace("<VOTER_NAME>", voter_first_name)
 
             self.conversation_history.append({"role": "assistant", "content": content})
-
-            print(f"Generated first response for texting agent: {content}")
 
             interaction.conversation = self.conversation_history
             interaction.interaction_status = InteractionStatus.INITIALIZED
