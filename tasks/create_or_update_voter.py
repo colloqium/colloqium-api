@@ -2,14 +2,16 @@ from context.database import db
 from context.celery import celery_client
 from tasks.base_task import BaseTaskWithDB
 from models.voter import Voter, VoterProfile
+from models.sender import Audience, Campaign
 from tools.utility import format_phone_number
 from context.analytics import analytics, EVENT_OPTIONS
 from flask import jsonify
 from typing import List
 
 @celery_client.task(bind=True, base=BaseTaskWithDB, max_retries=10, default_retry_delay=30)
-def create_or_update_voters(self, voters: List[Voter]):
+def create_or_update_voters(self, voters: List[Voter], audience_data=None):
     with self.session_scope():
+        voter_ids = []
         for voter in voters:
             voter_name = voter.get('voter_name')
             voter_phone_number = voter.get('voter_phone_number')
@@ -62,10 +64,38 @@ def create_or_update_voters(self, voters: List[Voter]):
 
                 db.session.commit()
 
-            analytics.track(existing_voter.id, EVENT_OPTIONS.voter_created_or_updated, {
-                'name': existing_voter.voter_name,
-                'phone': existing_voter.voter_phone_number,
-                'email': existing_voter.voter_email
-            })
+            voter_ids.append(existing_voter.id)
 
-            print(f"Voter {existing_voter.id} created or updated")
+        if audience_data:
+            # After voters are created, update or create the audience
+            audience = Audience.query.filter_by(
+                audience_name=audience_data['audience_name'],
+                sender_id=audience_data['sender_id']
+            ).first()
+            
+            if not audience:
+                audience = Audience(
+                    audience_name=audience_data['audience_name'],
+                    audience_information=audience_data.get('audience_information'),
+                    sender_id=audience_data['sender_id']
+                )
+                db.session.add(audience)
+            
+            # Fetch voters by IDs and associate them with the audience
+            new_voters = Voter.query.filter(Voter.id.in_(voter_ids)).all()
+            audience.voters.extend(new_voters)
+            
+            # Associate campaigns if provided
+            if 'campaigns' in audience_data:
+                campaigns = Campaign.query.filter(Campaign.id.in_(audience_data['campaigns'])).all()
+                audience.campaigns.extend(campaigns)
+
+            db.session.commit()
+
+        analytics.track(existing_voter.id, EVENT_OPTIONS.voter_created_or_updated, {
+            'name': existing_voter.voter_name,
+            'phone': existing_voter.voter_phone_number,
+            'email': existing_voter.voter_email
+        })
+
+        print(f"Voter {existing_voter.id} created or updated")

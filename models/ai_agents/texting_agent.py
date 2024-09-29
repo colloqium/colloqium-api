@@ -39,14 +39,8 @@ class TextingAgent(Agent):
 
             sender_voter_relationship = SenderVoterRelationship.query.filter_by(sender_id=sender.id, voter_id=voter.id).first()
 
-            # look in the vector store for a subset of example interactions based on the campaign prompt
-            key_examples = get_vector_store_results(campaign.campaign_prompt, 2, 0.25, {'context': 'sender', 'id': sender.id})
 
-            # get the key_examples["text"] from each example and remove the brackets
-            key_examples = [example["text"] for example in key_examples]
-
-            # remove all [ and { }] from the examples
-            key_examples = [example.replace("[", "").replace("]", "").replace("{", "").replace("}", "") for example in key_examples]
+            key_examples = campaign.campaign_key_examples
 
             prompt_template = '''
                 Hey there! You're helping to connect with {voter_name} on behalf of {sender_name}. The tone? Let's keep it friendly and straightforward—like chatting with a mature friend. Aim for 1-2 sentences; keep it short and sweet. If the conversation starts to fizzle or they're all out of questions, make sure to say "goodbye" to wrap it up.

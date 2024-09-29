@@ -61,6 +61,7 @@ class Campaign(BaseDbModel):
     campaign_prompt = db.Column(db.Text)
     campaign_type = db.Column(db.Text)
     campaign_goal = db.Column(db.Text)
+    campaign_key_examples = db.Column(db.Text)
     initial_message = db.Column(db.Text)
     sender_id = db.Column(db.Integer, db.ForeignKey('sender.id'), name="sender_id")
     campaign_end_date = db.Column(db.Date)

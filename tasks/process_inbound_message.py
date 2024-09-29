@@ -1,6 +1,8 @@
 # import Flask and other libraries
 from models.interaction import InteractionStatus
 from models.ai_agents.agent import Agent
+from models.ai_agents.planning_agent import PlanningAgent
+from models.interaction import SenderVoterRelationship
 # from logs.logger import logging
 from context.database import db
 from context.analytics import analytics, EVENT_OPTIONS
@@ -56,6 +58,19 @@ def process_inbound_message(self, interaction_id, message_body, sender_phone_num
         flag_modified(interaction, "conversation")
         db.session.add(interaction)
         db.session.commit()
+
+        sender_voter_relationship = SenderVoterRelationship.query.filter_by(sender_id=sender.id, voter_id=voter.id).first()
+
+        # look for an agent with the name planning_agent in the sender_voter_relationship
+        planning_agent = Agent.query.filter_by(sender_voter_relationship_id=sender_voter_relationship.id, name="planning_agent").first()
+
+        # if planner doesn't exist, create a new one
+        if not planning_agent:
+            planning_agent = PlanningAgent(sender_voter_relationship_id=sender_voter_relationship.id)
+            db.session.add(planning_agent)
+            db.session.commit()
+            # get the hydrated planner agent
+            planning_agent = Agent.query.filter_by(sender_voter_relationship_id=sender_voter_relationship.id, name="planning_agent").first()
 
         
         # check if the last element in the texting agent is a function, if so do not send a message

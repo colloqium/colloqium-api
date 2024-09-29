@@ -1,6 +1,7 @@
 # import Flask and other libraries
 from models.interaction import Interaction, SenderVoterRelationship
 from models.interaction_types import INTERACTION_TYPES
+from models.sender import Campaign, Sender
 from models.ai_agents.planning_agent import PlanningAgent
 from models.ai_agents.texting_agent import TextingAgent
 from models.ai_agents.robo_caller_agent import RoboCallerAgent
@@ -10,6 +11,7 @@ from models.ai_agents.campaign_message_agent import CampaignMessageAgent
 from context.database import db
 from context.celery import celery_client
 from tasks.base_task import BaseTaskWithDB
+from tools.vector_store_utility import get_vector_store_results
 from redis import Redis
 from redlock import RedLock
 import os
@@ -42,34 +44,6 @@ def initialize_interaction(self, interaction_id):
             # get the hydrated sender_voter_relationship
             sender_voter_relationship = SenderVoterRelationship.query.filter_by(sender_id=interaction.sender_id, voter_id=interaction.voter_id).first()
 
-        # look for an agent with the name planning_agent in the sender_voter_relationship
-        planning_agent = Agent.query.filter_by(sender_voter_relationship_id=sender_voter_relationship.id, name="planning_agent").first()
-
-        # if planner doesn't exist, create a new one
-        if not planning_agent:
-            planning_agent = PlanningAgent(sender_voter_relationship_id=sender_voter_relationship.id)
-            db.session.add(planning_agent)
-            db.session.commit()
-            # get the hydrated planner agent
-            planning_agent = Agent.query.filter_by(sender_voter_relationship_id=sender_voter_relationship.id, name="planning_agent").first()
-
-        print(f"Interaction Type Of Interaction: {interaction.interaction_type}")
-        print(f"Type of interaction.interaction_type: {type(interaction.interaction_type)}")
-        print(f"Text message from Interaction Types enum: {INTERACTION_TYPES['text_message']}")
-        print(f"Type of INTERACTION_TYPES['text_message']: {type(INTERACTION_TYPES['text_message'])}")
-
-        # If interaction.interaction_type is a string, try converting INTERACTION_TYPES to string
-        if isinstance(interaction.interaction_type, str):
-            print(f"Check if interaction type is text message: {interaction.interaction_type == str(INTERACTION_TYPES['text_message'])}")
-        else:
-            print(f"Check if interaction type is text message: {interaction.interaction_type == INTERACTION_TYPES['text_message']}")
-
-        print(f"Robo call from Interaction Types enum: {INTERACTION_TYPES['robo_call']}")
-        print(f"Email from Interaction Types enum: {INTERACTION_TYPES['email']}")
-
-        print(f"Check if interaction type is robo call: {interaction.interaction_type == INTERACTION_TYPES['robo_call']}")
-        print(f"Check if interaction type is email: {interaction.interaction_type == INTERACTION_TYPES['email']}")
-
         # check if an initial message for this campaign already exists
         if interaction.campaign.initial_message:
             pass
@@ -81,6 +55,7 @@ def initialize_interaction(self, interaction_id):
                     # Double-check if the initial message was created while waiting for the lock
                     db.session.refresh(interaction.campaign)
                     if not interaction.campaign.initial_message:
+                        print("Generating a new initial message")
                         # generate a new initial message
                         campaign_agent = CampaignMessageAgent(interaction.campaign.id)
                         initial_message = campaign_agent.send_prompt({
@@ -88,6 +63,12 @@ def initialize_interaction(self, interaction_id):
                         })
                         print(f"Initial message: {initial_message}")
                         interaction.campaign.initial_message = initial_message["llm_response"]["content"]
+
+                        # generate key examples
+                        key_examples = generate_key_examples(interaction.campaign, interaction.sender)
+                        print(f"Key examples: {key_examples}")
+                        interaction.campaign.campaign_key_examples = key_examples
+
                         db.session.add(interaction.campaign)
                         db.session.commit()
                 finally:
@@ -101,17 +82,24 @@ def initialize_interaction(self, interaction_id):
         #if text create a texting agent
         if interaction.interaction_type == str(INTERACTION_TYPES["text_message"]):
             agent = TextingAgent(interaction.id)
-            print("Created a texting agent")
         elif interaction.interaction_type == str(INTERACTION_TYPES["robo_call"]):
             agent = RoboCallerAgent(interaction.id)
-            print("Created a robo caller agent")
         elif interaction.interaction_type == str(INTERACTION_TYPES["email"]):
             agent = EmailAgent(interaction.id)
-            print("Created an email agent")
 
-        print(f"Agent after creation: {agent}")
-        print(f"Agent type: {type(agent)}")
         db.session.add(agent)
         db.session.commit()
 
         db.session.remove()
+
+def generate_key_examples(campaign: Campaign, sender: Sender):
+    # look in the vector store for a subset of example interactions based on the campaign prompt
+    key_examples = get_vector_store_results(campaign.campaign_prompt, 2, 0.25, {'context': 'sender', 'id': sender.id})
+
+    # get the key_examples["text"] from each example and remove the brackets
+    key_examples = [example["text"] for example in key_examples]
+
+    # remove all [ and { }] from the examples
+    key_examples = [example.replace("[", "").replace("]", "").replace("{", "").replace("}", "") for example in key_examples]
+
+    return key_examples

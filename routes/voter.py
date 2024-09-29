@@ -42,11 +42,15 @@ def create_voter(data):
     #Check if bulk upload or create is in the file
     if 'bulk_create_or_update' in data.keys():
         voter_list = data['voters']
-
+        audience_data = data.get('audience_data')
+        
         if not voter_list:
             return jsonify({'error': 'voter list is required', 'status_code': 400}), 400
         
-        create_or_update_voters.apply_async(args=[voter_list])
+        if not audience_data:
+            return jsonify({'error': 'audience data is required', 'status_code': 400}), 400
+        
+        create_or_update_voters.apply_async(args=[voter_list, audience_data])
         return jsonify({'status': 'success', 'status_code': 200}), 200
     
     # Check if voter name is provided
